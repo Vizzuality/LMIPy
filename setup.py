@@ -7,7 +7,7 @@ setuptools.setup(
     name="LMIPy",
     version="0.0.1",
     author="Vizzuality",
-    author_email="benjamin.laken@viizuality.com",
+    author_email="benlaken@icloud.com",
     description="Interface to modify geospatial layers in the Resource Watch API",
     long_description=long_description,
     long_description_content_type="text/markdown",
