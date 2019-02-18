@@ -11,6 +11,7 @@ setuptools.setup(
     description="Interface to modify geospatial layers in the Resource Watch API",
     long_description=long_description,
     long_description_content_type="text/markdown",
+    license='MIT',
     url="https://github.com/Vizzuality/LMIPy",
     packages=setuptools.find_packages(),
     classifiers=[
