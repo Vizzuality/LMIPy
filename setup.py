@@ -13,7 +13,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     license='MIT',
     url="https://github.com/Vizzuality/LMIPy",
-    packages=setuptools.find_packages(),
+    install_requires=['requests>=2.2.0'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
