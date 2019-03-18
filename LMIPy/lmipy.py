@@ -6,7 +6,6 @@ class LMI(object):
         self.token = token
         self.server = server
 
-
     def set_token(self, token):
         """Set the API token"""
         try:
@@ -15,9 +14,8 @@ class LMI(object):
         except:
             raise ValueError('API token invalid')
 
-
     def set_server(self, server):
-        """Set the targer server"""
+        """Set the targert server"""
         try:
             server = str(server)
             self.server = server
