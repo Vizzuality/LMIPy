@@ -15,7 +15,7 @@ class LMI(object):
             raise ValueError('API token invalid')
 
     def set_server(self, server):
-        """Set the targert server"""
+        """Set the target server"""
         try:
             server = str(server)
             self.server = server
