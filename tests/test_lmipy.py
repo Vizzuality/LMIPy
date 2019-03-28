@@ -15,3 +15,11 @@ def test_set_server():
     lmi.set_server(server)
     assert server == lmi.set_server
 
+
+def test_collection():
+    """Search layers """
+    lmi = LMI()
+    server = 'https:/production-api.globalforestwatch.org'
+    lmi.set_server(server)
+    c = lmi.collection('Tree cover loss')
+    assert len(c) > 0
