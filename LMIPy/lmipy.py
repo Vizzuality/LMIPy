@@ -60,7 +60,8 @@ class LMI:
         if 'layer' in object_type:
             response_list = self.get_layers(search=search, env=env, app_string=app_string, limit=limit)
         else:
-            response_list = self.get_datasets(search=search, env=env, app_string=app_string, limit=limit) 
+            response_list = self.get_datasets(search=search, env=env, app_string=app_string, limit=limit)  
+        response_list = order_results(response_list)
         return response_list
     
     def get_datasets(self, search, env, app_string, limit):
@@ -108,12 +109,17 @@ class LMI:
             if in_name or in_description:
                 if len(filtered_response) < limit:
                     filtered_response.append(item)
-
                 if item.get('type') == 'dataset':
                     collection.append(Dataset(id_hash = item.get('id'), attributes=item.get('attributes')))
                 if item.get('type') == 'layer':
                     collection.append(Layer())
         return collection
+    
+    
+    def order_results(self, response_list, limit,):
+        """Operate on a list of objects given the rules a user has passed"""
+        pass
+        return response_list
     
     
 class Dataset:
