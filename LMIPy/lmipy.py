@@ -141,14 +141,19 @@ class Dataset:
     
     def _repr_html_(self):
         """For notebook"""
+        table_statement = f"Data source {self.attributes.get('provider')}"
         if self.attributes.get('connectorUrl'):
-            table_statement = (f"Origin source: <a href={self.attributes.get('connectorUrl')}"
+            table_statement = (f"Carto table: <a href={self.attributes.get('connectorUrl')}"
                                " target='_blank'>"
                                f"{self.attributes.get('tableName')}"
                                "</a>"
                               )
-        else:
-            table_statement = "Data source X"
+        if self.attributes.get('provider') == 'gee':
+            table_statement = (f"GEE asset: <a href='https://code.earthengine.google.com/asset='"
+                               f"{self.attributes.get('tableName')} target='_blank'>"
+                               f"{self.attributes.get('tableName')}"
+                               "</a>"
+                              )
         
         html = ("<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #80ceb9;"
                 "border-radius: 2px; background: #f2fffb; line-height: 1.21429em; padding: 10px;''>"
