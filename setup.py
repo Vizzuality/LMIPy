@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="LMIPy",
-    version="0.0.1",
+    version="0.0.2",
     author="Vizzuality",
     author_email="benlaken@icloud.com",
     description="Interface to modify geospatial layers in the Resource Watch API",
@@ -13,7 +13,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     license='MIT',
     url="https://github.com/Vizzuality/LMIPy",
-    packages=setuptools.find_packages(),
+    install_requires=['requests>=2.2.0'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",

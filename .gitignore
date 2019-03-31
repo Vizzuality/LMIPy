@@ -1,3 +1,8 @@
 LMIPy.egg-info/
 build/
 dist/
+
+# Nbk Stuff
+.ipynb_checkpoints/
+LMI-dev-nbk.ipynb
+LMIPy/__pycache__/
