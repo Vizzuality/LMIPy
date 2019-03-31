@@ -93,7 +93,10 @@ class Collection:
         else:
             self.iter_position += 1
             return self.collection[self.iter_position - 1]
-            
+    
+    def __getitem__(self, key):
+        return self.collection[key]
+    
     def get_collection(self):
         """
         Getter for the a collection object.
@@ -197,6 +200,16 @@ class Dataset:
         if len(self.attributes.get('layer')) > 0:
             self.layers = [Layer(attributes=l) for l in self.attributes.get('layer')]
             _ = self.attributes.pop('layer')
+        if len(self.attributes.get('metadata')) > 0:
+            self.metadata = Metadata(self.attributes.get('metadata')[0])
+            _ = self.attributes.pop('metadata')
+        else:
+            self.metadata = False
+        if len(self.attributes.get('vocabulary')) > 0:
+            self.vocabulary = Vocabulary(self.attributes.get('vocabulary')[0])
+            _ = self.attributes.pop('vocabulary')
+        else:
+            self.vocabulary = False
         self.url = f"{server}/v1/dataset/{id_hash}?hash={random.getrandbits(16)}"
     
     def __repr__(self):
@@ -265,3 +278,46 @@ class Layer:
             raise ValueError(f'Unable to get dataset {self.id} from {r.url}')  
 
     
+    
+class Metadata:
+    """ 
+    This is the main Metadata class. 
+      
+    Parameters
+    ----------
+    attributes: dic 
+        A dictionary holding the attributes of a metadata (which are attached to a Dataset).
+    """
+    def __init__(self, attributes=None):
+        if attributes.get('type') != 'metadata':
+            raise ValueError(f"Non metadata attributes passed to Metadata class ({attributes.get('type')})")
+        self.id = attributes.get('id')
+        self.attributes = attributes.get('attributes')
+    
+    def __repr__(self):
+        return self.__str__()
+    
+    def __str__(self):
+        return f"Metadata {self.id}"
+    
+    
+class Vocabulary:
+    """ 
+    This is the main Vocabulary class. 
+      
+    Parameters
+    ----------
+    attributes: dic 
+        A dictionary holding the attributes of a vocabulary (which are attached to a Dataset).
+    """
+    def __init__(self, attributes=None,):
+        if attributes.get('type') != 'vocabulary':
+            raise ValueError(f"Non vocabulary attributes passed to Vocabulary class ({attributes.get('type')})")
+        self.attributes = attributes.get('attributes')
+        self.id = self.attributes.get('resource').get('id')
+    
+    def __repr__(self):
+        return self.__str__()
+    
+    def __str__(self):
+        return f"Vocabulary {self.id}"
