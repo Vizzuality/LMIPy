@@ -68,7 +68,7 @@ class Collection:
     object_type: list
         A list of strings of object types to search, e.g. [‘dataset’, ‘layer’]
     """
-    def __init__(self, search, app=['gfw','rw'], env='production', limit=1000, order='updatedAt', sort='desc',
+    def __init__(self, search, app=['gfw','rw'], env='production', limit=1000, order='name', sort='desc',
                  object_type=['dataset', 'layer'], server='https://api.resourcewatch.org'):
         self.server = server
         self.search = search.strip().split(' ')
@@ -139,7 +139,6 @@ class Collection:
         for item in response_list:
             in_description = False
             in_name = False
-            id_hash = item.get('id')
             name = item.get('attributes').get('name').lower()
             description = item.get('attributes').get('description')
             if description:
@@ -152,17 +151,21 @@ class Collection:
                 if item.get('type') == 'dataset':
                     collection.append(Dataset(id_hash = item.get('id'), attributes=item.get('attributes')))
                 if item.get('type') == 'layer':
-                    collection.append(Layer())
+                    collection.append(Layer(id_hash = item.get('id'), attributes=item.get('attributes')))
         return collection
 
     def order_results(self, collection_list):
         """Operate on a list of objects given the order key, limit, and rule a user has passed"""
         tmp_sorted = []
         try:
-            for _, c in sorted(zip([c.attributes.get(self.order) for c in collection_list], collection_list), reverse=self.sort.lower() == 'asc'):
-                tmp_sorted.append(c)
+            d = {}
+            for n, z in enumerate([c.attributes.get(self.order.lower()) for c in collection_list]):
+                d[z] = collection_list[n]
+            keys = sorted(d, reverse=self.sort.lower() == 'asc')
+            for key in keys:
+                tmp_sorted.append(d[key])
         except:
-            raise ValueError(f'Order param does not exist in collection: {self.order}, rule: {self.sort}')
+            raise ValueError(f'[Order-error] Param does not exist in collection: {self.order}, rule: {self.sort}')
         if self.limit < len(tmp_sorted):
             tmp_sorted = tmp_sorted[0:self.limit]
         return tmp_sorted
