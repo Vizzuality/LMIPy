@@ -41,6 +41,7 @@ Layer dc6f6dd2-0718-4e41-81d2-109866bb9edd
 ```
 
 Obtain a collection of objects using a search term.
+```
 >>> col = Collection(search='tree',object_type=['dataset'], app=['gfw'],limit=5)
 >>> print(col)
 [Dataset 70e2549c-d722-44a6-a8d7-4a385d78565e,
@@ -48,8 +49,6 @@ Obtain a collection of objects using a search term.
  Dataset 89755b9f-df05-4e22-a9bc-05217c8eafc8,
  Dataset 83f8365b-f40b-4b91-87d6-829425093da1,
  Dataset 044f4af8-be72-4999-b7dd-13434fc4a394]
-
 ```
-
 
 Check back soon as this library is under development.
