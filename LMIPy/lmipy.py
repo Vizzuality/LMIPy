@@ -3,6 +3,49 @@ import random
 from IPython.display import display, HTML
 
 
+def html_box(item):
+    """Returns an HTML block with template strings filled-in based on item attributes."""
+    is_layer = type(item) == Layer
+    is_dataset = type(item) == Dataset
+    if is_layer:
+        kind_of_item = 'Layer'
+        url_link = f'{item.server}/v1/layer/{item.id}?includes=vocabulary,metadata'
+    elif is_dataset:
+        kind_of_item = 'Dataset'
+        url_link = f'{item.server}/v1/dataset/{item.id}?includes=vocabulary,metadata,layer'        
+    else:
+        kind_of_item = 'Unknown'
+    table_statement = f"Data source {item.attributes.get('provider')}"
+    if item.attributes.get('connectorUrl'):
+        table_statement = (f"Carto table: <a href={item.attributes.get('connectorUrl')}"
+                           " target='_blank'>"
+                           f"{item.attributes.get('tableName')}"
+                           "</a>"
+                          )
+    if item.attributes.get('provider') == 'gee':
+        table_statement = (f"GEE asset: <a href='https://code.earthengine.google.com/asset='"
+                           f"{item.attributes.get('tableName')} target='_blank'>"
+                           f"{item.attributes.get('tableName')}"
+                           "</a>"
+                          )
+
+    html = ("<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #80ceb9;"
+            "border-radius: 2px; background: #f2fffb; line-height: 1.21429em; padding: 10px;''>"
+            "<div class='item_left' style='width: 210px; float: left;''>"
+            "<a href='https://resourcewatch.org/' target='_blank'>"
+            "<img class='itemThumbnail' src='https://resourcewatch.org/static/images/logo-embed.png'>"
+            "</a></div><div class='item_right' style='float: none; width: auto; overflow: hidden;''>"
+            f"<a href={url_link} target='_blank'>"
+            f"<b>{item.attributes.get('name')}</b>"
+            "</a>"
+            f"<br> {table_statement} 🗺{kind_of_item} in {', '.join(item.attributes.get('application')).upper()}."
+            f"<br>Last Modified: {item.attributes.get('updatedAt')}"
+            f"<br>Connector: {None}"
+            f" | Published: {item.attributes.get('published')}"
+            " </div> </div>")
+    return html
+
+
 class Collection:
     """
     Returns a list of objects from a server
@@ -120,17 +163,26 @@ class Dataset:
     """ 
     This is the main Dataset class. 
       
-    Attributes: 
-        id_hash (int): An ID hash. 
-        attributes (dic): A dictionary holding the attributes of a dataset. 
+    Parameters
+    ---------- 
+    id_hash: int
+        An ID hash of the dataset in the API. 
+    attributes: dic
+        A dictionary holding the attributes of a dataset.
+    sever: str
+        A URL string of the vizzuality server.
     """
     def __init__(self,id_hash=None, attributes=None, server='https://api.resourcewatch.org'):
         self.id = id_hash
+        self.layers = []
         self.server = server
         if not attributes:
             self.attributes = self.get_dataset()
         else:
             self.attributes = attributes
+        if len(self.attributes.get('layer')) > 0:
+            self.layers = [Layer(attributes=l) for l in self.attributes.get('layer')]
+            _ = self.attributes.pop('layer')
         self.url = f"{server}/v1/dataset/{id_hash}?hash={random.getrandbits(16)}"
     
     def __repr__(self):
@@ -139,46 +191,15 @@ class Dataset:
     def __str__(self):
         return f"Dataset {self.id}"
     
-    def _repr_html_(self):
-        """For notebook"""
-        table_statement = f"Data source {self.attributes.get('provider')}"
-        if self.attributes.get('connectorUrl'):
-            table_statement = (f"Carto table: <a href={self.attributes.get('connectorUrl')}"
-                               " target='_blank'>"
-                               f"{self.attributes.get('tableName')}"
-                               "</a>"
-                              )
-        if self.attributes.get('provider') == 'gee':
-            table_statement = (f"GEE asset: <a href='https://code.earthengine.google.com/asset='"
-                               f"{self.attributes.get('tableName')} target='_blank'>"
-                               f"{self.attributes.get('tableName')}"
-                               "</a>"
-                              )
+    def _repr_html_(self):        
+        return html_box(item=self)
         
-        html = ("<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #80ceb9;"
-                "border-radius: 2px; background: #f2fffb; line-height: 1.21429em; padding: 10px;''>"
-                "<div class='item_left' style='width: 210px; float: left;''>"
-                "<a href='https://resourcewatch.org/' target='_blank'>"
-                "<img class='itemThumbnail' src='https://resourcewatch.org/static/images/logo-embed.png'>"
-                "</a></div><div class='item_right' style='float: none; width: auto; overflow: hidden;''>"
-                f"<a href={self.url} target='_blank'>"
-                f"<b>{self.attributes.get('name')}</b>"
-                "</a>"
-                f"<br> {table_statement} 🗺Dataset in {', '.join(self.attributes.get('application')).upper()}."
-                f"<br>Last Modified: {self.attributes.get('updatedAt')}"
-                f"<br>Connector: {self.attributes.get('connectorType').title()}"
-                f" | Published: {self.attributes.get('published')}"
-                " </div> </div>")
-        
-        return html
-        
-    
     def get_dataset(self):
         """
         Retrieve a dataset from a server by ID.
         """
         hash = random.getrandbits(16)
-        url = (f'{self.server}/v1/dataset/{self.id}?hash={hash}')
+        url = (f'{self.server}/v1/dataset/{self.id}?includes=layer,vocabulary,metadata&hash={hash}')
         r = requests.get(url)
         if r.status_code == 200:
             return r.json().get('data').get('attributes')
@@ -187,11 +208,46 @@ class Dataset:
 
 
 class Layer:
-    def __init__(self):
-        self.id = None
-        self.dataset = None
-        
+    """ 
+    This is the main Layer class. 
+      
+    Parameters
+    ----------
+    id_hash: int 
+        An ID hash. 
+    attributes: dic 
+        A dictionary holding the attributes of a dataset.
+    server: str
+        A string of the server URL.
+    """
+    def __init__(self, id_hash=None, attributes=None, server='https://api.resourcewatch.org'):
+        self.server = server
+        if not id_hash:
+            self.id = attributes.get('id', None)
+            self.attributes = attributes.get('attributes', None)
+        else:
+            self.id = id_hash
+            self.attributes = self.get_layer()
+    
     def __repr__(self):
+        return self.__str__()
+    
+    def __str__(self):
         return f"Layer {self.id}"
+    
+    def _repr_html_(self):    
+        return html_box(item=self)
+    
+    def get_layer(self):
+        """
+        Returns a layer from a Vizzuality API.
+        """
+        hash = random.getrandbits(16)
+        url = (f'{self.server}/v1/layer/{self.id}?includes=vocabulary,metadata&hash={hash}')
+        r = requests.get(url)
+        if r.status_code == 200:
+            return r.json().get('data').get('attributes')
+        else:
+            raise ValueError(f'Unable to get dataset {self.id} from {r.url}')  
 
     
