@@ -23,7 +23,33 @@ Currently this software is not ready for use.
 $ python
 >>> import LMIPy
 >>> LMIPy.__version__
-'0.0.1'
+'0.0.2'
 ```
+
+Create a Dataset object based on an existing ID on default (RW) server.
+```
+>>> ds = Dataset('044f4af8-be72-4999-b7dd-13434fc4a394')
+>>> print(ds)
+Dataset 044f4af8-be72-4999-b7dd-13434fc4a394
+```
+
+Create a Layer object based on an existing ID on default (RW) server.
+```
+>>> ly = Layer(id_hash='dc6f6dd2-0718-4e41-81d2-109866bb9edd')
+>>> print(ly)
+Layer dc6f6dd2-0718-4e41-81d2-109866bb9edd
+```
+
+Obtain a collection of objects using a search term.
+>>> col = Collection(search='tree',object_type=['dataset'], app=['gfw'],limit=5)
+>>> print(col)
+[Dataset 70e2549c-d722-44a6-a8d7-4a385d78565e,
+ Dataset 897ecc76-2308-4c51-aeb3-495de0bdca79,
+ Dataset 89755b9f-df05-4e22-a9bc-05217c8eafc8,
+ Dataset 83f8365b-f40b-4b91-87d6-829425093da1,
+ Dataset 044f4af8-be72-4999-b7dd-13434fc4a394]
+
+```
+
 
 Check back soon as this library is under development.

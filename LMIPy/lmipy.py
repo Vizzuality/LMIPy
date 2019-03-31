@@ -82,7 +82,7 @@ class Collection:
         self.iter_position = 0
 
     def __repr__(self):
-        return f"LMI class object"
+        return str(self.collection)
 
     def __iter__(self):
         return self
