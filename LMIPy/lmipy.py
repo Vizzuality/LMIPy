@@ -68,7 +68,7 @@ class Collection:
     object_type: list
         A list of strings of object types to search, e.g. [‘dataset’, ‘layer’]
     """
-    def __init__(self, search, app=['gfw','rw'], env='production', limit=1000, order='date', sort='asc',
+    def __init__(self, search, app=['gfw','rw'], env='production', limit=1000, order='updatedAt', sort='desc',
                  object_type=['dataset', 'layer'], server='https://api.resourcewatch.org'):
         self.server = server
         self.search = search.strip().split(' ')
@@ -101,9 +101,10 @@ class Collection:
         if 'layer' in self.object_type:
             response_list = self.get_layers()
         else:
-            response_list = self.get_datasets()  
-        response_list = self.order_results(response_list)
-        return response_list
+            response_list = self.get_datasets()
+
+        ordered_list = self.order_results(response_list) 
+        return ordered_list
     
     def get_datasets(self):
         """Return all datasets and connected items within a limit and specified environment"""
@@ -153,10 +154,23 @@ class Collection:
         return collection
     
     
-    def order_results(self, response_list):
+    def order_results(self, collection_list):
         """Operate on a list of objects given the rules a user has passed"""
-        pass
-        return response_list
+        field = self.order
+        if self.sort.lower() == 'asc':
+            sort_order = False
+        elif self.sort.lower() == 'desc':
+            sort_order = True
+        else:
+            raise ValueError('Sort param must be "asc" or "desc"')
+            
+        attributes_list = [col.attributes for col in collection_list]
+
+        if all([field in keys for keys in [list(attributes.keys()) for attributes in attributes_list]]):
+            ordered_list = sorted(attributes_list, key=lambda k: k[field], reverse=sort_order)
+        else:
+            raise ValueError('Order param does not exist in collection')
+        return ordered_list
     
     
 class Dataset:
