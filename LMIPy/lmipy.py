@@ -12,7 +12,7 @@ def html_box(item):
         url_link = f'{item.server}/v1/layer/{item.id}?includes=vocabulary,metadata'
     elif is_dataset:
         kind_of_item = 'Dataset'
-        url_link = f'{item.server}/v1/dataset/{item.id}?includes=vocabulary,metadata,layer'        
+        url_link = f'{item.server}/v1/dataset/{item.id}?includes=vocabulary,metadata,layer'
     else:
         kind_of_item = 'Unknown'
     table_statement = f"Data source {item.attributes.get('provider')}"
@@ -56,7 +56,7 @@ class Collection:
     Parameters
     ----------
     app: list
-        A list of string IDs of applications to search, e.g. [‘gfw’, ‘rw’] 
+        A list of string IDs of applications to search, e.g. [‘gfw’, ‘rw’]
     limit: int
         Maximum number of items to return
     order: str
@@ -68,7 +68,7 @@ class Collection:
     object_type: list
         A list of strings of object types to search, e.g. [‘dataset’, ‘layer’]
     """
-    def __init__(self, search, app=['gfw','rw'], env='production', limit=1000, order='date', sort='asc',
+    def __init__(self, search, app=['gfw','rw'], env='production', limit=1000, order='updatedAt', sort='desc',
                  object_type=['dataset', 'layer'], server='https://api.resourcewatch.org'):
         self.server = server
         self.search = search.strip().split(' ')
@@ -80,9 +80,9 @@ class Collection:
         self.object_type = object_type
         self.collection = self.get_collection()
         self.iter_position = 0
-        
+
     def __repr__(self):
-        return f"LMI class object"        
+        return f"LMI class object"
 
     def __iter__(self):
         return self
@@ -93,21 +93,21 @@ class Collection:
         else:
             self.iter_position += 1
             return self.collection[self.iter_position - 1]
-    
+
     def __getitem__(self, key):
         return self.collection[key]
-    
+
     def get_collection(self):
         """
         Getter for the a collection object.
-        """ 
+        """
         if 'layer' in self.object_type:
             response_list = self.get_layers()
         else:
-            response_list = self.get_datasets()  
-        response_list = self.order_results(response_list)
-        return response_list
-    
+            response_list = self.get_datasets()
+        ordered_list = self.order_results(response_list)
+        return ordered_list
+
     def get_datasets(self):
         """Return all datasets and connected items within a limit and specified environment"""
         hash = random.getrandbits(16)
@@ -119,7 +119,7 @@ class Collection:
             raise ValueError('No items found')
         identified_layers = self.filter_results(response_list)
         return identified_layers
-    
+
     def get_layers(self):
         """Return all layers from specified apps and environment within a limit number"""
         hash = random.getrandbits(16)
@@ -131,7 +131,7 @@ class Collection:
             raise ValueError('No items found')
         identified_layers = self.filter_results(response_list)
         return identified_layers
-    
+
     def filter_results(self, response_list):
         """Search by a list of strings to return a filtered list of Dataset or Layer objects"""
         filtered_response = []
@@ -154,22 +154,28 @@ class Collection:
                 if item.get('type') == 'layer':
                     collection.append(Layer())
         return collection
-    
-    
-    def order_results(self, response_list):
-        """Operate on a list of objects given the rules a user has passed"""
-        pass
-        return response_list
-    
-    
+
+    def order_results(self, collection_list):
+        """Operate on a list of objects given the order key, limit, and rule a user has passed"""
+        tmp_sorted = []
+        try:
+            for _, c in sorted(zip([c.attributes.get(self.order) for c in collection_list], collection_list), reverse=self.sort.lower() == 'asc'):
+                tmp_sorted.append(c)
+        except:
+            raise ValueError(f'Order param does not exist in collection: {self.order}, rule: {self.sort}')
+        if self.limit < len(tmp_sorted):
+            tmp_sorted = tmp_sorted[0:self.limit]
+        return tmp_sorted
+
+
 class Dataset:
-    """ 
-    This is the main Dataset class. 
-      
+    """
+    This is the main Dataset class.
+
     Parameters
-    ---------- 
+    ----------
     id_hash: int
-        An ID hash of the dataset in the API. 
+        An ID hash of the dataset in the API.
     attributes: dic
         A dictionary holding the attributes of a dataset.
     sever: str
@@ -197,16 +203,16 @@ class Dataset:
         else:
             self.vocabulary = False
         self.url = f"{server}/v1/dataset/{id_hash}?hash={random.getrandbits(16)}"
-    
+
     def __repr__(self):
         return self.__str__()
-    
+
     def __str__(self):
         return f"Dataset {self.id}"
-    
-    def _repr_html_(self):        
+
+    def _repr_html_(self):
         return html_box(item=self)
-        
+
     def get_dataset(self):
         """
         Retrieve a dataset from a server by ID.
@@ -221,14 +227,14 @@ class Dataset:
 
 
 class Layer:
-    """ 
-    This is the main Layer class. 
-      
+    """
+    This is the main Layer class.
+
     Parameters
     ----------
-    id_hash: int 
-        An ID hash. 
-    attributes: dic 
+    id_hash: int
+        An ID hash.
+    attributes: dic
         A dictionary holding the attributes of a dataset.
     server: str
         A string of the server URL.
@@ -236,21 +242,25 @@ class Layer:
     def __init__(self, id_hash=None, attributes=None, server='https://api.resourcewatch.org'):
         self.server = server
         if not id_hash:
-            self.id = attributes.get('id', None)
-            self.attributes = attributes.get('attributes', None)
+            if attributes:
+                self.id = attributes.get('id', None)
+                self.attributes = attributes.get('attributes', None)
+            else:
+                self.id = None
+                self.attributes = None
         else:
             self.id = id_hash
             self.attributes = self.get_layer()
-    
+
     def __repr__(self):
         return self.__str__()
-    
+
     def __str__(self):
         return f"Layer {self.id}"
-    
-    def _repr_html_(self):    
+
+    def _repr_html_(self):
         return html_box(item=self)
-    
+
     def get_layer(self):
         """
         Returns a layer from a Vizzuality API.
@@ -261,17 +271,17 @@ class Layer:
         if r.status_code == 200:
             return r.json().get('data').get('attributes')
         else:
-            raise ValueError(f'Unable to get dataset {self.id} from {r.url}')  
+            raise ValueError(f'Unable to get dataset {self.id} from {r.url}')
 
-    
-    
+
+
 class Metadata:
-    """ 
-    This is the main Metadata class. 
-      
+    """
+    This is the main Metadata class.
+
     Parameters
     ----------
-    attributes: dic 
+    attributes: dic
         A dictionary holding the attributes of a metadata (which are attached to a Dataset).
     """
     def __init__(self, attributes=None):
@@ -279,21 +289,21 @@ class Metadata:
             raise ValueError(f"Non metadata attributes passed to Metadata class ({attributes.get('type')})")
         self.id = attributes.get('id')
         self.attributes = attributes.get('attributes')
-    
+
     def __repr__(self):
         return self.__str__()
-    
+
     def __str__(self):
         return f"Metadata {self.id}"
-    
-    
+
+
 class Vocabulary:
-    """ 
-    This is the main Vocabulary class. 
-      
+    """
+    This is the main Vocabulary class.
+
     Parameters
     ----------
-    attributes: dic 
+    attributes: dic
         A dictionary holding the attributes of a vocabulary (which are attached to a Dataset).
     """
     def __init__(self, attributes=None,):
@@ -301,9 +311,9 @@ class Vocabulary:
             raise ValueError(f"Non vocabulary attributes passed to Vocabulary class ({attributes.get('type')})")
         self.attributes = attributes.get('attributes')
         self.id = self.attributes.get('resource').get('id')
-    
+
     def __repr__(self):
         return self.__str__()
-    
+
     def __str__(self):
         return f"Vocabulary {self.id}"
