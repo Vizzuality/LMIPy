@@ -262,7 +262,7 @@ class Table(Dataset):
     def __str__(self):
         return f"Table {self.id}"
 
-    def fetch_query(self, sql):
+    def __fetch_query__(self, sql):
         """
         Forms a base query and returns data
         """
@@ -290,7 +290,7 @@ class Table(Dataset):
         table_name = self.attributes.get('tableName', 'data')
         sql = f'SELECT * FROM data LIMIT {n}'
 
-        response_data = self.form_query(sql=sql)
+        response_data = self.__fetch_query__(sql=sql)
 
         try:
             for d in response_data:
@@ -307,7 +307,7 @@ class Table(Dataset):
         table_name = self.attributes.get('tableName', 'data')
         sql = sql.replace('FROM data', f'FROM {table_name}') 
 
-        response_data = self.form_query(sql=sql)
+        response_data = self.__fetch_query__(sql=sql)
 
         try:
             return gpd.GeoDataFrame(response_data)
