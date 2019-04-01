@@ -2,6 +2,7 @@ import requests
 import random
 import geopandas as gpd
 from shapely.geometry import shape
+import cartoframes as cf
 from IPython.display import display, HTML
 
 
@@ -157,7 +158,7 @@ class Collection:
             if in_name or in_description:
                 if len(filtered_response) < self.limit:
                     filtered_response.append(item)
-                if item.get('type') == 'dataset' and item.get('attributes').get('provider') == 'csv':
+                if item.get('type') == 'dataset' and item.get('attributes').get('provider') in ['csv', 'json']:
                     collection.append(Table(id_hash = item.get('id'), attributes=item.get('attributes')))
                 elif item.get('type') == 'dataset' and item.get('attributes').get('provider') != 'csv':
                     collection.append(Dataset(id_hash = item.get('id'), attributes=item.get('attributes')))
@@ -239,6 +240,49 @@ class Dataset:
         else:
             raise ValueError(f'Unable to get dataset {self.id} from {r.url}')
 
+    def __carto_query__(self, sql, decode_geom=False):
+        """
+        Returns a GeoPandas GeoDataFrame for CARTO datasets.
+        """
+
+        if 'the_geom' not in sql and decode_geom == True:
+            sql = sql.replace('SELECT', 'SELECT the_geom,')
+
+        if 'count' in sql:
+            decode_geom = False:
+
+        table_name = self.attributes.get('tableName', 'data')
+        sql = sql.replace('FROM data', f'FROM {table_name}').replace('"', "'") 
+
+        connector = self.attributes.get('connectorUrl', '')
+
+        if connector:
+            account = connector.split('.carto.com/')[0]
+            urlCartoContext = "{0}.carto.com".format(account)
+            APIKEY = '0e5365cb1a299778e9df9c7bf6db489af8aa08e1'
+                
+            cc = cf.CartoContext(base_url=urlCartoContext, api_key=APIKEY)
+
+        table = self.attributes.get('tableName', None)
+        if table:
+            return cc.query(sql, decode_geom=decode_geom)
+
+    def query(self, sql="SELECT * FROM data LIMIT 5", decode_geom=False):
+        """
+        Returns a carto table as a GeoPandas GeoDataframe from a Vizzuality API using the query endpoint.
+        """
+        provider = self.attributes.get('provider', None)
+        if provider != 'cartodb':
+            raise ValueError(f'Unable to perform query on datasets with provider {provider}. Must be `cartodb`.')
+
+        return self.__carto_query__(sql=sql, decode_geom=decode_geom)
+        
+    def head(self, n=5, decode_geom=True):
+        """
+        Returns a table as a GeoPandas GeoDataframe from a Vizzuality API using the query endpoint.
+        """
+        sql = f'SELECT * FROM data LIMIT {n}'
+        return self.__carto_query__(sql=sql, decode_geom=decode_geom)
 
 class Table(Dataset):
     """
@@ -297,7 +341,7 @@ class Table(Dataset):
             return gpd.GeoDataFrame(response_data).set_geometry('the_geom')
         
         except:
-            raise ValueError(f'Unable to get table {self.id} from {r.url}')
+            raise ValueError(f'Unable to get table {self.id}')
 
     def query(self, sql='SELECT * FROM data LIMIT 5'):
         """Return a query as a dataframe object"""
