@@ -5,6 +5,7 @@ from shapely.geometry import shape
 import cartoframes as cf
 from IPython.display import display, HTML
 
+APIKEY = ''
 
 def html_box(item):
     """Returns an HTML block with template strings filled-in based on item attributes."""
@@ -259,7 +260,6 @@ class Dataset:
         if connector:
             account = connector.split('.carto.com/')[0]
             urlCartoContext = "{0}.carto.com".format(account)
-            APIKEY = '0e5365cb1a299778e9df9c7bf6db489af8aa08e1'
                 
             cc = cf.CartoContext(base_url=urlCartoContext, api_key=APIKEY)
 
