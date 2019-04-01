@@ -405,11 +405,6 @@ class Layer:
         else:
             raise ValueError(f'Unable to get dataset {self.id} from {r.url}')
 
-    def map(self):
-        """
-        Returns a folim map with styles applied
-        """
-
 
 class Metadata:
     """
