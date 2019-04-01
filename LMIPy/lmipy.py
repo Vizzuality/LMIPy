@@ -1,6 +1,7 @@
 import requests
 import random
 import geopandas as gpd
+from shapely.geometry import shape
 from IPython.display import display, HTML
 
 
@@ -262,15 +263,43 @@ class Table(Dataset):
         return f"Table {self.id}"
 
     def head(self, n=5):
-        """Returns a head (from query) in dataframe format"""
-        pass
-        df = gpd.dataframe([None])
-        return df
+        """
+        Returns a table as a GeoPandas GeoDataframe from a Vizzuality API using the query endpoint.
+        """
+        table_name = self.attributes.get('tableName', 'data')
 
-    def query(self, sql):
+        try:
+            url = (f'{self.server}/v1/query/{self.id}?sql=SELECT * FROM {table_name} LIMIT {n}')
+            r = requests.get(url)
+            if r.status_code == 200:
+                response_data = r.json().get('data')
+                for d in response_data:
+                    if d.get('the_geom', None):
+                        d['the_geom'] = shape(d['the_geom'])
+                return gpd.GeoDataFrame(response_data).set_geometry('the_geom')
+            else:
+                raise ValueError(f'Unable to get table {self.id} from {r.url}')
+        except:
+            raise ValueError(f'Unable to get table {self.id} from {r.url}')
+
+
+
+    def query(self, sql='SELECT * FROM data LIMIT 5'):
         """Return a query as a dataframe object"""
-        df = gpd.dataframe([None])
-        return df
+        table_name = self.attributes.get('tableName', 'data')
+
+        sql = sql.replace('FROM data', f'FROM {table_name}') 
+
+        try:
+            url = (f'{self.server}/v1/query/{self.id}?sql={sql}')
+            r = requests.get(url)
+            if r.status_code == 200:
+                response_data = r.json().get('data')
+                return gpd.GeoDataFrame(response_data)
+            else:
+                raise ValueError(f'Unable to query table {self.id} with {sql}')
+        except:
+            raise ValueError(f'Unable to query table {self.id} with {sql}')
 
 
 class Layer:
