@@ -5,8 +5,6 @@ from shapely.geometry import shape
 import cartoframes as cf
 from IPython.display import display, HTML
 
-APIKEY = ''
-
 def html_box(item):
     """Returns an HTML block with template strings filled-in based on item attributes."""
     is_layer = type(item) == Layer
@@ -241,7 +239,7 @@ class Dataset:
         else:
             raise ValueError(f'Unable to get dataset {self.id} from {r.url}')
 
-    def __carto_query__(self, sql, decode_geom=False):
+    def __carto_query__(self, sql, decode_geom=False, APIKEY=None):
         """
         Returns a GeoPandas GeoDataFrame for CARTO datasets.
         """
@@ -267,7 +265,7 @@ class Dataset:
         if table:
             return cc.query(sql, decode_geom=decode_geom)
 
-    def query(self, sql="SELECT * FROM data LIMIT 5", decode_geom=False):
+    def query(self, sql="SELECT * FROM data LIMIT 5", decode_geom=False, APIKEY=None):
         """
         Returns a carto table as a GeoPandas GeoDataframe from a Vizzuality API using the query endpoint.
         """
@@ -277,7 +275,7 @@ class Dataset:
 
         return self.__carto_query__(sql=sql, decode_geom=decode_geom)
         
-    def head(self, n=5, decode_geom=True):
+    def head(self, n=5, decode_geom=True, APIKEY=None):
         """
         Returns a table as a GeoPandas GeoDataframe from a Vizzuality API using the query endpoint.
         """
