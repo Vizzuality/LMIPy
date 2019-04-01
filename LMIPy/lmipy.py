@@ -268,7 +268,6 @@ class Table(Dataset):
         """
 
         table_name = self.attributes.get('tableName', 'data')
-
         sql = sql.replace('FROM data', f'FROM {table_name}') 
 
         try:
@@ -287,9 +286,7 @@ class Table(Dataset):
         """
         Returns a table as a GeoPandas GeoDataframe from a Vizzuality API using the query endpoint.
         """
-        table_name = self.attributes.get('tableName', 'data')
         sql = f'SELECT * FROM data LIMIT {n}'
-
         response_data = self.__fetch_query__(sql=sql)
 
         try:
@@ -304,11 +301,7 @@ class Table(Dataset):
 
     def query(self, sql='SELECT * FROM data LIMIT 5'):
         """Return a query as a dataframe object"""
-        table_name = self.attributes.get('tableName', 'data')
-        sql = sql.replace('FROM data', f'FROM {table_name}') 
-
         response_data = self.__fetch_query__(sql=sql)
-
         try:
             return gpd.GeoDataFrame(response_data)
         except:
