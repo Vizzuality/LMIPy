@@ -1,12 +1,13 @@
 import requests
 import random
+import geopandas as gpd
 from IPython.display import display, HTML
 
 
 def html_box(item):
     """Returns an HTML block with template strings filled-in based on item attributes."""
     is_layer = type(item) == Layer
-    is_dataset = type(item) == Dataset
+    is_dataset = type(item) == Dataset or type(item) == Table
     if is_layer:
         kind_of_item = 'Layer'
         url_link = f'{item.server}/v1/layer/{item.id}?includes=vocabulary,metadata'
@@ -16,8 +17,14 @@ def html_box(item):
     else:
         kind_of_item = 'Unknown'
     table_statement = f"Data source {item.attributes.get('provider')}"
-    if item.attributes.get('connectorUrl'):
+    if item.attributes.get('connectorUrl') and item.attributes.get('provider') == "cartodb":
         table_statement = (f"Carto table: <a href={item.attributes.get('connectorUrl')}"
+                           " target='_blank'>"
+                           f"{item.attributes.get('tableName')}"
+                           "</a>"
+                          )
+    if item.attributes.get('connectorUrl') and item.attributes.get('provider') == "csv":
+        table_statement = (f"CSV Table: <a href={item.attributes.get('connectorUrl')}"
                            " target='_blank'>"
                            f"{item.attributes.get('tableName')}"
                            "</a>"
@@ -82,13 +89,14 @@ class Collection:
         self.iter_position = 0
 
     def __repr__(self):
-        return str(self.collection)
+        return [str(c) for c in self.collection]
 
     def __iter__(self):
         return self
 
     def __next__(self): # Python 3: def __next__(self)
         if self.iter_position >= len(self.collection):
+            self.iter_position = 0
             raise StopIteration
         else:
             self.iter_position += 1
@@ -148,7 +156,9 @@ class Collection:
             if in_name or in_description:
                 if len(filtered_response) < self.limit:
                     filtered_response.append(item)
-                if item.get('type') == 'dataset':
+                if item.get('type') == 'dataset' and item.get('attributes').get('provider') == 'csv':
+                    collection.append(Table(id_hash = item.get('id'), attributes=item.get('attributes')))
+                elif item.get('type') == 'dataset' and item.get('attributes').get('provider') != 'csv':
                     collection.append(Dataset(id_hash = item.get('id'), attributes=item.get('attributes')))
                 if item.get('type') == 'layer':
                     collection.append(Layer(id_hash = item.get('id'), attributes=item.get('attributes')))
@@ -184,7 +194,7 @@ class Dataset:
     sever: str
         A URL string of the vizzuality server.
     """
-    def __init__(self,id_hash=None, attributes=None, server='https://api.resourcewatch.org'):
+    def __init__(self, id_hash=None, attributes=None, server='https://api.resourcewatch.org'):
         self.id = id_hash
         self.layers = []
         self.server = server
@@ -227,6 +237,40 @@ class Dataset:
             return r.json().get('data').get('attributes')
         else:
             raise ValueError(f'Unable to get dataset {self.id} from {r.url}')
+
+
+class Table(Dataset):
+    """
+    This is the main Table class.
+
+    Parameters
+    ----------
+    id_hash: int
+        An ID hash.
+    attributes: dic
+        A dictionary holding the attributes of a tabular dataset.
+    server: str
+        A string of the server URL.
+    """
+    def __init__(self, id_hash=None, attributes=None, server='https://api.resourcewatch.org'):
+        super().__init__(id_hash=id_hash, attributes=attributes, server=server)
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return f"Table {self.id}"
+
+    def head(self, n=5):
+        """Returns a head (from query) in dataframe format"""
+        pass
+        df = gpd.dataframe([None])
+        return df
+
+    def query(self, sql):
+        """Return a query as a dataframe object"""
+        df = gpd.dataframe([None])
+        return df
 
 
 class Layer:
