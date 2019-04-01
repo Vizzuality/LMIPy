@@ -306,7 +306,7 @@ class Table(Dataset):
     def __str__(self):
         return f"Table {self.id}"
 
-    def __fetch_query__(self, sql):
+    def __fetch_query__(self, sql, decode_geom=False):
         """
         Forms a base query and returns data
         """
@@ -318,7 +318,12 @@ class Table(Dataset):
             url = (f'{self.server}/v1/query/{self.id}?sql={sql}')
             r = requests.get(url)
             if r.status_code == 200:
-                return r.json().get('data')
+                response_data = r.json().get('data')
+                if decode_geom:
+                    for d in response_data:
+                        if d.get('the_geom', None):
+                            d['geometry'] = shape(d['the_geom'])
+                return response_data
             else:
                 raise ValueError(f'Unable to get table {self.id} from {r.url}')
         except:
@@ -326,28 +331,29 @@ class Table(Dataset):
             
 
 
-    def head(self, n=5):
+    def head(self, n=5, decode_geom=True):
         """
         Returns a table as a GeoPandas GeoDataframe from a Vizzuality API using the query endpoint.
         """
         sql = f'SELECT * FROM data LIMIT {n}'
-        response_data = self.__fetch_query__(sql=sql)
+        response_data = self.__fetch_query__(sql=sql, decode_geom=decode_geom)
 
         try:
-            for d in response_data:
-                if d.get('the_geom', None):
-                    d['the_geom'] = shape(d['the_geom'])
-
-            return gpd.GeoDataFrame(response_data).set_geometry('the_geom')
-        
+            gdf = gpd.GeoDataFrame(response_data)
+            if 'geometry' in gdf:
+                gdf = gdf.set_geometry('geometry')
+            return gdf
         except:
             raise ValueError(f'Unable to get table {self.id}')
 
-    def query(self, sql='SELECT * FROM data LIMIT 5'):
+    def query(self, sql='SELECT * FROM data LIMIT 5', decode_geom=False):
         """Return a query as a dataframe object"""
-        response_data = self.__fetch_query__(sql=sql)
+        response_data = self.__fetch_query__(sql=sql, decode_geom=decode_geom)
         try:
-            return gpd.GeoDataFrame(response_data)
+            gdf = gpd.GeoDataFrame(response_data)
+            if 'geometry' in gdf:
+                gdf = gdf.set_geometry('geometry')
+            return gdf
         except:
             raise ValueError(f'Unable to query table {self.id} with {sql}')
 
@@ -399,6 +405,10 @@ class Layer:
         else:
             raise ValueError(f'Unable to get dataset {self.id} from {r.url}')
 
+    def map(self):
+        """
+        Returns a folim map with styles applied
+        """
 
 
 class Metadata:
