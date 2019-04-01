@@ -262,30 +262,11 @@ class Table(Dataset):
     def __str__(self):
         return f"Table {self.id}"
 
-    def head(self, n=5):
+    def fetch_query(self, sql):
         """
-        Returns a table as a GeoPandas GeoDataframe from a Vizzuality API using the query endpoint.
+        Forms a base query and returns data
         """
-        table_name = self.attributes.get('tableName', 'data')
 
-        try:
-            url = (f'{self.server}/v1/query/{self.id}?sql=SELECT * FROM {table_name} LIMIT {n}')
-            r = requests.get(url)
-            if r.status_code == 200:
-                response_data = r.json().get('data')
-                for d in response_data:
-                    if d.get('the_geom', None):
-                        d['the_geom'] = shape(d['the_geom'])
-                return gpd.GeoDataFrame(response_data).set_geometry('the_geom')
-            else:
-                raise ValueError(f'Unable to get table {self.id} from {r.url}')
-        except:
-            raise ValueError(f'Unable to get table {self.id} from {r.url}')
-
-
-
-    def query(self, sql='SELECT * FROM data LIMIT 5'):
-        """Return a query as a dataframe object"""
         table_name = self.attributes.get('tableName', 'data')
 
         sql = sql.replace('FROM data', f'FROM {table_name}') 
@@ -294,10 +275,42 @@ class Table(Dataset):
             url = (f'{self.server}/v1/query/{self.id}?sql={sql}')
             r = requests.get(url)
             if r.status_code == 200:
-                response_data = r.json().get('data')
-                return gpd.GeoDataFrame(response_data)
+                return r.json().get('data')
             else:
-                raise ValueError(f'Unable to query table {self.id} with {sql}')
+                raise ValueError(f'Unable to get table {self.id} from {r.url}')
+        except:
+            raise ValueError(f'Unable to get table {self.id} from {r.url}')
+            
+
+
+    def head(self, n=5):
+        """
+        Returns a table as a GeoPandas GeoDataframe from a Vizzuality API using the query endpoint.
+        """
+        table_name = self.attributes.get('tableName', 'data')
+        sql = f'SELECT * FROM data LIMIT {n}'
+
+        response_data = self.form_query(sql=sql)
+
+        try:
+            for d in response_data:
+                if d.get('the_geom', None):
+                    d['the_geom'] = shape(d['the_geom'])
+
+            return gpd.GeoDataFrame(response_data).set_geometry('the_geom')
+        
+        except:
+            raise ValueError(f'Unable to get table {self.id} from {r.url}')
+
+    def query(self, sql='SELECT * FROM data LIMIT 5'):
+        """Return a query as a dataframe object"""
+        table_name = self.attributes.get('tableName', 'data')
+        sql = sql.replace('FROM data', f'FROM {table_name}') 
+
+        response_data = self.form_query(sql=sql)
+
+        try:
+            return gpd.GeoDataFrame(response_data)
         except:
             raise ValueError(f'Unable to query table {self.id} with {sql}')
 
