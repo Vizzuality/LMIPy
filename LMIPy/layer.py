@@ -59,14 +59,26 @@ class Layer:
         """
         layerConfig = self.attributes.get('layerConfig')
 
-        # If tileLayer
-        if self.attributes.get('provider') == 'tileLayer':
-            pass
-            return None
+        # if tileLayer
+        if self.attributes.get('provider') == 'leaflet' and layerConfig.get('type') == 'tileLayer':
+            url = layerConfig.get('url', None)
+            if not url:
+                url = layerConfig.get('body').get('url')
+
+            params_config = self.attributes.get('layerConfig').get('params_config', None)
+            if params_config:
+                for config in params_config:
+                    key = config['key']
+                    default = config['default']
+                    required = config['required']
+                    if required:
+                        url = url.replace(f'{{{key}}}', f'default')
+            
+            return url
 
         # if GEE
         if self.attributes.get('provider') == 'gee':
-            url = f'https://api.resourcewatch.org/v1/layer/{self.id}/tile/gee/{{z}}/{{x}}/{{y}}'
+            url = f'https://api.resourcewatch.org/v1/layer/{self.id}/tile/gee/{{z}}/{{x}}/{{y}}.png'
             return url
 
         # If CARTO
