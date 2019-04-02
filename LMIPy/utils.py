@@ -2,8 +2,8 @@
 
 def html_box(item):
     """Returns an HTML block with template strings filled-in based on item attributes."""
-    is_layer = str(type(item)) == 'Layer'
-    is_dataset = str(type(item)) == 'Dataset' or str(type(item)) == 'Table'
+    is_layer = str(type(item)) == "<class 'LMIPy.layer.Layer'>"
+    is_dataset = str(type(item)) == "<class 'LMIPy.dataset.Dataset'>" or str(type(item)) == "<class 'LMIPy.table.Table'>"
     if is_layer:
         kind_of_item = 'Layer'
         url_link = f'{item.server}/v1/layer/{item.id}?includes=vocabulary,metadata'
