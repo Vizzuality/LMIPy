@@ -72,7 +72,7 @@ class Layer:
                     default = config['default']
                     required = config['required']
                     if required:
-                        url = url.replace(f'{{{key}}}', f'default')
+                        url = url.replace(f'{{{key}}}', f'{default}')
             
             return url
 
