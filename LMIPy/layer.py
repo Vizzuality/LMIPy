@@ -53,7 +53,7 @@ class Layer:
         else:
             raise ValueError(f'Unable to get dataset {self.id} from {r.url}')
 
-    def __parse_map_url__(self):
+    def parse_map_url(self):
         """
         Parses map url
         """
@@ -85,7 +85,7 @@ class Layer:
         Returns a folim map with styles applied
         """
 
-        url = self.__parse_map_url__()
+        url = self.parse_map_url()
 
         return folium.Map(
                 location=[lon, lat],
