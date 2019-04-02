@@ -1,7 +1,5 @@
 # Minimal makefile for Sphinx documentation
 #
-# To test the documentation, navigate to the html folder
-# and run `python -m http.server 8080`
 
 # You can set these variables from the command line.
 SPHINXOPTS    =
@@ -19,3 +17,7 @@ help:
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+
+serve:
+	cd _build/html
+	python -m http.server 8080

@@ -1,6 +1,9 @@
 LMIPy.egg-info/
 build/
 dist/
+docs/_build
+docs/_static
+docs/_templates
 
 # Nbk Stuff
 .ipynb_checkpoints/

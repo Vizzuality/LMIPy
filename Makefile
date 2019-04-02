@@ -7,7 +7,7 @@ default: help
 
 help:
     @echo "Available commands:"
-    @sed -n '/^[a-zA-Z0-9_.]*:/s/:.*//p' <Makefile | sort
+    ##@sed -n '/^[a-zA-Z0-9_.]*:/s/:.*//p' <Makefile | sort
 
 install:
     sudo pip install -e .
