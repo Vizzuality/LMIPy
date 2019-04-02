@@ -1,4 +1,7 @@
 import requests
+import folium
+import urllib
+import json
 import random
 from .utils import html_box
 
@@ -49,3 +52,41 @@ class Layer:
             return r.json().get('data').get('attributes')
         else:
             raise ValueError(f'Unable to get dataset {self.id} from {r.url}')
+
+    def __parse_map_url__(self):
+        """
+        Returns a folim map with styles applied
+        """
+
+        # If CARTO
+        if self.attributes.get('provider') == 'cartodb':
+            layerConfig = self.attributes.get('layerConfig')
+
+            _layerTpl = urllib.parse.quote_plus(json.dumps({
+                "version": "1.3.0",
+                "stat_tag": "API",
+                "layers": [{ **l, "options": { **l["options"]}} for l in layerConfig.get("body").get("layers")]
+            }))
+
+
+            apiParams = f"?stat_tag=API&config={_layerTpl}"
+            url = f"https://{layerConfig.get('account')}.carto.com/api/v1/map{apiParams}"
+
+            r = requests.get(url, headers={'Content-Type': 'application/json'})
+            if r.status_code == 200:
+                response = r.json()
+            else:
+                raise ValueError(f'Unable to get retrieve map url for {self.id} from {self.attributes.get("provider")}')
+
+            return f'{response["cdn_url"]["templates"]["https"]["url"]}/{layerConfig["account"]}/api/v1/map/{response["layergroupid"]}/{{z}}/{{x}}/{{y}}.png'
+
+    def map(self, lat=0, lon=0, zoom=3):
+
+        url = self.__parse_map_url__()
+
+        return folium.Map(
+                location=[lon, lat],
+                zoom_start=zoom,
+                tiles=url,
+                attr=self.attributes.get('name')
+        )
