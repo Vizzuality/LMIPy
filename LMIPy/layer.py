@@ -62,6 +62,18 @@ class Layer:
         if self.attributes.get('provider') == 'cartodb':
             layerConfig = self.attributes.get('layerConfig')
 
+            sql_config = self.attributes.get('layerConfig').get('sql_config', None)
+            if sql_config:
+                for config in sql_config:
+                    key = config['key']
+                    key_params = config['key_params']
+                    if key_params[0].get('required', False):
+                        for l in layerConfig["body"]["layers"]:
+                            l['options']['sql'] = l['options']['sql'].replace(f'{{{key}}}', '0').format(key_params['key'])
+                    else:
+                        for l in layerConfig["body"]["layers"]:
+                            l['options']['sql'] = l['options']['sql'].replace(f'{{{key}}}', '0').format('')
+
             _layerTpl = urllib.parse.quote_plus(json.dumps({
                 "version": "1.3.0",
                 "stat_tag": "API",
@@ -71,6 +83,11 @@ class Layer:
 
             apiParams = f"?stat_tag=API&config={_layerTpl}"
             url = f"https://{layerConfig.get('account')}.carto.com/api/v1/map{apiParams}"
+
+            if '{{' in url or '}}' in url:
+                url
+
+            print(f'Request url: \n{url}')
 
             r = requests.get(url, headers={'Content-Type': 'application/json'})
             if r.status_code == 200:
