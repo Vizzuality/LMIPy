@@ -55,7 +55,7 @@ class Layer:
 
     def __parse_map_url__(self):
         """
-        Returns a folim map with styles applied
+        Parses map url
         """
 
         # If CARTO
@@ -81,6 +81,9 @@ class Layer:
             return f'{response["cdn_url"]["templates"]["https"]["url"]}/{layerConfig["account"]}/api/v1/map/{response["layergroupid"]}/{{z}}/{{x}}/{{y}}.png'
 
     def map(self, lat=0, lon=0, zoom=3):
+        """
+        Returns a folim map with styles applied
+        """
 
         url = self.__parse_map_url__()
 
