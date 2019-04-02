@@ -1,4 +1,7 @@
 import requests
+import folium
+import urllib
+import json
 import random
 from .utils import html_box
 
@@ -49,3 +52,107 @@ class Layer:
             return r.json().get('data').get('attributes')
         else:
             raise ValueError(f'Unable to get dataset {self.id} from {r.url}')
+
+    def parse_map_url(self):
+        """
+        Parses map urls
+        """
+        if self.attributes.get('layerConfig') == None:
+            raise ValueError("No layerConfig present in layer from which to create a map.")
+        # if tileLayer
+        if self.attributes.get('provider') == 'leaflet' and self.attributes.get('layerConfig').get('type') == 'tileLayer':
+            return self.get_leaflet_tiles()
+        # if GEE
+        if self.attributes.get('provider') == 'gee':
+            return self.get_ee_tiles()
+        # If CARTO
+        if self.attributes.get('provider') == 'cartodb':
+            return self.get_carto_tiles()
+        if self.attributes.get('provider') == 'mapbox':
+            return self.get_mapbox_tiles()
+
+
+    def get_leaflet_tiles(self):
+        """
+        Returns leaflet urls.
+        """
+        url = self.attributes.get('layerConfig').get('url', None)
+        if not url:
+            url = self.attributes.get('layerConfig').get('body').get('url')
+        # This below code is an issue. Not working and probably wont fix the problem
+        # as far as I can see. E.g. check Forma case. tmp hack for now is to catch directly.
+        # params_config = self.attributes.get('layerConfig').get('params_config', None)
+        # if params_config:
+        #     for config in params_config:
+        #         key = config['key']
+        #         default = config['default']
+        #         required = config['required']
+        #         if required:
+        #             url = url.replace(f'{{{key}}}', f'{default}')
+        if '{thresh}' in url:
+            # try to replace thresh with a best-guess valid threshold (say 30%)
+            url = url.replace('{thresh}','30')
+        if '{{date}}' in url:
+            # try to replace date with a best-guess valid date
+            url = url.replace('{{date}}','20190331')
+        return url
+
+    def get_ee_tiles(self):
+        """Returns tiles from EE assets"""
+        url = f'https://api.resourcewatch.org/v1/layer/{self.id}/tile/gee/{{z}}/{{x}}/{{y}}.png'
+        return url
+
+    def get_carto_tiles(self):
+        """Get carto tiles"""
+        sql_config = self.attributes.get('layerConfig').get('sql_config', None)
+        layerConfig = self.attributes.get('layerConfig')
+        if sql_config:
+            for config in sql_config:
+                key = config['key']
+                key_params = config['key_params']
+                if key_params[0].get('required', False):
+                    for l in layerConfig["body"]["layers"]:
+                        l['options']['sql'] = l['options']['sql'].replace(f'{{{key}}}', '0').format(key_params['key'])
+                else:
+                    for l in layerConfig["body"]["layers"]:
+                        l['options']['sql'] = l['options']['sql'].replace(f'{{{key}}}', '0').format('')
+        _layerTpl = urllib.parse.quote_plus(json.dumps({
+            "version": "1.3.0",
+            "stat_tag": "API",
+            "layers": [{ **l, "options": { **l["options"]}} for l in layerConfig.get("body").get("layers")]
+        }))
+        apiParams = f"?stat_tag=API&config={_layerTpl}"
+        url = f"https://{layerConfig.get('account')}.carto.com/api/v1/map{apiParams}"
+        r = requests.get(url, headers={'Content-Type': 'application/json'})
+        if r.status_code == 200:
+            response = r.json()
+        else:
+            raise ValueError(f'Unable to get retrieve map url for {self.id} from {self.attributes.get("provider")}')
+        return f'{response["cdn_url"]["templates"]["https"]["url"]}/{layerConfig["account"]}/api/v1/map/{response["layergroupid"]}/{{z}}/{{x}}/{{y}}.png'
+
+    def get_mapbox_tiles(self):
+        """"Retrieve mapbox tiles"""
+        print("In mapbox placeholder function")
+        raise ValueError('Mapbox handling not implemented')
+
+    def map(self, lat=0, lon=0, zoom=3):
+        """
+        Returns a folim map with styles applied
+        """
+
+        url = self.parse_map_url()
+
+        map = folium.Map(
+                location=[lon, lat],
+                zoom_start=zoom,
+                tiles='Mapbox Bright',
+                detect_retina=True,
+                prefer_canvas=True
+        )
+
+        map.add_tile_layer(
+            tiles=url,
+            attr=self.attributes.get('name')
+        )
+
+        return map
