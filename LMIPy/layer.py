@@ -104,9 +104,15 @@ class Layer:
 
         url = self.parse_map_url()
 
-        return folium.Map(
+        map = folium.Map(
                 location=[lon, lat],
                 zoom_start=zoom,
-                tiles=url,
-                attr=self.attributes.get('name')
+                tiles='Mapbox Bright',
         )
+
+        map.add_tile_layer(
+            tiles=url,
+            attr=self.attributes.get('name')
+        )
+
+        return map
