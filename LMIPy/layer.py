@@ -84,11 +84,6 @@ class Layer:
             apiParams = f"?stat_tag=API&config={_layerTpl}"
             url = f"https://{layerConfig.get('account')}.carto.com/api/v1/map{apiParams}"
 
-            if '{{' in url or '}}' in url:
-                url
-
-            print(f'Request url: \n{url}')
-
             r = requests.get(url, headers={'Content-Type': 'application/json'})
             if r.status_code == 200:
                 response = r.json()
