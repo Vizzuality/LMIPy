@@ -57,11 +57,20 @@ class Layer:
         """
         Parses map url
         """
+        layerConfig = self.attributes.get('layerConfig')
+
+        # If tileLayer
+        if self.attributes.get('provider') == 'tileLayer':
+            pass
+            return None
+
+        # if GEE
+        if self.attributes.get('provider') == 'gee':
+            url = f'https://api.resourcewatch.org/v1/layer/{self.id}/tile/gee/{{z}}/{{x}}/{{y}}'
+            return url
 
         # If CARTO
         if self.attributes.get('provider') == 'cartodb':
-            layerConfig = self.attributes.get('layerConfig')
-
             sql_config = self.attributes.get('layerConfig').get('sql_config', None)
             if sql_config:
                 for config in sql_config:
