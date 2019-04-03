@@ -156,3 +156,40 @@ class Layer:
         )
 
         return map
+
+    def update_keys(self):
+        """
+        Returns specific attribute values.
+        """
+        # Cannot update the following
+        update_blacklist = ['updatedAt', 'userId', 'dataset', 'slug']
+        updatable_fields = [key for key in self.attributes.keys() if key not in update_blacklist]
+
+        print('Updatable keys:')
+        return updatable_fields
+
+    def update(self, update_json=None, API_TOKEN=None, show_difference=False):
+        """
+        Update layer specific attribute values.
+        """
+        if not API_TOKEN:
+            raise ValueError(f'[API_TOKEN=None] Resoource Watch API TOKEN required for updates.')
+
+        if not update_json:
+            print('Requires update JSON.')
+            return self.update_keys()
+
+        update_blacklist = ['updatedAt', 'userId', 'dataset', 'slug']
+        attributes = {f'{k}':v for k,v in self.attributes.items() if k not in update_blacklist}
+
+        payload = { f'{key}': update_json[key] for key in update_json if key in attributes }
+
+        if show_difference:
+            old_attributes = { f'{k}': attributes[k] for k,v in payload.items() }
+            print(f"Attributes to change:\n{old_attributes}")
+
+        print(f'Update payload:\n{payload}')
+        return None
+
+
+
