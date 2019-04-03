@@ -53,7 +53,7 @@ class Layer:
         else:
             raise ValueError(f'Unable to get dataset {self.id} from {r.url}')
 
-    def parse_map_url(self):
+    def parse_map_url(self, TOKEN=None):
         """
         Parses map urls
         """
@@ -69,7 +69,9 @@ class Layer:
         if self.attributes.get('provider') == 'cartodb':
             return self.get_carto_tiles()
         if self.attributes.get('provider') == 'mapbox':
-            return self.get_mapbox_tiles()
+            if not TOKEN:
+                raise ValueError("Requires a Mapbox Access Token in param: 'TOKEN'.")
+            return self.get_mapbox_tiles(TOKEN)
 
 
     def get_leaflet_tiles(self):
@@ -128,20 +130,36 @@ class Layer:
             response = r.json()
         else:
             raise ValueError(f'Unable to get retrieve map url for {self.id} from {self.attributes.get("provider")}')
-        return f'{response["cdn_url"]["templates"]["https"]["url"]}/{layerConfig["account"]}/api/v1/map/{response["layergroupid"]}/{{z}}/{{x}}/{{y}}.png'
+        
+        tile_url = f'{response["cdn_url"]["templates"]["https"]["url"]}/{layerConfig["account"]}/api/v1/map/{response["layergroupid"]}/{{z}}/{{x}}/{{y}}.png'
+        return tile_url
 
-    def get_mapbox_tiles(self):
-        """"Retrieve mapbox tiles"""
-        print("In mapbox placeholder function")
-        raise ValueError('Mapbox handling not implemented')
+    def get_mapbox_tiles(self, MAPBOX_ACCESS_TOKEN):
+        """"Retrieve mapbox tiles... as raster :("""
+        layerConfig = self.attributes['layerConfig']
 
-    def map(self, lat=0, lon=0, zoom=3):
+        vector_target = layerConfig['body'].get('format', None)
+
+        if vector_target and vector_target.lower() == 'mapbox':
+            vector_source = layerConfig['body'].get('url', '').split('mapbox://')[1]
+
+            url = f"https://api.mapbox.com/v4/{vector_source}.json?secure&access_token={MAPBOX_ACCESS_TOKEN}"
+
+            r = requests.get(url, headers={'Content-Type': 'application/json'})
+            if r.status_code == 200:
+                return r.json().get('tiles', [None])[0].replace('vector.pbf', 'png')
+            else:
+                raise ValueError(f'Unable to get retrieve map url for {self.id} from {vector_target.lower()}')
+        else:
+            raise ValueError('Mapbox target not found')
+
+    def map(self, TOKEN=None, lat=0, lon=0, zoom=3):
         """
         Returns a folim map with styles applied
         """
 
-        url = self.parse_map_url()
-
+        url = self.parse_map_url(TOKEN)
+        print(f'Displaying: {url}')
         map = folium.Map(
                 location=[lon, lat],
                 zoom_start=zoom,
