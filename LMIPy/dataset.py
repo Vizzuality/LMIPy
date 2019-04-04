@@ -1,5 +1,7 @@
 import requests
+import json
 import random
+from pprint import pprint
 from .layer  import Layer
 from .utils import html_box
 from .lmipy import Vocabulary, Metadata
@@ -104,3 +106,52 @@ class Dataset:
         """
         sql = f'SELECT * FROM data LIMIT {n}'
         return self.__carto_query__(sql=sql, decode_geom=decode_geom)
+
+    def update_keys(self):
+        """
+        Returns specific attribute values.
+        """
+        # Cannot update the following
+        update_blacklist = ['metadata','layer', 'vocabulary', 'updatedAt', 'userId', 'slug', "clonedHost", "errorMessage", "taskId", "dataLastUpdated"]
+        updatable_fields = {f'{k}':v for k,v in self.attributes.items() if k not in update_blacklist}
+
+        print(f'Updatable keys: \n{list(updatable_fields.keys())}')
+        return updatable_fields
+
+    def update(self, update_json=None, API_TOKEN=None, show_difference=False):
+        """
+        Update layer specific attribute values.
+        """
+        if not API_TOKEN:
+            raise ValueError(f'[API_TOKEN=None] Resource Watch API TOKEN required for updates.')
+
+        if not update_json:
+            print('Requires update JSON.')
+            return self.update_keys()
+
+        attributes = self.update_keys()
+
+        payload = { f'{key}': update_json[key] for key in update_json if key in attributes }
+
+        ### Update here
+        try:
+            url = f"http://api.resourcewatch.org/dataset/{self.id}"
+            headers = {'Authorization': f'Bearer {API_TOKEN}', 'Content-Type': 'application/json'}
+            r = requests.patch(url, data=json.dumps(payload), headers=headers)
+        except:
+            raise ValueError(f'Dataset update failed.')
+
+        if r.status_code == 200:
+            response = r.json()['data']
+        else:
+            print(r.status_code)
+            return None
+
+        if show_difference:
+            old_attributes = { f'{k}': attributes[k] for k,v in payload.items() }
+            print(f"Attributes to change:")
+            pprint(old_attributes)
+
+        print('Updated!')
+        pprint({ f'{k}': v for k, v in response['attributes'].items() if k in payload })
+        return Dataset(self.id)

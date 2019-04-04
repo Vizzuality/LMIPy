@@ -180,8 +180,7 @@ class Layer:
             print('Requires update JSON.')
             return self.update_keys()
 
-        update_blacklist = ['updatedAt', 'userId', 'dataset', 'slug']
-        attributes = {f'{k}':v for k,v in self.attributes.items() if k not in update_blacklist}
+        attributes = self.update_keys()
 
         payload = { f'{key}': update_json[key] for key in update_json if key in attributes }
 
