@@ -46,13 +46,17 @@ class Layer:
         """
         Returns a layer from a Vizzuality API.
         """
-        hash = random.getrandbits(16)
-        url = (f'{self.server}/v1/layer/{self.id}?includes=vocabulary,metadata&hash={hash}')
-        r = requests.get(url)
+        try:
+            hash = random.getrandbits(16)
+            url = (f'{self.server}/v1/layer/{self.id}?includes=vocabulary,metadata&hash={hash}')
+            r = requests.get(url)
+        except:
+            raise ValueError(f'Unable to get Layer {self.id} from {r.url}')
+
         if r.status_code == 200:
             return r.json().get('data').get('attributes')
         else:
-            raise ValueError(f'Unable to get dataset {self.id} from {r.url}')
+            raise ValueError(f'Layer with id={self.id} does not exist.')
 
     def parse_map_url(self):
         """
@@ -172,6 +176,7 @@ class Layer:
     def update(self, update_json=None, API_TOKEN=None, show_difference=False):
         """
         Update layer specific attribute values.
+        Returns updated Layer.
         """
         if not API_TOKEN:
             raise ValueError(f'[API_TOKEN=None] Resource Watch API TOKEN required for updates.')
@@ -205,7 +210,47 @@ class Layer:
 
         print('Updated!')
         pprint({ f'{k}': v for k, v in response['attributes'].items() if k in payload })
-        return Layer(self.id)
+        self.attributes = self.get_layer()
+        return self
 
+    def confirm_delete(self):
+        print(f"Delete Layer {self.attributes['name']} with id={self.id}?\n> y/n")
+        conf = input()
+        
+        if conf.lower() == 'y':
+            return True
+        elif conf.lower() == 'n':
+            return False
+        else:
+            print('Requires y/n input!')
+            return False
 
+    def delete(self, API_TOKEN=None, force=False):
+        """
+        Deletes a target layer
+        """
+        if not API_TOKEN:
+            raise ValueError(f'[API_TOKEN=None] Resource Watch API TOKEN required to delete.')
 
+        if not force:
+            conf = self.confirm_delete()
+        elif force:
+            conf = True
+
+        if conf:
+
+            try:        
+                url = f'http://api.resourcewatch.org/dataset/{self.attributes["dataset"]}/layer/{self.id}'
+                headers = {'Authorization': f'Bearer {API_TOKEN}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
+                r = requests.delete(url, headers=headers)
+            except:
+                raise ValueError(f'Layer deletion failed.')
+
+            if r.status_code == 200:
+                print(r.url)
+                pprint('Deletion successful!')
+        
+        else:
+            print('Deletion aborted')
+        
+        return None
