@@ -173,13 +173,13 @@ class Layer:
         print(f'Updatable keys: \n{list(updatable_fields.keys())}')
         return updatable_fields
 
-    def update(self, update_json=None, API_TOKEN=None, show_difference=False):
+    def update(self, update_json=None, token=None, show_difference=False):
         """
         Update layer specific attribute values.
         Returns updated Layer.
         """
-        if not API_TOKEN:
-            raise ValueError(f'[API_TOKEN=None] Resource Watch API TOKEN required for updates.')
+        if not token:
+            raise ValueError(f'[token=None] Resource Watch API TOKEN required for updates.')
 
         if not update_json:
             print('Requires update JSON.')
@@ -192,7 +192,7 @@ class Layer:
         ### Update here
         try:
             url = f"http://api.resourcewatch.org/dataset/{self.attributes['dataset']}/layer/{self.id}"
-            headers = {'Authorization': f'Bearer {API_TOKEN}', 'Content-Type': 'application/json'}
+            headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
             r = requests.patch(url, data=json.dumps(payload), headers=headers)
         except:
             raise ValueError(f'Layer update failed.')
@@ -225,12 +225,12 @@ class Layer:
             print('Requires y/n input!')
             return False
 
-    def delete(self, API_TOKEN=None, force=False):
+    def delete(self, token=None, force=False):
         """
         Deletes a target layer
         """
-        if not API_TOKEN:
-            raise ValueError(f'[API_TOKEN=None] Resource Watch API TOKEN required to delete.')
+        if not token:
+            raise ValueError(f'[token=None] Resource Watch API token required to delete.')
 
         if not force:
             conf = self.confirm_delete()
@@ -241,7 +241,7 @@ class Layer:
 
             try:        
                 url = f'http://api.resourcewatch.org/dataset/{self.attributes["dataset"]}/layer/{self.id}'
-                headers = {'Authorization': f'Bearer {API_TOKEN}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
+                headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
                 r = requests.delete(url, headers=headers)
             except:
                 raise ValueError(f'Layer deletion failed.')

@@ -69,7 +69,7 @@ class Dataset:
             raise ValueError(f'Dataset with id={self.id} does not exist.')
 
 
-    def __carto_query__(self, sql, decode_geom=False, APIKEY=None):
+    def __carto_query__(self, sql, decode_geom=False, api_key=None):
         """
         Returns a GeoPandas GeoDataFrame for CARTO datasets.
         """
@@ -89,13 +89,13 @@ class Dataset:
             account = connector.split('.carto.com/')[0]
             urlCartoContext = "{0}.carto.com".format(account)
 
-            cc = cf.CartoContext(base_url=urlCartoContext, api_key=APIKEY)
+            cc = cf.CartoContext(base_url=urlCartoContext, api_key=api_key)
 
         table = self.attributes.get('tableName', None)
         if table:
             return cc.query(sql, decode_geom=decode_geom)
 
-    def query(self, sql="SELECT * FROM data LIMIT 5", decode_geom=False, APIKEY=None):
+    def query(self, sql="SELECT * FROM data LIMIT 5", decode_geom=False, api_key=None):
         """
         Returns a carto table as a GeoPandas GeoDataframe from a Vizzuality API using the query endpoint.
         """
@@ -105,7 +105,7 @@ class Dataset:
 
         return self.__carto_query__(sql=sql, decode_geom=decode_geom)
 
-    def head(self, n=5, decode_geom=True, APIKEY=None):
+    def head(self, n=5, decode_geom=True, api_key=None):
         """
         Returns a table as a GeoPandas GeoDataframe from a Vizzuality API using the query endpoint.
         """
@@ -123,13 +123,13 @@ class Dataset:
         print(f'Updatable keys: \n{list(updatable_fields.keys())}')
         return updatable_fields
 
-    def update(self, update_json=None, API_TOKEN=None, show_difference=False):
+    def update(self, update_json=None, token=None, show_difference=False):
         """
         Update layer specific attribute values.
         Returns updated Dataset.
         """
-        if not API_TOKEN:
-            raise ValueError(f'[API_TOKEN=None] Resource Watch API TOKEN required for updates.')
+        if not token:
+            raise ValueError(f'[token=None] Resource Watch API TOKEN required for updates.')
 
         if not update_json:
             print('Requires update JSON.')
@@ -142,7 +142,7 @@ class Dataset:
         ### Update here
         try:
             url = f"http://api.resourcewatch.org/dataset/{self.id}"
-            headers = {'Authorization': f'Bearer {API_TOKEN}', 'Content-Type': 'application/json'}
+            headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
             r = requests.patch(url, data=json.dumps(payload), headers=headers)
         except:
             raise ValueError(f'Dataset update failed.')
@@ -176,12 +176,12 @@ class Dataset:
             print('Requires y/n input!')
             return False
 
-    def delete(self, API_TOKEN=None, force=False):
+    def delete(self, token=None, force=False):
         """
         Deletes a target layer
         """
-        if not API_TOKEN:
-            raise ValueError(f'[API_TOKEN=None] Resource Watch API TOKEN required to delete.')
+        if not token:
+            raise ValueError(f'[token] Resource Watch API token required to delete.')
 
         ### Check if dataset has layers first. Cannot delete
         layer_count = len(self.layers)
@@ -192,7 +192,7 @@ class Dataset:
         
             if conf.lower() == 'd':
                 for l in self.layers:
-                    l.delete(API_TOKEN, force=True)
+                    l.delete(token, force=True)
             elif conf.lower() == 'a':
                 return False
             else:
@@ -207,7 +207,7 @@ class Dataset:
         if conf:
             try:        
                 url = f'http://api.resourcewatch.org/dataset/{self.id}'
-                headers = {'Authorization': f'Bearer {API_TOKEN}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
+                headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
                 r = requests.delete(url, headers=headers)
             except:
                 raise ValueError(f'Layer deletion failed.')
