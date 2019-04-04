@@ -123,7 +123,7 @@ class Dataset:
         print(f'Updatable keys: \n{list(updatable_fields.keys())}')
         return updatable_fields
 
-    def update(self, update_json=None, token=None, show_difference=False):
+    def update(self, update_params=None, token=None, show_difference=False):
         """
         Update layer specific attribute values.
         Returns updated Dataset.
@@ -131,13 +131,13 @@ class Dataset:
         if not token:
             raise ValueError(f'[token=None] Resource Watch API TOKEN required for updates.')
 
-        if not update_json:
-            print('Requires update JSON.')
+        if not update_params:
+            print('Requires update_params dictionary.')
             return self.update_keys()
 
         attributes = self.update_keys()
 
-        payload = { f'{key}': update_json[key] for key in update_json if key in attributes }
+        payload = { f'{key}': update_params[key] for key in update_params if key in attributes }
 
         ### Update here
         try:
