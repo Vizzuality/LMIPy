@@ -1,4 +1,5 @@
 import requests
+from pprint import pprint
 import folium
 import urllib
 import json
@@ -163,9 +164,9 @@ class Layer:
         """
         # Cannot update the following
         update_blacklist = ['updatedAt', 'userId', 'dataset', 'slug']
-        updatable_fields = [key for key in self.attributes.keys() if key not in update_blacklist]
+        updatable_fields = {f'{k}':v for k,v in self.attributes.items() if k not in update_blacklist}
 
-        print('Updatable keys:')
+        print(f'Updatable keys: \n{list(updatable_fields.keys())}')
         return updatable_fields
 
     def update(self, update_json=None, API_TOKEN=None, show_difference=False):
@@ -173,7 +174,7 @@ class Layer:
         Update layer specific attribute values.
         """
         if not API_TOKEN:
-            raise ValueError(f'[API_TOKEN=None] Resoource Watch API TOKEN required for updates.')
+            raise ValueError(f'[API_TOKEN=None] Resource Watch API TOKEN required for updates.')
 
         if not update_json:
             print('Requires update JSON.')
@@ -184,12 +185,28 @@ class Layer:
 
         payload = { f'{key}': update_json[key] for key in update_json if key in attributes }
 
+        ### Update here
+        try:
+            url = f"http://api.resourcewatch.org/dataset/{self.attributes['dataset']}/layer/{self.id}"
+            headers = {'Authorization': f'Bearer {API_TOKEN}', 'Content-Type': 'application/json'}
+            r = requests.patch(url, data=json.dumps(payload), headers=headers)
+        except:
+            raise ValueError(f'Layer update failed.')
+
+        if r.status_code == 200:
+            response = r.json()['data']
+        else:
+            print(r.status_code)
+            return None
+
         if show_difference:
             old_attributes = { f'{k}': attributes[k] for k,v in payload.items() }
-            print(f"Attributes to change:\n{old_attributes}")
+            print(f"Attributes to change:")
+            pprint(old_attributes)
 
-        print(f'Update payload:\n{payload}')
-        return None
+        print('Updated!')
+        pprint({ f'{k}': v for k, v in response['attributes'].items() if k in payload })
+        return Layer(self.id)
 
 
 
