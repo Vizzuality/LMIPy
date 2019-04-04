@@ -190,11 +190,11 @@ class Dataset:
             print('[D]elete ALL associated Layers, or\n[A]bort delete process?')
             conf = input()
         
-            if conf.lower() == 's':
+            if conf.lower() == 'd':
                 for l in self.layers:
                     l.delete(API_TOKEN, force=True)
             elif conf.lower() == 'a':
-                return None
+                return False
             else:
                 print('Requires D/A input!')
                 return False
@@ -215,8 +215,9 @@ class Dataset:
             if r.status_code == 200:
                 print(r.url)
                 pprint('Deletion successful!')
+                self = None
         
         else:
             print('Deletion aborted.')
         
-        return None
+        return self

@@ -249,6 +249,7 @@ class Layer:
             if r.status_code == 200:
                 print(r.url)
                 pprint('Deletion successful!')
+                self = None
         
         else:
             print('Deletion aborted')
