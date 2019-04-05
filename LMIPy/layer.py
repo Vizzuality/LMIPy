@@ -262,6 +262,8 @@ class Layer:
         A set of attributes can be specified for the clone Layer.
         Optionally, you can also select a target Dataset to attach your Layer-Clone to.
         """
+        from .dataset import Dataset
+        
         if not token:
             raise ValueError(f'[token] Resource Watch API token required to clone.')
         
@@ -278,7 +280,6 @@ class Layer:
             if k in layer_params:
                 clone_layer_attr[k] = layer_params[k]
 
-        from .dataset import Dataset
         if target_dataset_id:
             target_dataset = Dataset(target_dataset_id)
         else:
