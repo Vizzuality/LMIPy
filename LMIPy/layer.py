@@ -104,7 +104,7 @@ class Layer:
 
     def get_ee_tiles(self):
         """Returns tiles from EE assets"""
-        url = f'https://api.resourcewatch.org/v1/layer/{self.id}/tile/gee/{{z}}/{{x}}/{{y}}.png'
+        url = f'https://api.resourcewatch.org/v1/layer/{self.id}/tile/gee/{{z}}/{{x}}/{{y}}'
         return url
 
     def get_carto_tiles(self):
