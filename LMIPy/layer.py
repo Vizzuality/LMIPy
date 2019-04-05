@@ -5,6 +5,7 @@ import urllib
 import json
 import random
 from .utils import html_box
+from colored import fg, bg, attr
 
 
 class Layer:
@@ -20,8 +21,10 @@ class Layer:
     server: str
         A string of the server URL.
     """
-    def __init__(self, id_hash=None, attributes=None, server='https://api.resourcewatch.org'):
+    def __init__(self, id_hash=None, attributes=None,
+                    server='https://api.resourcewatch.org', mapbox_token=None):
         self.server = server
+        self.mapbox_token = mapbox_token
         if not id_hash:
             if attributes:
                 self.id = attributes.get('id', None)
@@ -74,8 +77,9 @@ class Layer:
         if self.attributes.get('provider') == 'cartodb':
             return self.get_carto_tiles()
         if self.attributes.get('provider') == 'mapbox':
+            if not self.mapbox_token:
+                raise ValueError("Requires a Mapbox Access Token in param: 'mapbox_token'.")
             return self.get_mapbox_tiles()
-
 
     def get_leaflet_tiles(self):
         """
@@ -104,7 +108,7 @@ class Layer:
 
     def get_ee_tiles(self):
         """Returns tiles from EE assets"""
-        url = f'https://api.resourcewatch.org/v1/layer/{self.id}/tile/gee/{{z}}/{{x}}/{{y}}'
+        url = f'{self.server}/v1/layer/{self.id}/tile/gee/{{z}}/{{x}}/{{y}}'
         return url
 
     def get_carto_tiles(self):
@@ -133,20 +137,30 @@ class Layer:
             response = r.json()
         else:
             raise ValueError(f'Unable to get retrieve map url for {self.id} from {self.attributes.get("provider")}')
-        return f'{response["cdn_url"]["templates"]["https"]["url"]}/{layerConfig["account"]}/api/v1/map/{response["layergroupid"]}/{{z}}/{{x}}/{{y}}.png'
+
+        tile_url = f'{response["cdn_url"]["templates"]["https"]["url"]}/{layerConfig["account"]}/api/v1/map/{response["layergroupid"]}/{{z}}/{{x}}/{{y}}.png'
+        return tile_url
 
     def get_mapbox_tiles(self):
-        """"Retrieve mapbox tiles"""
-        print("In mapbox placeholder function")
-        raise ValueError('Mapbox handling not implemented')
+        """"Retrieve mapbox tiles... as raster :("""
+        layerConfig = self.attributes['layerConfig']
+        vector_target = layerConfig['body'].get('format', None)
+        if vector_target and vector_target.lower() == 'mapbox':
+            vector_source = layerConfig['body'].get('url', '').split('mapbox://')[1]
+            url = f"https://api.mapbox.com/v4/{vector_source}.json?secure&access_token={self.mapbox_token}"
+            r = requests.get(url, headers={'Content-Type': 'application/json'})
+            if r.status_code == 200:
+                return r.json().get('tiles', [None])[0].replace('vector.pbf', 'png')
+            else:
+                raise ValueError(f'Unable to get retrieve map url for {self.id} from {vector_target.lower()}')
+        else:
+            raise ValueError('Mapbox target not found')
 
     def map(self, lat=0, lon=0, zoom=3):
         """
         Returns a folim map with styles applied
         """
-
         url = self.parse_map_url()
-
         map = folium.Map(
                 location=[lon, lat],
                 zoom_start=zoom,
@@ -154,61 +168,67 @@ class Layer:
                 detect_retina=True,
                 prefer_canvas=True
         )
-
         map.add_tile_layer(
             tiles=url,
             attr=self.attributes.get('name')
         )
-
         return map
 
-    def update_keys(self):
+    def update_keys(self, silent=True):
         """
-        Returns specific attribute values.
+        Returns specific attribute values. Call this with silent=False to view
+        the keys that can be updated in the layer.
         """
         # Cannot update the following
         update_blacklist = ['updatedAt', 'userId', 'dataset', 'slug']
         updatable_fields = {f'{k}':v for k,v in self.attributes.items() if k not in update_blacklist}
-
-        print(f'Updatable keys: \n{list(updatable_fields.keys())}')
+        if not silent:
+            print(f'Updatable keys: \n{list(updatable_fields.keys())}')
         return updatable_fields
 
-    def update(self, token=None, update_params=None, show_difference=False):
+    def update(self, update_params=None, token=None, show_difference=False):
         """
-        Update layer specific attribute values.
-        Returns updated Layer.
+        Update layer specific attribute values
+
+        Pass a dictionary of update_params and update a layer target.
+
+        Parameters
+        ----------
+        update_params: dic
+            A dictionary of update paramters. You can identify the possible keys by calling
+            self.update_keys(silent=False)
+        token: str
+            A valid Resource Watch Token.
+        show_difference: bool
+            Display the updates.
         """
+        red_color = fg('#FF0000')
+        green_color = fg('#00FF00')
+        res = attr('reset')
         if not token:
             raise ValueError(f'[token=None] Resource Watch API TOKEN required for updates.')
-
         if not update_params:
             print('Requires update_params dictionary.')
             return self.update_keys()
-
         attributes = self.update_keys()
-
         payload = { f'{key}': update_params[key] for key in update_params if key in attributes }
-
         ### Update here
         try:
-            url = f"http://api.resourcewatch.org/dataset/{self.attributes['dataset']}/layer/{self.id}"
+            url = f"{self.server}/dataset/{self.attributes['dataset']}/layer/{self.id}"
             headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
             r = requests.patch(url, data=json.dumps(payload), headers=headers)
         except:
             raise ValueError(f'Layer update failed.')
-
         if r.status_code == 200:
             response = r.json()['data']
         else:
-            print(r.status_code)
+            print(red_color + f"PATCH attempt threw a {r.status_code}!" + res)
             return None
-
         if show_difference:
             old_attributes = { f'{k}': attributes[k] for k,v in payload.items() }
             print(f"Attributes to change:")
-            pprint(old_attributes)
-
-        print('Updated!')
+            pprint(red_color + old_attributes + red)
+        print(green_color + 'Updated!'+ res)
         pprint({ f'{k}': v for k, v in response['attributes'].items() if k in payload })
         self.attributes = self.get_layer()
         return self
@@ -216,7 +236,6 @@ class Layer:
     def confirm_delete(self):
         print(f"Delete Layer {self.attributes['name']} with id={self.id}?\n> y/n")
         conf = input()
-        
         if conf.lower() == 'y':
             return True
         elif conf.lower() == 'n':
@@ -231,29 +250,23 @@ class Layer:
         """
         if not token:
             raise ValueError(f'[token=None] Resource Watch API token required to delete.')
-
         if not force:
             conf = self.confirm_delete()
         elif force:
             conf = True
-
         if conf:
-
-            try:        
-                url = f'http://api.resourcewatch.org/dataset/{self.attributes["dataset"]}/layer/{self.id}'
+            try:
+                url = f'{self.server}/dataset/{self.attributes["dataset"]}/layer/{self.id}'
                 headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
                 r = requests.delete(url, headers=headers)
             except:
                 raise ValueError(f'Layer deletion failed.')
-
             if r.status_code == 200:
                 print(r.url)
                 pprint('Deletion successful!')
                 self = None
-        
         else:
             print('Deletion aborted')
-        
         return None
 
     def clone(self, token=None, env='staging', layer_params={}, target_dataset_id=None):
@@ -263,29 +276,23 @@ class Layer:
         Optionally, you can also select a target Dataset to attach your Layer-Clone to.
         """
         from .dataset import Dataset
-        
         if not token:
             raise ValueError(f'[token] Resource Watch API token required to clone.')
-        
         # unneccesary?
         # if not all(x not in layer_params.keys() for x in ['name', 'app']):
         #     print('The keys "name" and "app" must be defined in layer_params.')
         #     return None
-
         target_layer_name  = self.attributes['name']
         name = layer_params.get('name', f'{target_layer_name} CLONE')
         clone_layer_attr = {**self.attributes, 'name': name}
-        
-        for k,v in clone_layer_attr.items():
+        for k, _ in clone_layer_attr.items():
             if k in layer_params:
                 clone_layer_attr[k] = layer_params[k]
-
         if target_dataset_id:
             target_dataset = Dataset(target_dataset_id)
         else:
             target_dataset = Dataset(self.attributes['dataset'])
             clone_dataset_attr = {**target_dataset.attributes, 'name': name}
-            
             payload = {
                 'application': clone_dataset_attr['application'],
                 'connectorType': clone_dataset_attr['connectorType'],
@@ -295,20 +302,16 @@ class Layer:
                 'env': clone_dataset_attr['env'],
                 'name': clone_dataset_attr['name']
             }
-
             print(f'Creating clone dataset')
-            url = f'http://api.resourcewatch.org/dataset'
+            url = f'{self.server}/dataset'
             headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
             r = requests.post(url, data=json.dumps(payload), headers=headers)
-
             if r.status_code == 200:
                 target_dataset_id = r.json()['data']['id']
             else:
                 print(r.status_code)
                 return None
-
         payload = {
-
             'application': clone_layer_attr['application'],
             'applicationConfig': clone_layer_attr['applicationConfig'],
             'description': clone_layer_attr.get('description', ''),
@@ -319,21 +322,17 @@ class Layer:
             'legendConfig':clone_layer_attr['legendConfig'] ,
             'name': name,
             'provider': clone_layer_attr['provider'],
-
         }
-
         print(f'Creating clone layer on target dataset')
-        url = f'http://api.resourcewatch.org/dataset/{target_dataset_id}/layer'
+        url = f'{self.server}/dataset/{target_dataset_id}/layer'
         headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
         r = requests.post(url, data=json.dumps(payload), headers=headers)
-
         if r.status_code == 200:
                 clone_layer_id = r.json()['data']['id']
         else:
             print(r.status_code)
             return None
-        
-        print(f'https://api.resourcewatch.org/v1/dataset/{target_dataset_id}/layer/{clone_layer_id}')
-    
+        print(f'{self.server}/v1/dataset/{target_dataset_id}/layer/{clone_layer_id}')
         self.attributes = Layer(clone_layer_id).attributes
         return Layer(clone_layer_id)
+

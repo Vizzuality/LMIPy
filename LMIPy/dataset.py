@@ -62,7 +62,6 @@ class Dataset:
             r = requests.get(url)
         except:
             raise ValueError(f'Unable to get Dataset {self.id} from {r.url}')
-
         if r.status_code == 200:
             return r.json().get('data').get('attributes')
         else:
@@ -73,24 +72,17 @@ class Dataset:
         """
         Returns a GeoPandas GeoDataFrame for CARTO datasets.
         """
-
         if 'the_geom' not in sql and decode_geom == True:
             sql = sql.replace('SELECT', 'SELECT the_geom,')
-
         if 'count' in sql:
             decode_geom = False
-
         table_name = self.attributes.get('tableName', 'data')
         sql = sql.replace('FROM data', f'FROM {table_name}').replace('"', "'")
-
         connector = self.attributes.get('connectorUrl', '')
-
         if connector:
             account = connector.split('.carto.com/')[0]
             urlCartoContext = "{0}.carto.com".format(account)
-
             cc = cf.CartoContext(base_url=urlCartoContext, api_key=api_key)
-
         table = self.attributes.get('tableName', None)
         if table:
             return cc.query(sql, decode_geom=decode_geom)
@@ -102,7 +94,6 @@ class Dataset:
         provider = self.attributes.get('provider', None)
         if provider != 'cartodb':
             raise ValueError(f'Unable to perform query on datasets with provider {provider}. Must be `cartodb`.')
-
         return self.__carto_query__(sql=sql, decode_geom=decode_geom)
 
     def head(self, n=5, decode_geom=True, api_key=None):
@@ -119,7 +110,6 @@ class Dataset:
         # Cannot update the following
         update_blacklist = ['metadata','layer', 'vocabulary', 'updatedAt', 'userId', 'slug', "clonedHost", "errorMessage", "taskId", "dataLastUpdated"]
         updatable_fields = {f'{k}':v for k,v in self.attributes.items() if k not in update_blacklist}
-
         print(f'Updatable keys: \n{list(updatable_fields.keys())}')
         return updatable_fields
 
@@ -130,23 +120,18 @@ class Dataset:
         """
         if not token:
             raise ValueError(f'[token=None] Resource Watch API TOKEN required for updates.')
-
         if not update_params:
             print('Requires update_params dictionary.')
             return self.update_keys()
-
         attributes = self.update_keys()
-
         payload = { f'{key}': update_params[key] for key in update_params if key in attributes }
-
         ### Update here
         try:
-            url = f"http://api.resourcewatch.org/dataset/{self.id}"
+            url = f"{self.server}/dataset/{self.id}"
             headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
             r = requests.patch(url, data=json.dumps(payload), headers=headers)
         except:
             raise ValueError(f'Dataset update failed.')
-
         if r.status_code == 200:
             response = r.json()['data']
         else:
@@ -157,7 +142,6 @@ class Dataset:
             old_attributes = { f'{k}': attributes[k] for k,v in payload.items() }
             print(f"Attributes to change:")
             pprint(old_attributes)
-
         print('Updated!')
         pprint({ f'{k}': v for k, v in response['attributes'].items() if k in payload })
         self.attributes = self.get_dataset()
@@ -167,7 +151,6 @@ class Dataset:
         print(f"Delete Dataset {self.attributes['name']} with id={self.id}?")
         print("Note: Dataset deletion cascades to all associated Layers, Metadata and Vocabularies.\n> y/n")
         conf = input()
-        
         if conf.lower() == 'y':
             return True
         elif conf.lower() == 'n':
@@ -182,14 +165,12 @@ class Dataset:
         """
         if not token:
             raise ValueError(f'[token] Resource Watch API token required to delete.')
-
         ### Check if dataset has layers first. Cannot delete
         layer_count = len(self.layers)
         if layer_count > 0:
             print(f'WARNING - Dataset has {layer_count} associated Layer(s).')
             print('[D]elete ALL associated Layers, or\n[A]bort delete process?')
             conf = input()
-        
             if conf.lower() == 'd':
                 for l in self.layers:
                     l.delete(token, force=True)
@@ -198,28 +179,23 @@ class Dataset:
             else:
                 print('Requires D/A input!')
                 return False
-
         if not force:
             conf = self.confirm_delete()
         elif force:
             conf = True
-
         if conf:
-            try:        
-                url = f'http://api.resourcewatch.org/dataset/{self.id}'
+            try:
+                url = f'{self.server}/dataset/{self.id}'
                 headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
                 r = requests.delete(url, headers=headers)
             except:
                 raise ValueError(f'Layer deletion failed.')
-
             if r.status_code == 200:
                 print(r.url)
                 pprint('Deletion successful!')
                 self = None
-        
         else:
             print('Deletion aborted.')
-        
         return self
 
     def clone(self, token=None, env='staging', dataset_params=None, target_dataset_id=None):
@@ -229,7 +205,6 @@ class Dataset:
         """
         if not token:
             raise ValueError(f'[token] Resource Watch API token required to clone.')
-
         # unneccesary?
         # if not all(x not in dataset_params.keys() for x in ['name', 'app']):
         #     print('The keys "name" and "app" must be defined in dataset_params.')
@@ -240,16 +215,12 @@ class Dataset:
             return None
         else:
             target_dataset = Dataset(target_dataset_id)
-
             name = dataset_params.get('name', target_dataset.attributes['name'] + 'CLONE')
             clone_dataset_attr = {**target_dataset.attributes, 'name': name}
-            
             for k,v in clone_dataset_attr.items():
                 if k in dataset_params:
                     clone_dataset_attr[k] = dataset_params[k]
-
                 clone_dataset_attr = {**target_dataset.attributes, 'name': name}
-                
                 payload = {
                     'application': clone_dataset_attr['application'],
                     'connectorType': clone_dataset_attr['connectorType'],
@@ -259,18 +230,15 @@ class Dataset:
                     'env': clone_dataset_attr['env'],
                     'name': clone_dataset_attr['name']
                 }
-
                 print(f'Creating clone dataset')
-                url = f'http://api.resourcewatch.org/dataset'
+                url = f'{self.server}/dataset'
                 headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
                 r = requests.post(url, data=json.dumps(payload), headers=headers)
-
                 if r.status_code == 200:
                     clone_dataset_id = r.json()['data']['id']
                 else:
                     print(r.status_code)
                     return None
-
-                print(f'https://api.resourcewatch.org/v1/dataset/{clone_dataset_id}')
+                print(f'{self.server}/v1/dataset/{clone_dataset_id}')
                 self.attributes = Dataset(clone_dataset_id).attributes
                 return Dataset(clone_dataset_id)
