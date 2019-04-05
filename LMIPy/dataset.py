@@ -2,7 +2,7 @@ import requests
 import json
 import random
 from pprint import pprint
-from .layer  import Layer
+from .layer import Layer
 from .utils import html_box
 from .lmipy import Vocabulary, Metadata
 
@@ -221,3 +221,56 @@ class Dataset:
             print('Deletion aborted.')
         
         return self
+
+    def clone(self, token=None, env='staging', dataset_params=None, target_dataset_id=None):
+        """
+        Create a clone of a target Dataset as a new staging or prod Dataset.
+        A set of attributes can be specified for the clone Dataset.
+        """
+        if not token:
+            raise ValueError(f'[token] Resource Watch API token required to clone.')
+
+        # unneccesary?
+        # if not all(x not in dataset_params.keys() for x in ['name', 'app']):
+        #     print('The keys "name" and "app" must be defined in dataset_params.')
+        #     return None
+
+        if not target_dataset_id:
+            print('Must specify target_dataset_id.')
+            return None
+        else:
+            target_dataset = Dataset(target_dataset_id)
+
+            name = dataset_params.get('name', target_dataset.attributes['name'] + 'CLONE')
+            clone_dataset_attr = {**target_dataset.attributes, 'name': name}
+            
+            for k,v in clone_dataset_attr.items():
+                if k in dataset_params:
+                    clone_dataset_attr[k] = dataset_params[k]
+
+                clone_dataset_attr = {**target_dataset.attributes, 'name': name}
+                
+                payload = {
+                    'application': clone_dataset_attr['application'],
+                    'connectorType': clone_dataset_attr['connectorType'],
+                    'connectorUrl': clone_dataset_attr['connectorUrl'],
+                    'tableName': clone_dataset_attr['tableName'],
+                    'provider': clone_dataset_attr['provider'],
+                    'env': clone_dataset_attr['env'],
+                    'name': clone_dataset_attr['name']
+                }
+
+                print(f'Creating clone dataset')
+                url = f'http://api.resourcewatch.org/dataset'
+                headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
+                r = requests.post(url, data=json.dumps(payload), headers=headers)
+
+                if r.status_code == 200:
+                    clone_dataset_id = r.json()['data']['id']
+                else:
+                    print(r.status_code)
+                    return None
+
+                print(f'https://api.resourcewatch.org/v1/dataset/{clone_dataset_id}')
+                self.attributes = Dataset(clone_dataset_id).attributes
+                return Dataset(clone_dataset_id)

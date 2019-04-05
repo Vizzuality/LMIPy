@@ -173,7 +173,7 @@ class Layer:
         print(f'Updatable keys: \n{list(updatable_fields.keys())}')
         return updatable_fields
 
-    def update(self, update_params=None, token=None, show_difference=False):
+    def update(self, token=None, update_params=None, show_difference=False):
         """
         Update layer specific attribute values.
         Returns updated Layer.
@@ -255,3 +255,84 @@ class Layer:
             print('Deletion aborted')
         
         return None
+
+    def clone(self, token=None, env='staging', layer_params={}, target_dataset_id=None):
+        """
+        Create a clone of a target Layer (and its parent Dataset) as a new staging or prod Layer.
+        A set of attributes can be specified for the clone Layer.
+        Optionally, you can also select a target Dataset to attach your Layer-Clone to.
+        """
+        if not token:
+            raise ValueError(f'[token] Resource Watch API token required to clone.')
+        
+        # unneccesary?
+        # if not all(x not in layer_params.keys() for x in ['name', 'app']):
+        #     print('The keys "name" and "app" must be defined in layer_params.')
+        #     return None
+
+        target_layer_name  = self.attributes['name']
+        name = layer_params.get('name', f'{target_layer_name} CLONE')
+        clone_layer_attr = {**self.attributes, 'name': name}
+        
+        for k,v in clone_layer_attr.items():
+            if k in layer_params:
+                clone_layer_attr[k] = layer_params[k]
+
+        from .dataset import Dataset
+        if target_dataset_id:
+            target_dataset = Dataset(target_dataset_id)
+        else:
+            target_dataset = Dataset(self.attributes['dataset'])
+            clone_dataset_attr = {**target_dataset.attributes, 'name': name}
+            
+            payload = {
+                'application': clone_dataset_attr['application'],
+                'connectorType': clone_dataset_attr['connectorType'],
+                'connectorUrl': clone_dataset_attr['connectorUrl'],
+                'tableName': clone_dataset_attr['tableName'],
+                'provider': clone_dataset_attr['provider'],
+                'env': clone_dataset_attr['env'],
+                'name': clone_dataset_attr['name']
+            }
+
+            print(f'Creating clone dataset')
+            url = f'http://api.resourcewatch.org/dataset'
+            headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
+            r = requests.post(url, data=json.dumps(payload), headers=headers)
+
+            if r.status_code == 200:
+                target_dataset_id = r.json()['data']['id']
+            else:
+                print(r.status_code)
+                return None
+
+        payload = {
+
+            'application': clone_layer_attr['application'],
+            'applicationConfig': clone_layer_attr['applicationConfig'],
+            'description': clone_layer_attr.get('description', ''),
+            'env': env,
+            'interactionConfig': clone_layer_attr['interactionConfig'],
+            'iso': clone_layer_attr['iso'],
+            'layerConfig': clone_layer_attr['layerConfig'],
+            'legendConfig':clone_layer_attr['legendConfig'] ,
+            'name': name,
+            'provider': clone_layer_attr['provider'],
+
+        }
+
+        print(f'Creating clone layer on target dataset')
+        url = f'http://api.resourcewatch.org/dataset/{target_dataset_id}/layer'
+        headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
+        r = requests.post(url, data=json.dumps(payload), headers=headers)
+
+        if r.status_code == 200:
+                clone_layer_id = r.json()['data']['id']
+        else:
+            print(r.status_code)
+            return None
+        
+        print(f'https://api.resourcewatch.org/v1/dataset/{target_dataset_id}/layer/{clone_layer_id}')
+    
+        self.attributes = Layer(clone_layer_id).attributes
+        return Layer(clone_layer_id)
