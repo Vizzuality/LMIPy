@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Example of use &mdash; LMIPy 0.0.4 documentation</title>
+  <title>Example of use &mdash; LMIPy 0.0.5 documentation</title>
   
 
   
@@ -82,7 +82,10 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Example of use</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#Create-a-dataset-object-from-a-known-ID-hash">Create a dataset object from a known ID-hash</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Dataset-objects">Dataset objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Layer-Objects">Layer Objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Tables">Tables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Collection-objects:-Searching">Collection objects: Searching</a></li>
 </ul>
 </li>
 </ul>
@@ -382,8 +385,9 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 </div>
-<div class="section" id="Create-a-dataset-object-from-a-known-ID-hash">
-<h2>Create a dataset object from a known ID-hash<a class="headerlink" href="#Create-a-dataset-object-from-a-known-ID-hash" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="Dataset-objects">
+<h2>Dataset objects<a class="headerlink" href="#Dataset-objects" title="Permalink to this headline">¶</a></h2>
+<p>Using known id’s you can instantiate a dataset object directly.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
@@ -401,6 +405,7 @@ div.rendered_html tbody tr:hover {
 <div class="output_area rendered_html docutils container">
 <div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #80ceb9;border-radius: 2px; background: #f2fffb; line-height: 1.21429em; padding: 10px;''><div class='item_left' style='width: 210px; float: left;''><a href='https://resourcewatch.org/' target='_blank'><img class='itemThumbnail' src='https://resourcewatch.org/static/images/logo-embed.png'></a></div><div class='item_right' style='float: none; width: auto; overflow: hidden;''><a href=https://api.resourcewatch.org/v1/dataset/044f4af8-be72-4999-b7dd-13434fc4a394?includes=vocabulary,metadata,layer target='_blank'><b>Tree cover</b></a><br> GEE asset: <a href='https://code.earthengine.google.com/asset='UMD/hansen/global_forest_change_2013 target='_blank'>UMD/hansen/global_forest_change_2013</a> 🗺Dataset in GFW, GFW-PRO.<br>Last Modified: 2018-11-21T13:55:01.210Z<br>Connector: None | Published: True </div> </div></div>
 </div>
+<p>You can access the attributes of a dataset.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
@@ -446,6 +451,388 @@ div.rendered_html tbody tr:hover {
  &#39;layerRelevantProps&#39;: []}
 </pre></div>
 </div>
+</div>
+<p>You can also access the metadata and vocabularies if they exist.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">ds</span><span class="o">.</span><span class="n">vocabulary</span><span class="o">.</span><span class="n">attributes</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>{&#39;resource&#39;: {&#39;id&#39;: &#39;044f4af8-be72-4999-b7dd-13434fc4a394&#39;, &#39;type&#39;: &#39;dataset&#39;},
+ &#39;tags&#39;: [&#39;landCover&#39;],
+ &#39;name&#39;: &#39;categoryTab&#39;,
+ &#39;application&#39;: &#39;gfw&#39;}
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">ds</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">attributes</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>{&#39;dataset&#39;: &#39;044f4af8-be72-4999-b7dd-13434fc4a394&#39;,
+ &#39;application&#39;: &#39;gfw&#39;,
+ &#39;resource&#39;: {&#39;id&#39;: &#39;044f4af8-be72-4999-b7dd-13434fc4a394&#39;, &#39;type&#39;: &#39;dataset&#39;},
+ &#39;language&#39;: &#39;en&#39;,
+ &#39;info&#39;: {&#39;citation&#39;: &#39;2000/2010, Hansen/UMD/Google/USGS/NASA&#39;,
+  &#39;color&#39;: &#39;#a0c746&#39;,
+  &#39;description&#39;: &#39;Identifies areas of tree cover.&#39;,
+  &#39;isSelectorLayer&#39;: True,
+  &#39;name&#39;: &#39;Tree cover&#39;},
+ &#39;createdAt&#39;: &#39;2018-08-03T10:17:06.249Z&#39;,
+ &#39;updatedAt&#39;: &#39;2018-11-06T15:57:49.716Z&#39;,
+ &#39;status&#39;: &#39;published&#39;}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Layer-Objects">
+<h2>Layer Objects<a class="headerlink" href="#Layer-Objects" title="Permalink to this headline">¶</a></h2>
+<p>Similarly, you can also instantiate a Layer object.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">ly</span> <span class="o">=</span> <span class="n">LMIPy</span><span class="o">.</span><span class="n">Layer</span><span class="p">(</span><span class="n">id_hash</span><span class="o">=</span><span class="s1">&#39;dc6f6dd2-0718-4e41-81d2-109866bb9edd&#39;</span><span class="p">)</span>
+<span class="n">ly</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #80ceb9;border-radius: 2px; background: #f2fffb; line-height: 1.21429em; padding: 10px;''><div class='item_left' style='width: 210px; float: left;''><a href='https://resourcewatch.org/' target='_blank'><img class='itemThumbnail' src='https://resourcewatch.org/static/images/logo-embed.png'></a></div><div class='item_right' style='float: none; width: auto; overflow: hidden;''><a href=https://api.resourcewatch.org/v1/layer/dc6f6dd2-0718-4e41-81d2-109866bb9edd?includes=vocabulary,metadata target='_blank'><b>Tree cover 2000</b></a><br> Data source leaflet 🗺Layer in GFW-PRO.<br>Last Modified: 2018-07-19T08:33:23.226Z<br>Connector: None | Published: True </div> </div></div>
+</div>
+<p>Layers can be visulized if appropriate via a call to Layer().map()</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">ly</span><span class="o">.</span><span class="n">map</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div style="width:100%;"><div style="position:relative;width:100%;height:0;padding-bottom:60%;"><iframe src="data:text/html;charset=utf-8;base64,PCFET0NUWVBFIGh0bWw+CjxoZWFkPiAgICAKICAgIDxtZXRhIGh0dHAtZXF1aXY9ImNvbnRlbnQtdHlwZSIgY29udGVudD0idGV4dC9odG1sOyBjaGFyc2V0PVVURi04IiAvPgogICAgPHNjcmlwdD5MX1BSRUZFUl9DQU5WQVM9dHJ1ZTsgTF9OT19UT1VDSD1mYWxzZTsgTF9ESVNBQkxFXzNEPWZhbHNlOzwvc2NyaXB0PgogICAgPHNjcmlwdCBzcmM9Imh0dHBzOi8vY2RuLmpzZGVsaXZyLm5ldC9ucG0vbGVhZmxldEAxLjMuNC9kaXN0L2xlYWZsZXQuanMiPjwvc2NyaXB0PgogICAgPHNjcmlwdCBzcmM9Imh0dHBzOi8vYWpheC5nb29nbGVhcGlzLmNvbS9hamF4L2xpYnMvanF1ZXJ5LzEuMTEuMS9qcXVlcnkubWluLmpzIj48L3NjcmlwdD4KICAgIDxzY3JpcHQgc3JjPSJodHRwczovL21heGNkbi5ib290c3RyYXBjZG4uY29tL2Jvb3RzdHJhcC8zLjIuMC9qcy9ib290c3RyYXAubWluLmpzIj48L3NjcmlwdD4KICAgIDxzY3JpcHQgc3JjPSJodHRwczovL2NkbmpzLmNsb3VkZmxhcmUuY29tL2FqYXgvbGlicy9MZWFmbGV0LmF3ZXNvbWUtbWFya2Vycy8yLjAuMi9sZWFmbGV0LmF3ZXNvbWUtbWFya2Vycy5qcyI+PC9zY3JpcHQ+CiAgICA8bGluayByZWw9InN0eWxlc2hlZXQiIGhyZWY9Imh0dHBzOi8vY2RuLmpzZGVsaXZyLm5ldC9ucG0vbGVhZmxldEAxLjMuNC9kaXN0L2xlYWZsZXQuY3NzIi8+CiAgICA8bGluayByZWw9InN0eWxlc2hlZXQiIGhyZWY9Imh0dHBzOi8vbWF4Y2RuLmJvb3RzdHJhcGNkbi5jb20vYm9vdHN0cmFwLzMuMi4wL2Nzcy9ib290c3RyYXAubWluLmNzcyIvPgogICAgPGxpbmsgcmVsPSJzdHlsZXNoZWV0IiBocmVmPSJodHRwczovL21heGNkbi5ib290c3RyYXBjZG4uY29tL2Jvb3RzdHJhcC8zLjIuMC9jc3MvYm9vdHN0cmFwLXRoZW1lLm1pbi5jc3MiLz4KICAgIDxsaW5rIHJlbD0ic3R5bGVzaGVldCIgaHJlZj0iaHR0cHM6Ly9tYXhjZG4uYm9vdHN0cmFwY2RuLmNvbS9mb250LWF3ZXNvbWUvNC42LjMvY3NzL2ZvbnQtYXdlc29tZS5taW4uY3NzIi8+CiAgICA8bGluayByZWw9InN0eWxlc2hlZXQiIGhyZWY9Imh0dHBzOi8vY2RuanMuY2xvdWRmbGFyZS5jb20vYWpheC9saWJzL0xlYWZsZXQuYXdlc29tZS1tYXJrZXJzLzIuMC4yL2xlYWZsZXQuYXdlc29tZS1tYXJrZXJzLmNzcyIvPgogICAgPGxpbmsgcmVsPSJzdHlsZXNoZWV0IiBocmVmPSJodHRwczovL3Jhd2Nkbi5naXRoYWNrLmNvbS9weXRob24tdmlzdWFsaXphdGlvbi9mb2xpdW0vbWFzdGVyL2ZvbGl1bS90ZW1wbGF0ZXMvbGVhZmxldC5hd2Vzb21lLnJvdGF0ZS5jc3MiLz4KICAgIDxzdHlsZT5odG1sLCBib2R5IHt3aWR0aDogMTAwJTtoZWlnaHQ6IDEwMCU7bWFyZ2luOiAwO3BhZGRpbmc6IDA7fTwvc3R5bGU+CiAgICA8c3R5bGU+I21hcCB7cG9zaXRpb246YWJzb2x1dGU7dG9wOjA7Ym90dG9tOjA7cmlnaHQ6MDtsZWZ0OjA7fTwvc3R5bGU+CiAgICAKICAgIDxtZXRhIG5hbWU9InZpZXdwb3J0IiBjb250ZW50PSJ3aWR0aD1kZXZpY2Utd2lkdGgsCiAgICAgICAgaW5pdGlhbC1zY2FsZT0xLjAsIG1heGltdW0tc2NhbGU9MS4wLCB1c2VyLXNjYWxhYmxlPW5vIiAvPgogICAgPHN0eWxlPiNtYXBfMjQ1ZTRkMWQxNzllNDZjYTk3ZmQ1YzYxZDI0MTliYTggewogICAgICAgIHBvc2l0aW9uOiByZWxhdGl2ZTsKICAgICAgICB3aWR0aDogMTAwLjAlOwogICAgICAgIGhlaWdodDogMTAwLjAlOwogICAgICAgIGxlZnQ6IDAuMCU7CiAgICAgICAgdG9wOiAwLjAlOwogICAgICAgIH0KICAgIDwvc3R5bGU+CjwvaGVhZD4KPGJvZHk+ICAgIAogICAgCiAgICA8ZGl2IGNsYXNzPSJmb2xpdW0tbWFwIiBpZD0ibWFwXzI0NWU0ZDFkMTc5ZTQ2Y2E5N2ZkNWM2MWQyNDE5YmE4IiA+PC9kaXY+CjwvYm9keT4KPHNjcmlwdD4gICAgCiAgICAKICAgIAogICAgICAgIHZhciBib3VuZHMgPSBudWxsOwogICAgCgogICAgdmFyIG1hcF8yNDVlNGQxZDE3OWU0NmNhOTdmZDVjNjFkMjQxOWJhOCA9IEwubWFwKAogICAgICAgICdtYXBfMjQ1ZTRkMWQxNzllNDZjYTk3ZmQ1YzYxZDI0MTliYTgnLCB7CiAgICAgICAgY2VudGVyOiBbMCwgMF0sCiAgICAgICAgem9vbTogMywKICAgICAgICBtYXhCb3VuZHM6IGJvdW5kcywKICAgICAgICBsYXllcnM6IFtdLAogICAgICAgIHdvcmxkQ29weUp1bXA6IGZhbHNlLAogICAgICAgIGNyczogTC5DUlMuRVBTRzM4NTcsCiAgICAgICAgem9vbUNvbnRyb2w6IHRydWUsCiAgICAgICAgfSk7CgogICAgCiAgICAKICAgIHZhciB0aWxlX2xheWVyX2IwZDQxNDI0NWJlZDQxMWZiZDdmN2Q1MWU5YzY3Y2YzID0gTC50aWxlTGF5ZXIoCiAgICAgICAgJ2h0dHBzOi8ve3N9LnRpbGVzLm1hcGJveC5jb20vdjMvbWFwYm94LndvcmxkLWJyaWdodC97en0ve3h9L3t5fS5wbmcnLAogICAgICAgIHsKICAgICAgICAiYXR0cmlidXRpb24iOiBudWxsLAogICAgICAgICJkZXRlY3RSZXRpbmEiOiB0cnVlLAogICAgICAgICJtYXhOYXRpdmVab29tIjogMTgsCiAgICAgICAgIm1heFpvb20iOiAxOCwKICAgICAgICAibWluWm9vbSI6IDAsCiAgICAgICAgIm5vV3JhcCI6IGZhbHNlLAogICAgICAgICJvcGFjaXR5IjogMSwKICAgICAgICAic3ViZG9tYWlucyI6ICJhYmMiLAogICAgICAgICJ0bXMiOiBmYWxzZQp9KS5hZGRUbyhtYXBfMjQ1ZTRkMWQxNzllNDZjYTk3ZmQ1YzYxZDI0MTliYTgpOwogICAgdmFyIHRpbGVfbGF5ZXJfMGY0Y2M2Yzg4NTk1NGZjMDg1YzFjOGI0NGQxMWE1ZDcgPSBMLnRpbGVMYXllcigKICAgICAgICAnaHR0cHM6Ly9lYXJ0aGVuZ2luZS5nb29nbGUub3JnL3N0YXRpYy9oYW5zZW5fMjAxNC9nZndfbG9zc190cmVlX3llYXJfMzBfMjAxNC97en0ve3h9L3t5fS5wbmcnLAogICAgICAgIHsKICAgICAgICAiYXR0cmlidXRpb24iOiAiVHJlZSBjb3ZlciAyMDAwIiwKICAgICAgICAiZGV0ZWN0UmV0aW5hIjogZmFsc2UsCiAgICAgICAgIm1heE5hdGl2ZVpvb20iOiAxOCwKICAgICAgICAibWF4Wm9vbSI6IDE4LAogICAgICAgICJtaW5ab29tIjogMCwKICAgICAgICAibm9XcmFwIjogZmFsc2UsCiAgICAgICAgIm9wYWNpdHkiOiAxLAogICAgICAgICJzdWJkb21haW5zIjogImFiYyIsCiAgICAgICAgInRtcyI6IGZhbHNlCn0pLmFkZFRvKG1hcF8yNDVlNGQxZDE3OWU0NmNhOTdmZDVjNjFkMjQxOWJhOCk7Cjwvc2NyaXB0Pg==" style="position:absolute;width:100%;height:100%;left:0;top:0;border:none !important;" allowfullscreen webkitallowfullscreen mozallowfullscreen></iframe></div></div></div>
+</div>
+</div>
+<div class="section" id="Tables">
+<h2>Tables<a class="headerlink" href="#Tables" title="Permalink to this headline">¶</a></h2>
+<p>Tables are subclasses of Dataset objects. They are document datasets which can be instantiated and queried returning a dataframe object.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">t</span> <span class="o">=</span> <span class="n">LMIPy</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="n">id_hash</span><span class="o">=</span><span class="s1">&#39;86c7135a-855d-4f1b-9d67-f545a93281b3&#39;</span><span class="p">)</span>
+<span class="n">t</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #80ceb9;border-radius: 2px; background: #f2fffb; line-height: 1.21429em; padding: 10px;''><div class='item_left' style='width: 210px; float: left;''><a href='https://resourcewatch.org/' target='_blank'><img class='itemThumbnail' src='https://resourcewatch.org/static/images/logo-embed.png'></a></div><div class='item_right' style='float: none; width: auto; overflow: hidden;''><a href=https://api.resourcewatch.org/v1/dataset/86c7135a-855d-4f1b-9d67-f545a93281b3?includes=vocabulary,metadata,layer target='_blank'><b>AQ City Days (DUMMY, NOT FOR PUBLISH)</b></a><br> CSV Table: <a href=http://wri-api-backups.s3.amazonaws.com/raw/1520615182177_city-aq-days-dummy.csv target='_blank'>index_86c7135a855d4f1b9d67f545a93281b3_1520615201102</a> 🗺Dataset in RW.<br>Last Modified: 2018-03-09T17:06:52.555Z<br>Connector: None | Published: False </div> </div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">df</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">df</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>City</th>
+      <th>Number_of_Days</th>
+      <th>_id</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>Beijing</td>
+      <td>14</td>
+      <td>AWILuq8j8Jqrt1rp-STQ</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>San Francisco</td>
+      <td>10</td>
+      <td>AWILuq8j8Jqrt1rp-STT</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>Manama</td>
+      <td>7</td>
+      <td>AWILuq8j8Jqrt1rp-STU</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>Queries to tables are returned in geopandas dataframe format.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="nb">type</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>geopandas.geodataframe.GeoDataFrame
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">t</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;SELECT * from data where City = &#39;San Francisco&#39;&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>City</th>
+      <th>Number_of_Days</th>
+      <th>_id</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>San Francisco</td>
+      <td>10</td>
+      <td>AWILuq8j8Jqrt1rp-STT</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+</div>
+<div class="section" id="Collection-objects:-Searching">
+<h2>Collection objects: Searching<a class="headerlink" href="#Collection-objects:-Searching" title="Permalink to this headline">¶</a></h2>
+<p>If you don’t know what data you are interested in advance, you can search by keywords and return a list of objects.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">c</span> <span class="o">=</span> <span class="n">LMIPy</span><span class="o">.</span><span class="n">Collection</span><span class="p">(</span><span class="s1">&#39;tree cover&#39;</span><span class="p">,</span> <span class="n">object_type</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;layer&#39;</span><span class="p">,</span><span class="s1">&#39;dataset&#39;</span><span class="p">],</span><span class="n">app</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;gfw&#39;</span><span class="p">],</span><span class="n">limit</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">c</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>[Layer 220080ec-1641-489c-96c4-4885ed618bf3, Layer 2f4d9b87-6629-4658-8175-87d7892a5f32, Layer 66203fea-2e58-4a55-b222-1dae075cf95d, Layer dd5df87f-39c2-4aeb-a462-3ef969b20b66, Layer a8b4e2eb-328e-420b-8027-8466271d8368, Layer 2fe559f6-9ae7-4a47-87fb-a33a128652ed, Layer cfd95864-1e95-4a7f-bdf8-e47e4bb5815e, Layer 07bfab49-d4a6-4ff3-bb97-43cc1b1152e1, Layer 463537a8-5ebb-43c1-b6a4-2f25b9910028, Layer c09767f5-0ff0-419b-a21b-1b0b06f4745f]
+</pre></div>
+</div>
+</div>
+<p>Searching can be restricted with keyword arguments to specifically search types of items, applications, and more. If you want to render those items, you will need to do the following.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">IPython.display</span> <span class="k">import</span> <span class="n">display</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">c</span><span class="p">:</span>
+    <span class="n">display</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #80ceb9;border-radius: 2px; background: #f2fffb; line-height: 1.21429em; padding: 10px;''><div class='item_left' style='width: 210px; float: left;''><a href='https://resourcewatch.org/' target='_blank'><img class='itemThumbnail' src='https://resourcewatch.org/static/images/logo-embed.png'></a></div><div class='item_right' style='float: none; width: auto; overflow: hidden;''><a href=https://api.resourcewatch.org/v1/layer/220080ec-1641-489c-96c4-4885ed618bf3?includes=vocabulary,metadata target='_blank'><b>Brazil land cover - 2000-2016</b></a><br> Data source leaflet 🗺Layer in GFW.<br>Last Modified: 2018-11-21T14:03:00.520Z<br>Connector: None | Published: True </div> </div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #80ceb9;border-radius: 2px; background: #f2fffb; line-height: 1.21429em; padding: 10px;''><div class='item_left' style='width: 210px; float: left;''><a href='https://resourcewatch.org/' target='_blank'><img class='itemThumbnail' src='https://resourcewatch.org/static/images/logo-embed.png'></a></div><div class='item_right' style='float: none; width: auto; overflow: hidden;''><a href=https://api.resourcewatch.org/v1/layer/2f4d9b87-6629-4658-8175-87d7892a5f32?includes=vocabulary,metadata target='_blank'><b>Earth Journalism Network Stories</b></a><br> Data source leaflet 🗺Layer in GFW.<br>Last Modified: 2019-03-11T13:41:16.759Z<br>Connector: None | Published: True </div> </div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #80ceb9;border-radius: 2px; background: #f2fffb; line-height: 1.21429em; padding: 10px;''><div class='item_left' style='width: 210px; float: left;''><a href='https://resourcewatch.org/' target='_blank'><img class='itemThumbnail' src='https://resourcewatch.org/static/images/logo-embed.png'></a></div><div class='item_right' style='float: none; width: auto; overflow: hidden;''><a href=https://api.resourcewatch.org/v1/layer/66203fea-2e58-4a55-b222-1dae075cf95d?includes=vocabulary,metadata target='_blank'><b>FORMA alerts</b></a><br> Data source leaflet 🗺Layer in GFW.<br>Last Modified: 2019-03-14T10:41:49.789Z<br>Connector: None | Published: True </div> </div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #80ceb9;border-radius: 2px; background: #f2fffb; line-height: 1.21429em; padding: 10px;''><div class='item_left' style='width: 210px; float: left;''><a href='https://resourcewatch.org/' target='_blank'><img class='itemThumbnail' src='https://resourcewatch.org/static/images/logo-embed.png'></a></div><div class='item_right' style='float: none; width: auto; overflow: hidden;''><a href=https://api.resourcewatch.org/v1/layer/dd5df87f-39c2-4aeb-a462-3ef969b20b66?includes=vocabulary,metadata target='_blank'><b>GLAD alerts</b></a><br> Data source leaflet 🗺Layer in GFW.<br>Last Modified: 2019-03-08T13:16:58.512Z<br>Connector: None | Published: True </div> </div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #80ceb9;border-radius: 2px; background: #f2fffb; line-height: 1.21429em; padding: 10px;''><div class='item_left' style='width: 210px; float: left;''><a href='https://resourcewatch.org/' target='_blank'><img class='itemThumbnail' src='https://resourcewatch.org/static/images/logo-embed.png'></a></div><div class='item_right' style='float: none; width: auto; overflow: hidden;''><a href=https://api.resourcewatch.org/v1/layer/a8b4e2eb-328e-420b-8027-8466271d8368?includes=vocabulary,metadata target='_blank'><b>Geographic coverage</b></a><br> Data source cartodb 🗺Layer in GFW.<br>Last Modified: 2019-03-08T13:20:03.501Z<br>Connector: None | Published: True </div> </div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #80ceb9;border-radius: 2px; background: #f2fffb; line-height: 1.21429em; padding: 10px;''><div class='item_left' style='width: 210px; float: left;''><a href='https://resourcewatch.org/' target='_blank'><img class='itemThumbnail' src='https://resourcewatch.org/static/images/logo-embed.png'></a></div><div class='item_right' style='float: none; width: auto; overflow: hidden;''><a href=https://api.resourcewatch.org/v1/layer/2fe559f6-9ae7-4a47-87fb-a33a128652ed?includes=vocabulary,metadata target='_blank'><b>Guatemala forest change - 2001-2006</b></a><br> Data source leaflet 🗺Layer in GFW.<br>Last Modified: 2018-11-21T14:02:59.190Z<br>Connector: None | Published: True </div> </div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #80ceb9;border-radius: 2px; background: #f2fffb; line-height: 1.21429em; padding: 10px;''><div class='item_left' style='width: 210px; float: left;''><a href='https://resourcewatch.org/' target='_blank'><img class='itemThumbnail' src='https://resourcewatch.org/static/images/logo-embed.png'></a></div><div class='item_right' style='float: none; width: auto; overflow: hidden;''><a href=https://api.resourcewatch.org/v1/layer/cfd95864-1e95-4a7f-bdf8-e47e4bb5815e?includes=vocabulary,metadata target='_blank'><b>Guatemala forest cover - 2012</b></a><br> Data source leaflet 🗺Layer in GFW.<br>Last Modified: 2018-11-21T14:02:59.963Z<br>Connector: None | Published: True </div> </div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #80ceb9;border-radius: 2px; background: #f2fffb; line-height: 1.21429em; padding: 10px;''><div class='item_left' style='width: 210px; float: left;''><a href='https://resourcewatch.org/' target='_blank'><img class='itemThumbnail' src='https://resourcewatch.org/static/images/logo-embed.png'></a></div><div class='item_right' style='float: none; width: auto; overflow: hidden;''><a href=https://api.resourcewatch.org/v1/layer/07bfab49-d4a6-4ff3-bb97-43cc1b1152e1?includes=vocabulary,metadata target='_blank'><b>Honduras forest type - 2013</b></a><br> Data source cartodb 🗺Layer in GFW.<br>Last Modified: 2019-03-08T15:39:36.735Z<br>Connector: None | Published: True </div> </div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #80ceb9;border-radius: 2px; background: #f2fffb; line-height: 1.21429em; padding: 10px;''><div class='item_left' style='width: 210px; float: left;''><a href='https://resourcewatch.org/' target='_blank'><img class='itemThumbnail' src='https://resourcewatch.org/static/images/logo-embed.png'></a></div><div class='item_right' style='float: none; width: auto; overflow: hidden;''><a href=https://api.resourcewatch.org/v1/layer/463537a8-5ebb-43c1-b6a4-2f25b9910028?includes=vocabulary,metadata target='_blank'><b>Indonesia land cover - 2017</b></a><br> Data source cartodb 🗺Layer in GFW.<br>Last Modified: 2019-03-08T13:19:50.693Z<br>Connector: None | Published: True </div> </div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #80ceb9;border-radius: 2px; background: #f2fffb; line-height: 1.21429em; padding: 10px;''><div class='item_left' style='width: 210px; float: left;''><a href='https://resourcewatch.org/' target='_blank'><img class='itemThumbnail' src='https://resourcewatch.org/static/images/logo-embed.png'></a></div><div class='item_right' style='float: none; width: auto; overflow: hidden;''><a href=https://api.resourcewatch.org/v1/layer/c09767f5-0ff0-419b-a21b-1b0b06f4745f?includes=vocabulary,metadata target='_blank'><b>Land cover - 2015</b></a><br> Data source leaflet 🗺Layer in GFW.<br>Last Modified: 2019-03-07T09:39:35.242Z<br>Connector: None | Published: True </div> </div></div>
+</div>
+<p>You can access items from a collection using subscripts, slices and more.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">c</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #80ceb9;border-radius: 2px; background: #f2fffb; line-height: 1.21429em; padding: 10px;''><div class='item_left' style='width: 210px; float: left;''><a href='https://resourcewatch.org/' target='_blank'><img class='itemThumbnail' src='https://resourcewatch.org/static/images/logo-embed.png'></a></div><div class='item_right' style='float: none; width: auto; overflow: hidden;''><a href=https://api.resourcewatch.org/v1/layer/c09767f5-0ff0-419b-a21b-1b0b06f4745f?includes=vocabulary,metadata target='_blank'><b>Land cover - 2015</b></a><br> Data source leaflet 🗺Layer in GFW.<br>Last Modified: 2019-03-07T09:39:35.242Z<br>Connector: None | Published: True </div> </div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">c</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div style="width:100%;"><div style="position:relative;width:100%;height:0;padding-bottom:60%;"><iframe src="data:text/html;charset=utf-8;base64,PCFET0NUWVBFIGh0bWw+CjxoZWFkPiAgICAKICAgIDxtZXRhIGh0dHAtZXF1aXY9ImNvbnRlbnQtdHlwZSIgY29udGVudD0idGV4dC9odG1sOyBjaGFyc2V0PVVURi04IiAvPgogICAgPHNjcmlwdD5MX1BSRUZFUl9DQU5WQVM9dHJ1ZTsgTF9OT19UT1VDSD1mYWxzZTsgTF9ESVNBQkxFXzNEPWZhbHNlOzwvc2NyaXB0PgogICAgPHNjcmlwdCBzcmM9Imh0dHBzOi8vY2RuLmpzZGVsaXZyLm5ldC9ucG0vbGVhZmxldEAxLjMuNC9kaXN0L2xlYWZsZXQuanMiPjwvc2NyaXB0PgogICAgPHNjcmlwdCBzcmM9Imh0dHBzOi8vYWpheC5nb29nbGVhcGlzLmNvbS9hamF4L2xpYnMvanF1ZXJ5LzEuMTEuMS9qcXVlcnkubWluLmpzIj48L3NjcmlwdD4KICAgIDxzY3JpcHQgc3JjPSJodHRwczovL21heGNkbi5ib290c3RyYXBjZG4uY29tL2Jvb3RzdHJhcC8zLjIuMC9qcy9ib290c3RyYXAubWluLmpzIj48L3NjcmlwdD4KICAgIDxzY3JpcHQgc3JjPSJodHRwczovL2NkbmpzLmNsb3VkZmxhcmUuY29tL2FqYXgvbGlicy9MZWFmbGV0LmF3ZXNvbWUtbWFya2Vycy8yLjAuMi9sZWFmbGV0LmF3ZXNvbWUtbWFya2Vycy5qcyI+PC9zY3JpcHQ+CiAgICA8bGluayByZWw9InN0eWxlc2hlZXQiIGhyZWY9Imh0dHBzOi8vY2RuLmpzZGVsaXZyLm5ldC9ucG0vbGVhZmxldEAxLjMuNC9kaXN0L2xlYWZsZXQuY3NzIi8+CiAgICA8bGluayByZWw9InN0eWxlc2hlZXQiIGhyZWY9Imh0dHBzOi8vbWF4Y2RuLmJvb3RzdHJhcGNkbi5jb20vYm9vdHN0cmFwLzMuMi4wL2Nzcy9ib290c3RyYXAubWluLmNzcyIvPgogICAgPGxpbmsgcmVsPSJzdHlsZXNoZWV0IiBocmVmPSJodHRwczovL21heGNkbi5ib290c3RyYXBjZG4uY29tL2Jvb3RzdHJhcC8zLjIuMC9jc3MvYm9vdHN0cmFwLXRoZW1lLm1pbi5jc3MiLz4KICAgIDxsaW5rIHJlbD0ic3R5bGVzaGVldCIgaHJlZj0iaHR0cHM6Ly9tYXhjZG4uYm9vdHN0cmFwY2RuLmNvbS9mb250LWF3ZXNvbWUvNC42LjMvY3NzL2ZvbnQtYXdlc29tZS5taW4uY3NzIi8+CiAgICA8bGluayByZWw9InN0eWxlc2hlZXQiIGhyZWY9Imh0dHBzOi8vY2RuanMuY2xvdWRmbGFyZS5jb20vYWpheC9saWJzL0xlYWZsZXQuYXdlc29tZS1tYXJrZXJzLzIuMC4yL2xlYWZsZXQuYXdlc29tZS1tYXJrZXJzLmNzcyIvPgogICAgPGxpbmsgcmVsPSJzdHlsZXNoZWV0IiBocmVmPSJodHRwczovL3Jhd2Nkbi5naXRoYWNrLmNvbS9weXRob24tdmlzdWFsaXphdGlvbi9mb2xpdW0vbWFzdGVyL2ZvbGl1bS90ZW1wbGF0ZXMvbGVhZmxldC5hd2Vzb21lLnJvdGF0ZS5jc3MiLz4KICAgIDxzdHlsZT5odG1sLCBib2R5IHt3aWR0aDogMTAwJTtoZWlnaHQ6IDEwMCU7bWFyZ2luOiAwO3BhZGRpbmc6IDA7fTwvc3R5bGU+CiAgICA8c3R5bGU+I21hcCB7cG9zaXRpb246YWJzb2x1dGU7dG9wOjA7Ym90dG9tOjA7cmlnaHQ6MDtsZWZ0OjA7fTwvc3R5bGU+CiAgICAKICAgIDxtZXRhIG5hbWU9InZpZXdwb3J0IiBjb250ZW50PSJ3aWR0aD1kZXZpY2Utd2lkdGgsCiAgICAgICAgaW5pdGlhbC1zY2FsZT0xLjAsIG1heGltdW0tc2NhbGU9MS4wLCB1c2VyLXNjYWxhYmxlPW5vIiAvPgogICAgPHN0eWxlPiNtYXBfMTkzYzk1ZGNmODI3NDMyZGI4YWY3ZmNmN2M4NWMwMzkgewogICAgICAgIHBvc2l0aW9uOiByZWxhdGl2ZTsKICAgICAgICB3aWR0aDogMTAwLjAlOwogICAgICAgIGhlaWdodDogMTAwLjAlOwogICAgICAgIGxlZnQ6IDAuMCU7CiAgICAgICAgdG9wOiAwLjAlOwogICAgICAgIH0KICAgIDwvc3R5bGU+CjwvaGVhZD4KPGJvZHk+ICAgIAogICAgCiAgICA8ZGl2IGNsYXNzPSJmb2xpdW0tbWFwIiBpZD0ibWFwXzE5M2M5NWRjZjgyNzQzMmRiOGFmN2ZjZjdjODVjMDM5IiA+PC9kaXY+CjwvYm9keT4KPHNjcmlwdD4gICAgCiAgICAKICAgIAogICAgICAgIHZhciBib3VuZHMgPSBudWxsOwogICAgCgogICAgdmFyIG1hcF8xOTNjOTVkY2Y4Mjc0MzJkYjhhZjdmY2Y3Yzg1YzAzOSA9IEwubWFwKAogICAgICAgICdtYXBfMTkzYzk1ZGNmODI3NDMyZGI4YWY3ZmNmN2M4NWMwMzknLCB7CiAgICAgICAgY2VudGVyOiBbMCwgMF0sCiAgICAgICAgem9vbTogMywKICAgICAgICBtYXhCb3VuZHM6IGJvdW5kcywKICAgICAgICBsYXllcnM6IFtdLAogICAgICAgIHdvcmxkQ29weUp1bXA6IGZhbHNlLAogICAgICAgIGNyczogTC5DUlMuRVBTRzM4NTcsCiAgICAgICAgem9vbUNvbnRyb2w6IHRydWUsCiAgICAgICAgfSk7CgogICAgCiAgICAKICAgIHZhciB0aWxlX2xheWVyX2Q4YjZkMWU4M2Y2MzQ3ZGY5OTUwM2EyOWNkMWRkMGE4ID0gTC50aWxlTGF5ZXIoCiAgICAgICAgJ2h0dHBzOi8ve3N9LnRpbGVzLm1hcGJveC5jb20vdjMvbWFwYm94LndvcmxkLWJyaWdodC97en0ve3h9L3t5fS5wbmcnLAogICAgICAgIHsKICAgICAgICAiYXR0cmlidXRpb24iOiBudWxsLAogICAgICAgICJkZXRlY3RSZXRpbmEiOiB0cnVlLAogICAgICAgICJtYXhOYXRpdmVab29tIjogMTgsCiAgICAgICAgIm1heFpvb20iOiAxOCwKICAgICAgICAibWluWm9vbSI6IDAsCiAgICAgICAgIm5vV3JhcCI6IGZhbHNlLAogICAgICAgICJvcGFjaXR5IjogMSwKICAgICAgICAic3ViZG9tYWlucyI6ICJhYmMiLAogICAgICAgICJ0bXMiOiBmYWxzZQp9KS5hZGRUbyhtYXBfMTkzYzk1ZGNmODI3NDMyZGI4YWY3ZmNmN2M4NWMwMzkpOwogICAgdmFyIHRpbGVfbGF5ZXJfN2JlN2RlYzEwMjU1NGM5ZTljMmM3M2RlZDEwY2FmZDAgPSBMLnRpbGVMYXllcigKICAgICAgICAnaHR0cHM6Ly9jYXJ0b2Nkbi1ndXNjLXtzfS5nbG9iYWwuc3NsLmZhc3RseS5uZXQvd3JpLTAxL2FwaS92MS9tYXAvMGFiOTYwNmMyYmRkOTA5NDkyYWIxYzA5OWZjNTdlNGQ6MTUyOTI1NTQ5MTUyNi97en0ve3h9L3t5fS5wbmcnLAogICAgICAgIHsKICAgICAgICAiYXR0cmlidXRpb24iOiAiSW5kb25lc2lhIGxhbmQgY292ZXIgLSAyMDE3IiwKICAgICAgICAiZGV0ZWN0UmV0aW5hIjogZmFsc2UsCiAgICAgICAgIm1heE5hdGl2ZVpvb20iOiAxOCwKICAgICAgICAibWF4Wm9vbSI6IDE4LAogICAgICAgICJtaW5ab29tIjogMCwKICAgICAgICAibm9XcmFwIjogZmFsc2UsCiAgICAgICAgIm9wYWNpdHkiOiAxLAogICAgICAgICJzdWJkb21haW5zIjogImFiYyIsCiAgICAgICAgInRtcyI6IGZhbHNlCn0pLmFkZFRvKG1hcF8xOTNjOTVkY2Y4Mjc0MzJkYjhhZjdmY2Y3Yzg1YzAzOSk7Cjwvc2NyaXB0Pg==" style="position:absolute;width:100%;height:100%;left:0;top:0;border:none !important;" allowfullscreen webkitallowfullscreen mozallowfullscreen></iframe></div></div></div>
 </div>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
