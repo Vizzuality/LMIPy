@@ -27,7 +27,8 @@ class Collection:
         A list of strings of object types to search, e.g. [‘dataset’, ‘layer’]
     """
     def __init__(self, search, app=['gfw','rw'], env='production', limit=1000, order='name', sort='desc',
-                 object_type=['dataset', 'layer'], server='https://api.resourcewatch.org'):
+                 object_type=['dataset', 'layer','table'], server='https://api.resourcewatch.org',
+                 mapbox_token=None):
         self.server = server
         self.search = search.strip().split(' ')
         self.app = ",".join(app)
@@ -35,6 +36,7 @@ class Collection:
         self.limit = limit
         self.order = order
         self.sort = sort
+        self.mapbox_token = mapbox_token
         self.object_type = object_type
         self.collection = self.get_collection()
         self.iter_position = 0
@@ -51,7 +53,7 @@ class Collection:
     def __iter__(self):
         return self
 
-    def __next__(self): # Python 3: def __next__(self)
+    def __next__(self):
         if self.iter_position >= len(self.collection):
             self.iter_position = 0
             raise StopIteration
@@ -64,12 +66,14 @@ class Collection:
 
     def get_collection(self):
         """
-        Getter for the a collection object.
+        Getter for the a collection object. In this case dataset and layers
+        are the objects in the API. I.e. tables are a dataset type.
         """
+        response_list = []
         if 'layer' in self.object_type:
-            response_list = self.get_layers()
-        else:
-            response_list = self.get_datasets()
+            _ = [response_list.append(l) for l in self.get_layers()]
+        if 'dataset' in self.object_type:
+            _ = [response_list.append(d) for d in self.get_datasets()]
         ordered_list = self.order_results(response_list)
         return ordered_list
 
@@ -104,6 +108,9 @@ class Collection:
         for item in response_list:
             in_description = False
             in_name = False
+            return_layers = 'layer' in self.object_type
+            return_datasets = 'table' in self.object_type
+            return_tables = 'dataset' in self.object_type
             name = item.get('attributes').get('name').lower()
             description = item.get('attributes').get('description')
             if description:
@@ -113,12 +120,12 @@ class Collection:
             if in_name or in_description:
                 if len(filtered_response) < self.limit:
                     filtered_response.append(item)
-                if item.get('type') == 'dataset' and item.get('attributes').get('provider') in ['csv', 'json']:
+                if item.get('type') == 'dataset' and item.get('attributes').get('provider') in ['csv', 'json'] and return_tables:
                     collection.append(Table(id_hash = item.get('id'), attributes=item.get('attributes')))
-                elif item.get('type') == 'dataset' and item.get('attributes').get('provider') != 'csv':
+                elif item.get('type') == 'dataset' and item.get('attributes').get('provider') != ['csv','json'] and return_datasets:
                     collection.append(Dataset(id_hash = item.get('id'), attributes=item.get('attributes')))
-                if item.get('type') == 'layer':
-                    collection.append(Layer(id_hash = item.get('id'), attributes=item.get('attributes')))
+                if item.get('type') == 'layer' and return_layers:
+                    collection.append(Layer(id_hash = item.get('id'), attributes=item.get('attributes'), mapbox_token=self.mapbox_token))
         return collection
 
     def order_results(self, collection_list):

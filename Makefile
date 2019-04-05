@@ -24,3 +24,7 @@ release:
     @rm -rf dist/
     python setup.py sdist upload -r pypi
     python setup.py bdist_wheel upload -r pypi
+
+pypi:
+    python setup.py sdist bdist_wheel
+    python -m twine upload dist/*
