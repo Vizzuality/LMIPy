@@ -6,6 +6,7 @@ docs/_static
 docs/_templates
 
 # Nbk Stuff
+test_nbk.ipynb
 .ipynb_checkpoints/
 LMI-dev-nbk.ipynb
 LMIPy/__pycache__/
