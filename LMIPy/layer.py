@@ -19,8 +19,10 @@ class Layer:
     server: str
         A string of the server URL.
     """
-    def __init__(self, id_hash=None, attributes=None, server='https://api.resourcewatch.org'):
+    def __init__(self, id_hash=None, attributes=None,
+                    server='https://api.resourcewatch.org', mapbox_token=None):
         self.server = server
+        self.mapbox_token = mapbox_token
         if not id_hash:
             if attributes:
                 self.id = attributes.get('id', None)
@@ -53,7 +55,7 @@ class Layer:
         else:
             raise ValueError(f'Unable to get dataset {self.id} from {r.url}')
 
-    def parse_map_url(self, TOKEN=None):
+    def parse_map_url(self):
         """
         Parses map urls
         """
@@ -69,9 +71,9 @@ class Layer:
         if self.attributes.get('provider') == 'cartodb':
             return self.get_carto_tiles()
         if self.attributes.get('provider') == 'mapbox':
-            if not TOKEN:
-                raise ValueError("Requires a Mapbox Access Token in param: 'TOKEN'.")
-            return self.get_mapbox_tiles(TOKEN)
+            if not self.mapbox_token:
+                raise ValueError("Requires a Mapbox Access Token in param: 'mapbox_token'.")
+            return self.get_mapbox_tiles()
 
 
     def get_leaflet_tiles(self):
@@ -130,21 +132,17 @@ class Layer:
             response = r.json()
         else:
             raise ValueError(f'Unable to get retrieve map url for {self.id} from {self.attributes.get("provider")}')
-        
+
         tile_url = f'{response["cdn_url"]["templates"]["https"]["url"]}/{layerConfig["account"]}/api/v1/map/{response["layergroupid"]}/{{z}}/{{x}}/{{y}}.png'
         return tile_url
 
-    def get_mapbox_tiles(self, MAPBOX_ACCESS_TOKEN):
+    def get_mapbox_tiles(self):
         """"Retrieve mapbox tiles... as raster :("""
         layerConfig = self.attributes['layerConfig']
-
         vector_target = layerConfig['body'].get('format', None)
-
         if vector_target and vector_target.lower() == 'mapbox':
             vector_source = layerConfig['body'].get('url', '').split('mapbox://')[1]
-
-            url = f"https://api.mapbox.com/v4/{vector_source}.json?secure&access_token={MAPBOX_ACCESS_TOKEN}"
-
+            url = f"https://api.mapbox.com/v4/{vector_source}.json?secure&access_token={self.mapbox_token}"
             r = requests.get(url, headers={'Content-Type': 'application/json'})
             if r.status_code == 200:
                 return r.json().get('tiles', [None])[0].replace('vector.pbf', 'png')
@@ -153,13 +151,11 @@ class Layer:
         else:
             raise ValueError('Mapbox target not found')
 
-    def map(self, TOKEN=None, lat=0, lon=0, zoom=3):
+    def map(self, lat=0, lon=0, zoom=3):
         """
         Returns a folim map with styles applied
         """
-
-        url = self.parse_map_url(TOKEN)
-        print(f'Displaying: {url}')
+        url = self.parse_map_url()
         map = folium.Map(
                 location=[lon, lat],
                 zoom_start=zoom,
@@ -167,10 +163,8 @@ class Layer:
                 detect_retina=True,
                 prefer_canvas=True
         )
-
         map.add_tile_layer(
             tiles=url,
             attr=self.attributes.get('name')
         )
-
         return map
