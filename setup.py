@@ -5,15 +5,19 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="LMIPy",
-    version="0.0.5",
+    version="0.0.7",
     author="Vizzuality",
-    author_email="benlaken@icloud.com",
+    author_email="benjamin.laken@vizzuality.com",
     description="Interface to data and layers in the Resource Watch API",
     long_description=long_description,
     long_description_content_type="text/markdown",
     license='MIT',
     url="https://github.com/Vizzuality/LMIPy",
-    install_requires=['requests>=2.2.0'],
+    install_requires=['requests>=2.2.0',
+                        'folium==0.8.3',
+                        'geopandas==0.4.1',
+                        'cartoframes==0.9.2',
+                        'colored==1.3.93'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",

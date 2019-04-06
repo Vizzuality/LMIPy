@@ -64,7 +64,7 @@ def html_box(item):
             "</a>"
             f"<br> {table_statement} 🗺{kind_of_item} in {', '.join(item.attributes.get('application')).upper()}."
             f"<br>Last Modified: {item.attributes.get('updatedAt')}"
-            f"<br>Connector: {None}"
+            f"<br>Connector: {item.attributes.get('provider')}"
             f" | Published: {item.attributes.get('published')}"
             " </div> </div>")
     return html

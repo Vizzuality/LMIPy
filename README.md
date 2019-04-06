@@ -22,8 +22,6 @@ Currently this software is not ready for use.
 ```
 $ python
 >>> import LMIPy
->>> LMIPy.__version__
-'0.0.2'
 ```
 
 Create a Dataset object based on an existing ID on default (RW) server.
