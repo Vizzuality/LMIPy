@@ -5,7 +5,7 @@ import urllib
 import json
 import random
 from .utils import html_box
-from colored import fg, bg, attr
+# from colored import fg, bg, attr
 
 
 class Layer:
@@ -202,9 +202,9 @@ class Layer:
         show_difference: bool
             Display the updates.
         """
-        red_color = fg('#FF0000')
-        green_color = fg('#00FF00')
-        res = attr('reset')
+        # red_color = fg('#FF0000')
+        # green_color = fg('#00FF00')
+        # res = attr('reset')
         if not token:
             raise ValueError(f'[token=None] Resource Watch API TOKEN required for updates.')
         if not update_params:
@@ -222,13 +222,13 @@ class Layer:
         if r.status_code == 200:
             response = r.json()['data']
         else:
-            print(red_color + f"PATCH attempt threw a {r.status_code}!" + res)
+            # print(red_color + f"PATCH attempt threw a {r.status_code}!" + res)
             return None
         if show_difference:
             old_attributes = { f'{k}': attributes[k] for k,v in payload.items() }
             print(f"Attributes to change:")
-            pprint(red_color + old_attributes + red)
-        print(green_color + 'Updated!'+ res)
+            # pprint(red_color + old_attributes + red)
+        # print(green_color + 'Updated!'+ res)
         pprint({ f'{k}': v for k, v in response['attributes'].items() if k in payload })
         self.attributes = self.get_layer()
         return self

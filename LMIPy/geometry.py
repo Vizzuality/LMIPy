@@ -3,6 +3,8 @@ import folium
 import urllib
 import json
 import random
+import geopandas as gpd
+from shapely.geometry import shape
 from .utils import html_box
 
 
@@ -52,6 +54,30 @@ class Geometry:
             return r.json().get('data').get('attributes')
         else:
             raise ValueError(f'Unable to get dataset {self.id} from {r.url}')
+
+    def table(self):
+        """
+        Returns features as GeoDataFrame
+        """
+        attributes = self.attributes
+        props = {
+            **attributes['info'],
+            'areaHa': attributes['areaHa'],
+            'bbox': attributes['bbox'],
+            'id': attributes['hash']
+         }
+        
+        features = attributes['geojson']['features']
+        if len(features) > 0:
+            return gpd.GeoDataFrame([{**props, 'geometry': shape(feature['geometry'])} for feature in features]).set_geometry('geometry')
+
+    def shape(self):
+        """
+        Returns features as a Shapely geometry
+        """
+        features = self.attributes['geojson']['features']
+        if len(features) > 0:
+            return [shape(feature['geometry']) for feature in features]
 
     def map(self, lat=0, lon=0, zoom=3):
         """
