@@ -10,3 +10,6 @@ test_nbk.ipynb
 .ipynb_checkpoints/
 LMI-dev-nbk.ipynb
 LMIPy/__pycache__/
+
+sample.geojson
+.vscode

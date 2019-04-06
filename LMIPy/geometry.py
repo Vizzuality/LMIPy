@@ -5,6 +5,8 @@ import json
 import random
 import geopandas as gpd
 from shapely.geometry import shape
+import shapely.wkt
+import geojson
 from .utils import html_box
 
 
@@ -20,9 +22,13 @@ class Geometry:
         A valid geojson representation.
     server: str
         The string of the server URL.
+    s: obj
+        A shapely object.
     """
-    def __init__(self, id_hash=None, attributes=None, server='https://production-api.globalforestwatch.org'):
+    def __init__(self, id_hash=None, attributes=None, s=None, server='https://production-api.globalforestwatch.org'):
         self.server = server
+        if s:
+            attributes = self.create_attributes_from_shapely(s)
         if attributes:
             self.attributes = self.create_geostore_from_geojson(attributes)
         else:
@@ -37,6 +43,18 @@ class Geometry:
 
     def _repr_html_(self):
         return html_box(item=self)
+
+    def create_attributes_from_shapely(self, s):
+        """Using a Shapely object, we should build a Geometry object."""
+        if s.geom_type in ['Polygon', 'Point', 'MultiPoint','MultiPolygon']:
+            atts={'geojson': {'type': 'FeatureCollection',
+                            'features': [{'type': 'Feature',
+                                'properties': {},
+                                'geometry': geojson.Feature(geometry=s, properties={}).get('geometry')
+                                        }]}}
+            return atts
+        else:
+            raise ValueError('shape object was not of suitable geometry type')
 
     def create_geostore_from_geojson(self, attributes):
         """Parse valid geojson into a geostore object and register it to a
