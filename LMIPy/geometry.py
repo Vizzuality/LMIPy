@@ -106,10 +106,16 @@ class Geometry:
             tiles='Mapbox Bright',
         )
 
-        folium.GeoJson(
-            data=self.table(),
+        if geometry['type'] == 'Point':
+            folium.Marker(
+                centroid
             ).add_to(map)
 
+        else:
+            folium.GeoJson(
+                data=self.table()
+                ).add_to(map)
+        
         map.fit_bounds(bounds)
 
         return map
