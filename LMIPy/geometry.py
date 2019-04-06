@@ -69,19 +69,47 @@ class Geometry:
         
         features = attributes['geojson']['features']
         if len(features) > 0:
-            return gpd.GeoDataFrame([{**props, 'geometry': shape(feature['geometry'])} for feature in features]).set_geometry('geometry')
+            gdf = gpd.GeoDataFrame([{**props, 'geometry': shape(feature['geometry'])} for feature in features]).set_geometry('geometry')
+            gdf.crs = {'init' :'epsg:4326'}
+            return gdf
+
+        return []
 
     def shape(self):
         """
-        Returns features as a Shapely geometry
+        Returns features as a list of Shapely geometries
         """
         features = self.attributes['geojson']['features']
         if len(features) > 0:
             return [shape(feature['geometry']) for feature in features]
 
-    def map(self, lat=0, lon=0, zoom=3):
+    def map(self):
         """
         Returns a folim choropleth map with styles applied via attributes
         """
-        pass
-        return None
+        geojson = self.attributes['geojson']
+        geometry = geojson['features'][0]['geometry']
+        fields = [
+            *list(self.attributes['info'].keys()),
+            'areaHa',
+            'bbox',
+            'id'
+        ]
+
+        bbox = self.attributes['bbox']
+        shapely_geometry = shape(geometry)
+        centroid = list(shapely_geometry.centroid.coords)[0][::-1]
+        bounds = [bbox[2:][::-1], bbox[:2][::-1]]
+
+        map = folium.Map(
+            location=centroid,
+            tiles='Mapbox Bright',
+        )
+
+        folium.GeoJson(
+            data=self.table(),
+            ).add_to(map)
+
+        map.fit_bounds(bounds)
+
+        return map
