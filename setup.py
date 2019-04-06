@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="LMIPy",
-    version="0.0.8",
+    version="0.0.9",
     author="Vizzuality",
     author_email="benjamin.laken@vizzuality.com",
     description="Interface to data and layers in the Resource Watch API",
@@ -17,7 +17,8 @@ setuptools.setup(
                         'folium==0.8.3',
                         'geopandas==0.4.1',
                         'cartoframes==0.9.2',
-                        'colored==1.3.93'],
+                        'colored==1.3.93',
+                        'geojson==2.4.1'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
