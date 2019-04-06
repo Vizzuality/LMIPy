@@ -115,7 +115,7 @@ class Geometry:
             folium.GeoJson(
                 data=self.table()
                 ).add_to(map)
-        
-        map.fit_bounds(bounds)
+                
+            map.fit_bounds(bounds)
 
         return map
