@@ -114,7 +114,7 @@ class Geometry:
         if len(features) > 0:
             return [shape(feature['geometry']) for feature in features]
 
-    def map(self):
+    def map(self, image=False):
         """
         Returns a folium choropleth map with styles applied via attributes
         """
@@ -138,9 +138,23 @@ class Geometry:
             folium.Marker(
                 centroid
             ).add_to(map)
+
         else:
             folium.GeoJson(
                 data=self.table()
                 ).add_to(map)
             map.fit_bounds(bounds)
+
+        if image:
+            url = f"https://production-api.globalforestwatch.org/v1/recent-tiles?lat={centroid[1]}&lon={centroid[0]}&start=2019-01-01&end=2019-04-01"
+            r = requests.get(url)
+            if r.status_code == 200:
+                image_attributes = r.json()['data']['tiles'][0]['attributes']
+                tile_url = image_attributes['tile_url']
+                print(f"Image taken {image_attributes['date_time']}\nSource: {image_attributes['instrument']}\nid: {image_attributes['source']}")
+                map.add_tile_layer(
+                    tiles=tile_url,
+                    attr="Live EE tiles"
+                )
+
         return map
