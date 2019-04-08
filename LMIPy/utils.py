@@ -3,13 +3,17 @@
 def html_box(item):
     """Returns an HTML block with template strings filled-in based on item attributes."""
     is_layer = str(type(item)) == "<class 'LMIPy.layer.Layer'>"
-    is_dataset = str(type(item)) == "<class 'LMIPy.dataset.Dataset'>" or str(type(item)) == "<class 'LMIPy.table.Table'>"
+    is_dataset = str(type(item)) == "<class 'LMIPy.dataset.Dataset'>"
+    is_table = str(type(item)) == "<class 'LMIPy.table.Table'>"
     is_geometry = str(type(item)) == "<class 'LMIPy.geometry.Geometry'>"
     if is_layer:
         kind_of_item = 'Layer'
         url_link = f'{item.server}/v1/layer/{item.id}?includes=vocabulary,metadata'
     elif is_dataset:
         kind_of_item = 'Dataset'
+        url_link = f'{item.server}/v1/dataset/{item.id}?includes=vocabulary,metadata,layer'
+    elif is_table:
+        kind_of_item = 'Table'
         url_link = f'{item.server}/v1/dataset/{item.id}?includes=vocabulary,metadata,layer'
     elif is_geometry:
         kind_of_item = 'Geometry'
@@ -21,11 +25,11 @@ def html_box(item):
             "<img class='itemThumbnail' src='https://resourcewatch.org/static/images/logo-embed.png'>"
             "</a></div><div class='item_right' style='float: none; width: auto; overflow: hidden;''>"
             f"<b>Geometry id</b>: <a href={url_link} target='_blank'>{item.id}</a></br>")
-        
+
         for k,v in item.attributes.get('info').items():
             if v and k != 'simplifyThresh':
                 html_string += f"<br><i>{k}: {v}</i>"
-            
+
         html_string += (""
             " </div> </div>")
 

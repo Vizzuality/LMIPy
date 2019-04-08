@@ -30,7 +30,7 @@ class Collection:
                  object_type=['dataset', 'layer','table'], server='https://api.resourcewatch.org',
                  mapbox_token=None):
         self.server = server
-        self.search = search.strip().split(' ')
+        self.search = search.lower().strip().split(' ')
         self.app = ",".join(app)
         self.env = env
         self.limit = limit
@@ -114,6 +114,7 @@ class Collection:
             name = item.get('attributes').get('name').lower()
             description = item.get('attributes').get('description')
             if description:
+                description = description.lower()
                 in_description = any([s in description for s in self.search])
             if name:
                 in_name = any([s in name for s in self.search])
