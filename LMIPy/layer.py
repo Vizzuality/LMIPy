@@ -214,7 +214,7 @@ class Layer:
             print('Requires update_params dictionary.')
             return self.update_keys()
         attributes = self.update_keys()
-        payload = { f'{key}': update_params[key] for key in update_params if key in attributes }
+        payload = { f'{key}': update_params[key] for key in update_params if key in list(attributes.keys()) }
         ### Update here
         try:
             url = f"{self.server}/dataset/{self.attributes['dataset']}/layer/{self.id}"

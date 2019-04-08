@@ -128,7 +128,7 @@ class Dataset:
             print('Requires update_params dictionary.')
             return self.update_keys()
         attributes = self.update_keys()
-        payload = { f'{key}': update_params[key] for key in update_params if key in attributes }
+        payload = { f'{key}': update_params[key] for key in update_params if key in list(attributes.keys()) }
         ### Update here
         try:
             url = f"{self.server}/dataset/{self.id}"
@@ -147,6 +147,7 @@ class Dataset:
             print(f"Attributes to change:")
             pprint(old_attributes)
         print('Updated!')
+        
         pprint({ f'{k}': v for k, v in response['attributes'].items() if k in payload })
         self.attributes = self.get_dataset()
         return self
@@ -261,14 +262,10 @@ class Dataset:
             if r.status_code == 200:
                 response_data = r.json().get('data')
                 parsed_json = [{**d['properties'], 'geometry': shape(d['geometry'])} for d in response_data[0]['features']]
-
-                return gpd.GeoDataFrame(parsed_json).set_geometry('geometry')
+                df = gpd.GeoDataFrame(parsed_json).set_geometry('geometry')
+                return df
             else:
                 raise ValueError(f'Unable to get table {self.id} from {r.url}')
         except:
             raise ValueError(f'Unable to get table {self.id} from {r.url}')
-
-
-
-
 

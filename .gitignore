@@ -8,6 +8,7 @@ docs/_templates
 # Nbk Stuff
 test_nbk.ipynb
 .ipynb_checkpoints/
+.DS_Store
 LMI-dev-nbk.ipynb
 LMIPy/__pycache__/
 
