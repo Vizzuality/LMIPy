@@ -2,7 +2,6 @@ import requests
 import random
 import geopandas as gpd
 from shapely.geometry import shape
-import cartoframes as cf
 from .dataset import Dataset
 from .utils import html_box
 
@@ -28,7 +27,7 @@ class Table(Dataset):
     def __str__(self):
         return f"Table {self.id}"
 
-    def fetch_query(self, sql, decode_geom=False):
+    def fetch_query(self, sql):
         """
         Forms a base query and returns data
         """
@@ -39,17 +38,16 @@ class Table(Dataset):
             r = requests.get(url)
             if r.status_code == 200:
                 response_data = r.json().get('data')
-                if decode_geom:
-                    for d in response_data:
-                        if d.get('the_geom', None):
-                            d['geometry'] = shape(d['the_geom'])
+                for d in response_data:
+                    if d.get('the_geom', None):
+                        d['geometry'] = shape(d['the_geom'])
                 return response_data
             else:
                 raise ValueError(f'Unable to get table {self.id} from {r.url}')
         except:
             raise ValueError(f'Unable to get table {self.id} from {r.url}')
 
-    def head(self, n=5, decode_geom=True):
+    def head(self, n=5):
         """
         Returns a table as a GeoPandas GeoDataframe from a Vizzuality API using the query endpoint.
 
@@ -61,7 +59,7 @@ class Table(Dataset):
             A flag to decode geometries into geom objects.
         """
         sql = f'SELECT * FROM data LIMIT {n}'
-        response_data = self.fetch_query(sql=sql, decode_geom=decode_geom)
+        response_data = self.fetch_query(sql=sql)
         try:
             gdf = gpd.GeoDataFrame(response_data)
             if 'geometry' in gdf:
@@ -70,7 +68,7 @@ class Table(Dataset):
         except:
             raise ValueError(f'Unable to get table {self.id}')
 
-    def query(self, sql, decode_geom=False):
+    def query(self, sql):
         """
         Return an SQL query as a valid dataframe object.
 
@@ -83,7 +81,7 @@ class Table(Dataset):
         """
         if not sql or type(sql) != str:
             raise ValueError('SQL query should be passed as a string.')
-        response_data = self.fetch_query(sql=sql, decode_geom=decode_geom)
+        response_data = self.fetch_query(sql=sql)
         try:
             gdf = gpd.GeoDataFrame(response_data)
             if 'geometry' in gdf:
