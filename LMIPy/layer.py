@@ -340,12 +340,12 @@ class Layer:
         self.attributes = Layer(clone_layer_id).attributes
         return Layer(clone_layer_id)
 
-    def parse_intersect(self, geometry, token=None):
+    def parse_query(self, sql, geometry, decode_geom, token=None):
         """
         Distriibuter to decide interect method
         """
         if self.attributes.get('layerConfig') == None:
-            raise ValueError("No layerConfig present in layer from which to create an intersect.")
+            raise ValueError("No layerConfig present in layer from which to create a query.")
         # if tileLayer
         if self.attributes.get('provider') == 'leaflet' and self.attributes.get('layerConfig').get('type') == 'tileLayer':
             return None
@@ -354,41 +354,38 @@ class Layer:
             return None
         # If CARTO
         if self.attributes.get('provider') == 'cartodb':
-            return self.get_carto_intersect(geometry, token)
+            return self.get_carto_query(sql, geometry, decode_geom, token)
         return None
 
-    def get_carto_intersect(self, geometry, token=None):
+    def get_carto_query(self, sql, geometry, decode_geom=True, token=None):
         """
         Intersect layer against some geometry class object, geosjon object, shapely shape, or by id.
         """
         if not token:
             print('[token=None] Carto API token required.')
             return None
-            
-        account = self.attributes['layerConfig']['account']
-        urlCartoContext = "https://{0}.carto.com".format(account)
-            
-        cc = cf.CartoContext(base_url=urlCartoContext,api_key=token)
-
-        layerConfig = self.attributes.get('layerConfig')
-        layers = layerConfig['body']['layers']
         geojson = geometry.attributes['geojson']['features'][0]['geometry']
+        
+        if 'the_geom' not in sql and decode_geom == True:
+            sql = sql.replace('SELECT', 'SELECT the_geom,')
+        if 'count' in sql:
+            decode_geom = False
+        table_name = self.attributes.get('tableName', 'data')
+        sql = sql.replace('FROM data', f'FROM {table_name}').replace('"', "'")
+        if geometry:
+            if 'WHERE' in sql:
+                sql.replace("WHERE", f"WHERE ST_Intersects(the_geom, st_transform( st_setsrid( ST_GeomFromGeoJSON('{json.dumps(geojson)}'), 4326), 4326)) AND ")
+            else:
+                sql.replace(f"FROM {table_name}", f"FROM {table_name} WHERE ST_Intersects(the_geom, st_transform( st_setsrid( ST_GeomFromGeoJSON('{json.dumps(geojson)}'), 4326), 4326))")
 
-        if layers and len(layers) == 1:
-            sql = re.sub('{{.*}}', '', layers[0]['options']['sql']) 
-            sql = sql.replace('the_geom_webmercator,','').replace('the_geom', '')
-            sql += f" WHERE ST_Intersects(the_geom, st_transform( st_setsrid( ST_GeomFromGeoJSON('{json.dumps(geojson)}'), 4326), 4326))"
+        account = self.attributes.get('layerConfig')['account']
+        if account and table_name:
+            urlCartoContext = "https://{0}.carto.com".format(account)
+            cc = cf.CartoContext(base_url=urlCartoContext, api_key=token)
+            return cc.query(sql, decode_geom=decode_geom)
     
-        try:
-            print(sql)
-            query_response = cc.query(sql, decode_geom=False)
-        except:
-            raise ValueError(f'Unable to get intersect {self.id}')
-
-        return query_response
-    
-    def intersect(self, geometry, token=None):
+    def query(self, sql='SELECT * FROM data LIMIT 5', geometry=None, decode_geom=True,token=None):
         """
         Intersect layer against some geometry class object, geosjon object, shapely shape, or by id.
         """
-        return self.parse_intersect(geometry, token)
+        return self.parse_query(sql=sql, geometry=geometry, decode_geom=decode_geom, token=token)

@@ -71,7 +71,7 @@ class Dataset:
             raise ValueError(f'Dataset with id={self.id} does not exist.')
 
 
-    def carto_query(self, sql, decode_geom=False, api_key=None):
+    def carto_query(self, sql, decode_geom=False, token=None):
         """
         Returns a GeoPandas GeoDataFrame for CARTO datasets.
         """
@@ -85,13 +85,11 @@ class Dataset:
         if connector:
             account = connector.split('.carto.com/')[0]
             urlCartoContext = "{0}.carto.com".format(account)
-            cc = cf.CartoContext(base_url=urlCartoContext, api_key=api_key)
-        table = self.attributes.get('tableName', None)
+            cc = cf.CartoContext(base_url=urlCartoContext, api_key=token)
         if table:
-            print(sql)
             return cc.query(sql, decode_geom=decode_geom)
 
-    def query(self, sql="SELECT * FROM data LIMIT 5", decode_geom=False, api_key=None):
+    def query(self, sql="SELECT * FROM data LIMIT 5", decode_geom=False, token=None):
         """
         Returns a carto table as a GeoPandas GeoDataframe from a Vizzuality API using the query endpoint.
         """
@@ -100,7 +98,7 @@ class Dataset:
             raise ValueError(f'Unable to perform query on datasets with provider {provider}. Must be `cartodb`.')
         return self.carto_query(sql=sql, decode_geom=decode_geom)
 
-    def head(self, n=5, decode_geom=True, api_key=None):
+    def head(self, n=5, decode_geom=True, token=None):
         """
         Returns a table as a GeoPandas GeoDataframe from a Vizzuality API using the query endpoint.
         """
