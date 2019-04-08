@@ -213,7 +213,8 @@ class Layer:
         if not update_params:
             print('Requires update_params dictionary.')
             return self.update_keys()
-        attributes = self.update_keys()
+        update_blacklist = ['updatedAt', 'userId', 'dataset', 'slug']
+        attributes = {f'{k}':v for k,v in self.attributes.items() if k not in update_blacklist}
         payload = { f'{key}': update_params[key] for key in update_params if key in list(attributes.keys()) }
         ### Update here
         try:
