@@ -64,7 +64,7 @@ class Geometry:
         try:
             body = json.loads(json.dumps(attributes))
         except:
-            raise ValueError(f"Unable to pass attributes. Expected valid geojson, recieved: {attrributes}")
+            raise ValueError(f"Unable to pass attributes. Expected valid geojson, recieved: {attributes}")
         header= {
                 'Content-Type':'application/json'
                 }
@@ -116,7 +116,7 @@ class Geometry:
 
     def map(self):
         """
-        Returns a folim choropleth map with styles applied via attributes
+        Returns a folium choropleth map with styles applied via attributes
         """
         geojson = self.attributes['geojson']
         geometry = geojson['features'][0]['geometry']
