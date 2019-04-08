@@ -3,6 +3,7 @@ import json
 import random
 import geopandas as gpd
 import cartoframes as cf
+from shapely.geometry import shape
 from pprint import pprint
 from .layer import Layer
 from .utils import html_box
@@ -245,3 +246,29 @@ class Dataset:
                 print(f'{self.server}/v1/dataset/{clone_dataset_id}')
                 self.attributes = Dataset(clone_dataset_id).attributes
                 return Dataset(clone_dataset_id)
+
+    def intersect(self, geometry, token=None):
+
+        geojson = geometry.attributes['geojson']['features'][0]['geometry']
+        geom_id = geometry.id
+        table_name = self.attributes.get('tableName', 'data')
+        sql = f'SELECT * FROM {table_name}' 
+
+        try:
+            url = (f'{self.server}/v1/query/{self.id}?sql={sql}&geostore={geom_id}&format=geojson')
+
+            r = requests.get(url)
+            if r.status_code == 200:
+                response_data = r.json().get('data')
+                parsed_json = [{**d['properties'], 'geometry': shape(d['geometry'])} for d in response_data[0]['features']]
+
+                return gpd.GeoDataFrame(parsed_json).set_geometry('geometry')
+            else:
+                raise ValueError(f'Unable to get table {self.id} from {r.url}')
+        except:
+            raise ValueError(f'Unable to get table {self.id} from {r.url}')
+
+
+
+
+
