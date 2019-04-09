@@ -376,7 +376,6 @@ class Layer:
         base_query = f'with t as ({layerConfig["body"]["layers"][0]["options"]["sql"]}) '
 
         sql = base_query + sql.lower().replace('from data', f'FROM t').replace('"', "'")
-        print(sql)
         account = layerConfig.get('account')
         urlCarto = f"https://{account}.carto.com/api/v2/sql"
         params = {"q": sql}
@@ -391,3 +390,10 @@ class Layer:
         Intersect layer against some geometry class object, geosjon object, shapely shape, or by id.
         """
         return self.parse_query(sql=sql)
+
+    def dataset(self):
+        """
+        Returns parent datset
+        """
+        from .dataset import Dataset
+        return Dataset(self.attributes['dataset'])
