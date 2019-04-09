@@ -177,17 +177,14 @@ class Layer:
         )
         return map
 
-    def update_keys(self, silent=True):
+    def update_keys(self):
         """
-        Returns specific attribute values. Call this with silent=False to view
-        the keys that can be updated in the layer.
+        Returns a list of theattribute values which could be updated
         """
-        # Cannot update the following
         update_blacklist = ['updatedAt', 'userId', 'dataset', 'slug']
         updatable_fields = {f'{k}':v for k,v in self.attributes.items() if k not in update_blacklist}
-        if not silent:
-            print(f'Updatable keys: \n{list(updatable_fields.keys())}')
-        return updatable_fields
+        uk = list(updatable_fields.keys())
+        return uk
 
     def update(self, update_params=None, token=None, show_difference=False):
         """
@@ -232,8 +229,8 @@ class Layer:
             old_attributes = { f'{k}': attributes[k] for k,v in payload.items() }
             print(f"Attributes to change:")
             pprint(red_color + old_attributes + red)
-        print(green_color + 'Updated!'+ res)
-        pprint({ f'{k}': v for k, v in response['attributes'].items() if k in payload })
+            print(green_color + 'Updated!'+ res)
+            pprint({ f'{k}': v for k, v in response['attributes'].items() if k in payload })
         self.attributes = self.get_layer()
         return self
 
@@ -365,7 +362,7 @@ class Layer:
             print('[token=None] Carto API token required.')
             return None
         geojson = geometry.attributes['geojson']['features'][0]['geometry']
-        
+
         if 'the_geom' not in sql and decode_geom == True:
             sql = sql.replace('SELECT', 'SELECT the_geom,')
         if 'count' in sql:
@@ -383,7 +380,7 @@ class Layer:
             urlCartoContext = "https://{0}.carto.com".format(account)
             cc = cf.CartoContext(base_url=urlCartoContext, api_key=token)
             return cc.query(sql, decode_geom=decode_geom)
-    
+
     def query(self, sql='SELECT * FROM data LIMIT 5', geometry=None, decode_geom=True,token=None):
         """
         Intersect layer against some geometry class object, geosjon object, shapely shape, or by id.
