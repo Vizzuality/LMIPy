@@ -1,5 +1,7 @@
 import requests
-from pprint import pprint
+#import cartoframes as cf
+#import geopandas as gpd
+#import re
 import folium
 import urllib
 import json
@@ -174,17 +176,14 @@ class Layer:
         )
         return map
 
-    def update_keys(self, silent=True):
+    def update_keys(self):
         """
-        Returns specific attribute values. Call this with silent=False to view
-        the keys that can be updated in the layer.
+        Returns a list of theattribute values which could be updated
         """
-        # Cannot update the following
         update_blacklist = ['updatedAt', 'userId', 'dataset', 'slug']
         updatable_fields = {f'{k}':v for k,v in self.attributes.items() if k not in update_blacklist}
-        if not silent:
-            print(f'Updatable keys: \n{list(updatable_fields.keys())}')
-        return updatable_fields
+        uk = list(updatable_fields.keys())
+        return uk
 
     def update(self, update_params=None, token=None, show_difference=False):
         """
@@ -210,8 +209,9 @@ class Layer:
         if not update_params:
             print('Requires update_params dictionary.')
             return self.update_keys()
-        attributes = self.update_keys()
-        payload = { f'{key}': update_params[key] for key in update_params if key in attributes }
+        update_blacklist = ['updatedAt', 'userId', 'dataset', 'slug']
+        attributes = {f'{k}':v for k,v in self.attributes.items() if k not in update_blacklist}
+        payload = { f'{key}': update_params[key] for key in update_params if key in list(attributes.keys()) }
         ### Update here
         try:
             url = f"{self.server}/dataset/{self.attributes['dataset']}/layer/{self.id}"
@@ -227,9 +227,9 @@ class Layer:
         if show_difference:
             old_attributes = { f'{k}': attributes[k] for k,v in payload.items() }
             print(f"Attributes to change:")
-            pprint(red_color + old_attributes + red)
-        print(green_color + 'Updated!'+ res)
-        pprint({ f'{k}': v for k, v in response['attributes'].items() if k in payload })
+            print(red_color + old_attributes + red)
+            print(green_color + 'Updated!'+ res)
+            print({ f'{k}': v for k, v in response['attributes'].items() if k in payload })
         self.attributes = self.get_layer()
         return self
 
@@ -263,7 +263,7 @@ class Layer:
                 raise ValueError(f'Layer deletion failed.')
             if r.status_code == 200:
                 print(r.url)
-                pprint('Deletion successful!')
+                print('Deletion successful!')
                 self = None
         else:
             print('Deletion aborted')
@@ -335,4 +335,3 @@ class Layer:
         print(f'{self.server}/v1/dataset/{target_dataset_id}/layer/{clone_layer_id}')
         self.attributes = Layer(clone_layer_id).attributes
         return Layer(clone_layer_id)
-

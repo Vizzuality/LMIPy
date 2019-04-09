@@ -1,7 +1,8 @@
 import requests
 import json
 import random
-from pprint import pprint
+import geopandas as gpd
+#from shapely.geometry import shape
 from .layer import Layer
 from .utils import html_box
 from .lmipy import Vocabulary, Metadata
@@ -67,65 +68,80 @@ class Dataset:
         else:
             raise ValueError(f'Dataset with id={self.id} does not exist.')
 
+    def carto_query(self, sql):
+        """
+        Returns a GeoPandas GeoDataFrame for CARTO datasets. The sql query should
+        always use dataset as the source (i.e. 'from dataset') as this will be
+        replaced with the tableName from dataset.attributes.
+        """
+        sql = sql.lower().replace('from dataset',f"FROM {self.attributes.get('tableName')}")
+        if not self.attributes.get('connectorUrl'):
+            raise ValueError("ConnectorUrl attribute missing.")
+        account = self.attributes.get('connectorUrl').split('/')[2].split('.')[0]
+        urlCarto = f"https://{account}.carto.com/api/v2/sql"
+        params = {"q": sql}
+        r = requests.get(urlCarto, params=params)
+        if r.status_code == 200:
+            return gpd.GeoDataFrame(r.json().get('rows'))
+        else:
+            raise ValueError(f"Bad response from Carto {r.status_code}: {r.json()}")
 
-    def __carto_query__(self, sql, decode_geom=False, api_key=None):
+    def query(self, sql="SELECT * FROM data LIMIT 5"):
         """
-        Returns a GeoPandas GeoDataFrame for CARTO datasets.
-        """
-        if 'the_geom' not in sql and decode_geom == True:
-            sql = sql.replace('SELECT', 'SELECT the_geom,')
-        if 'count' in sql:
-            decode_geom = False
-        table_name = self.attributes.get('tableName', 'data')
-        sql = sql.replace('FROM data', f'FROM {table_name}').replace('"', "'")
-        connector = self.attributes.get('connectorUrl', '')
-        if connector:
-            account = connector.split('.carto.com/')[0]
-            urlCartoContext = "{0}.carto.com".format(account)
-            cc = cf.CartoContext(base_url=urlCartoContext, api_key=api_key)
-        table = self.attributes.get('tableName', None)
-        if table:
-            return cc.query(sql, decode_geom=decode_geom)
+        Query a Dataset object
 
-    def query(self, sql="SELECT * FROM data LIMIT 5", decode_geom=False, api_key=None):
-        """
-        Returns a carto table as a GeoPandas GeoDataframe from a Vizzuality API using the query endpoint.
+        Returns a table as a from queries against datasets in an API using the query endpoint.
+
+        Parameters
+        ----------
+        sql: str
+            Valid SQL string.
         """
         provider = self.attributes.get('provider', None)
-        if provider != 'cartodb':
+        if provider == 'cartodb':
+            return self.carto_query(sql=sql)
+        else:
             raise ValueError(f'Unable to perform query on datasets with provider {provider}. Must be `cartodb`.')
-        return self.__carto_query__(sql=sql, decode_geom=decode_geom)
 
-    def head(self, n=5, decode_geom=True, api_key=None):
+    def head(self, n=5, decode_geom=True, token=None):
         """
         Returns a table as a GeoPandas GeoDataframe from a Vizzuality API using the query endpoint.
         """
         sql = f'SELECT * FROM data LIMIT {n}'
-        return self.__carto_query__(sql=sql, decode_geom=decode_geom)
+        return self.carto_query(sql=sql, decode_geom=decode_geom)
 
     def update_keys(self):
         """
-        Returns specific attribute values.
+        Returns a list of attribute keys which could be updated.
         """
-        # Cannot update the following
         update_blacklist = ['metadata','layer', 'vocabulary', 'updatedAt', 'userId', 'slug', "clonedHost", "errorMessage", "taskId", "dataLastUpdated"]
         updatable_fields = {f'{k}':v for k,v in self.attributes.items() if k not in update_blacklist}
-        print(f'Updatable keys: \n{list(updatable_fields.keys())}')
-        return updatable_fields
+        uk = list(updatable_fields.keys())
+        return uk
 
     def update(self, update_params=None, token=None, show_difference=False):
         """
-        Update layer specific attribute values.
-        Returns updated Dataset.
+        Update a Dataset object
+
+        To view the potential attributes that could be updated use the Dataset.update_keys() method.
+
+        Parameters
+        ----------
+        update_params: dic
+            A dictionary object containing {key: value} pairs of attributes to update.
+        token: str
+            A valid API key from the Resource Watch API. https://resource-watch.github.io/doc-api/index-rw.html
+        show_difference: bool
+            If set to True a verbose description of the updates will be returned to the user.
         """
         if not token:
             raise ValueError(f'[token=None] Resource Watch API TOKEN required for updates.')
         if not update_params:
             print('Requires update_params dictionary.')
             return self.update_keys()
-        attributes = self.update_keys()
-        payload = { f'{key}': update_params[key] for key in update_params if key in attributes }
-        ### Update here
+        update_blacklist = ['metadata','layer', 'vocabulary', 'updatedAt', 'userId', 'slug', "clonedHost", "errorMessage", "taskId", "dataLastUpdated"]
+        attributes = {f'{k}':v for k,v in self.attributes.items() if k not in update_blacklist}
+        payload = { f'{key}': update_params[key] for key in update_params if key in list(attributes.keys()) }
         try:
             url = f"{self.server}/dataset/{self.id}"
             headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
@@ -135,15 +151,14 @@ class Dataset:
         if r.status_code == 200:
             response = r.json()['data']
         else:
-            print(r.status_code)
+            pass
             return None
-
         if show_difference:
             old_attributes = { f'{k}': attributes[k] for k,v in payload.items() }
             print(f"Attributes to change:")
-            pprint(old_attributes)
-        print('Updated!')
-        pprint({ f'{k}': v for k, v in response['attributes'].items() if k in payload })
+            print(old_attributes)
+            print('Updated!')
+            print({ f'{k}': v for k, v in response['attributes'].items() if k in payload })
         self.attributes = self.get_dataset()
         return self
 
@@ -161,11 +176,10 @@ class Dataset:
 
     def delete(self, token=None, force=False):
         """
-        Deletes a target layer
+        Deletes a target Dataset object.
         """
         if not token:
             raise ValueError(f'[token] Resource Watch API token required to delete.')
-        ### Check if dataset has layers first. Cannot delete
         layer_count = len(self.layers)
         if layer_count > 0:
             print(f'WARNING - Dataset has {layer_count} associated Layer(s).')
@@ -192,7 +206,7 @@ class Dataset:
                 raise ValueError(f'Layer deletion failed.')
             if r.status_code == 200:
                 print(r.url)
-                pprint('Deletion successful!')
+                print('Deletion successful!')
                 self = None
         else:
             print('Deletion aborted.')
@@ -205,11 +219,6 @@ class Dataset:
         """
         if not token:
             raise ValueError(f'[token] Resource Watch API token required to clone.')
-        # unneccesary?
-        # if not all(x not in dataset_params.keys() for x in ['name', 'app']):
-        #     print('The keys "name" and "app" must be defined in dataset_params.')
-        #     return None
-
         if not target_dataset_id:
             print('Must specify target_dataset_id.')
             return None
@@ -242,3 +251,27 @@ class Dataset:
                 print(f'{self.server}/v1/dataset/{clone_dataset_id}')
                 self.attributes = Dataset(clone_dataset_id).attributes
                 return Dataset(clone_dataset_id)
+
+    def intersect(self, geometry):
+        """."""
+        if self.attributes.get('provider') != 'gee':
+            raise ValueError("Intersect currently only supported for EE raster data")
+        # geojson = geometry.attributes['geojson']['features'][0]['geometry']
+        # geom_id = geometry.id
+        # table_name = self.attributes.get('tableName', 'data')
+        # sql = f'SELECT * FROM {table_name}'
+
+        # try:
+        #     url = (f'{self.server}/v1/query/{self.id}?sql={sql}&geostore={geom_id}&format=geojson')
+
+        #     r = requests.get(url)
+        #     if r.status_code == 200:
+        #         response_data = r.json().get('data')
+        #         parsed_json = [{**d['properties'], 'geometry': shape(d['geometry'])} for d in response_data[0]['features']]
+        #         df = gpd.GeoDataFrame(parsed_json).set_geometry('geometry')
+        #         return df
+        #     else:
+        #         raise ValueError(f'Unable to get table {self.id} from {r.url}')
+        # except:
+        #     raise ValueError(f'Unable to get table {self.id} from {r.url}')
+
