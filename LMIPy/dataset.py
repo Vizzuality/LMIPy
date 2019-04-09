@@ -74,7 +74,7 @@ class Dataset:
         always use dataset as the source (i.e. 'from dataset') as this will be
         replaced with the tableName from dataset.attributes.
         """
-        sql = sql.lower().replace('from dataset',f"FROM {self.attributes.get('tableName')}")
+        sql = sql.lower().replace('from data',f"FROM {self.attributes.get('tableName')}")
         if not self.attributes.get('connectorUrl'):
             raise ValueError("ConnectorUrl attribute missing.")
         account = self.attributes.get('connectorUrl').split('/')[2].split('.')[0]
@@ -91,6 +91,7 @@ class Dataset:
         Query a Dataset object
 
         Returns a table as a from queries against datasets in an API using the query endpoint.
+        Table name must be `data` by default (or the CARTO table name, if known)
 
         Parameters
         ----------

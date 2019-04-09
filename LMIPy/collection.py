@@ -87,6 +87,7 @@ class Collection:
         if len(response_list) < 1:
             raise ValueError('No items found')
         identified_layers = self.filter_results(response_list)
+        print(identified_layers)
         return identified_layers
 
     def get_layers(self):
@@ -109,7 +110,7 @@ class Collection:
             in_description = False
             in_name = False
             return_layers = 'layer' in self.object_type
-            return_datasets = 'table' in self.object_type
+            return_datasets = 'dataset' in self.object_type
             return_tables = 'dataset' in self.object_type
             name = item.get('attributes').get('name').lower()
             description = item.get('attributes').get('description')
