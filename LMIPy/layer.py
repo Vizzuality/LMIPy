@@ -1,8 +1,7 @@
 import requests
-from pprint import pprint
-import cartoframes as cf
-import geopandas as gpd
-import re
+#import cartoframes as cf
+#import geopandas as gpd
+#import re
 import folium
 import urllib
 import json
@@ -228,9 +227,9 @@ class Layer:
         if show_difference:
             old_attributes = { f'{k}': attributes[k] for k,v in payload.items() }
             print(f"Attributes to change:")
-            pprint(red_color + old_attributes + red)
+            print(red_color + old_attributes + red)
             print(green_color + 'Updated!'+ res)
-            pprint({ f'{k}': v for k, v in response['attributes'].items() if k in payload })
+            print({ f'{k}': v for k, v in response['attributes'].items() if k in payload })
         self.attributes = self.get_layer()
         return self
 
@@ -264,7 +263,7 @@ class Layer:
                 raise ValueError(f'Layer deletion failed.')
             if r.status_code == 200:
                 print(r.url)
-                pprint('Deletion successful!')
+                print('Deletion successful!')
                 self = None
         else:
             print('Deletion aborted')
@@ -336,53 +335,3 @@ class Layer:
         print(f'{self.server}/v1/dataset/{target_dataset_id}/layer/{clone_layer_id}')
         self.attributes = Layer(clone_layer_id).attributes
         return Layer(clone_layer_id)
-
-    def parse_query(self, sql, geometry, decode_geom, token=None):
-        """
-        Distriibuter to decide interect method
-        """
-        if self.attributes.get('layerConfig') == None:
-            raise ValueError("No layerConfig present in layer from which to create a query.")
-        # if tileLayer
-        if self.attributes.get('provider') == 'leaflet' and self.attributes.get('layerConfig').get('type') == 'tileLayer':
-            return None
-        # if GEE
-        if self.attributes.get('provider') == 'gee':
-            return None
-        # If CARTO
-        if self.attributes.get('provider') == 'cartodb':
-            return self.get_carto_query(sql, geometry, decode_geom, token)
-        return None
-
-    def get_carto_query(self, sql, geometry, decode_geom=True, token=None):
-        """
-        Intersect layer against some geometry class object, geosjon object, shapely shape, or by id.
-        """
-        if not token:
-            print('[token=None] Carto API token required.')
-            return None
-        geojson = geometry.attributes['geojson']['features'][0]['geometry']
-
-        if 'the_geom' not in sql and decode_geom == True:
-            sql = sql.replace('SELECT', 'SELECT the_geom,')
-        if 'count' in sql:
-            decode_geom = False
-        table_name = self.attributes.get('tableName', 'data')
-        sql = sql.replace('FROM data', f'FROM {table_name}').replace('"', "'")
-        if geometry:
-            if 'WHERE' in sql:
-                sql.replace("WHERE", f"WHERE ST_Intersects(the_geom, st_transform( st_setsrid( ST_GeomFromGeoJSON('{json.dumps(geojson)}'), 4326), 4326)) AND ")
-            else:
-                sql.replace(f"FROM {table_name}", f"FROM {table_name} WHERE ST_Intersects(the_geom, st_transform( st_setsrid( ST_GeomFromGeoJSON('{json.dumps(geojson)}'), 4326), 4326))")
-
-        account = self.attributes.get('layerConfig')['account']
-        if account and table_name:
-            urlCartoContext = "https://{0}.carto.com".format(account)
-            cc = cf.CartoContext(base_url=urlCartoContext, api_key=token)
-            return cc.query(sql, decode_geom=decode_geom)
-
-    def query(self, sql='SELECT * FROM data LIMIT 5', geometry=None, decode_geom=True,token=None):
-        """
-        Intersect layer against some geometry class object, geosjon object, shapely shape, or by id.
-        """
-        return self.parse_query(sql=sql, geometry=geometry, decode_geom=decode_geom, token=token)

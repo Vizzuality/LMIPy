@@ -2,9 +2,7 @@ import requests
 import json
 import random
 import geopandas as gpd
-import cartoframes as cf
-from shapely.geometry import shape
-from pprint import pprint
+#from shapely.geometry import shape
 from .layer import Layer
 from .utils import html_box
 from .lmipy import Vocabulary, Metadata
@@ -70,24 +68,25 @@ class Dataset:
         else:
             raise ValueError(f'Dataset with id={self.id} does not exist.')
 
-    def carto_query(self, sql, decode_geom=False):
+    def carto_query(self, sql):
         """
-        Returns a GeoPandas GeoDataFrame for CARTO datasets.
+        Returns a GeoPandas GeoDataFrame for CARTO datasets. The sql query should
+        always use dataset as the source (i.e. 'from dataset') as this will be
+        replaced with the tableName from dataset.attributes.
         """
-        if 'the_geom' not in sql and decode_geom == True:
-            sql = sql.replace('SELECT', 'SELECT the_geom,')
-        if 'count' in sql:
-            decode_geom = False
-        table_name = self.attributes.get('tableName', 'data')
-        sql = sql.replace('FROM data', f'FROM {table_name}').replace('"', "'")
-        connector = self.attributes.get('connectorUrl', '')
-        if connector:
-            account = connector.split('.carto.com/')[0]
-            cc = cf.CartoContext(base_url=f"{account}.carto.com")
-        if table_name:
-            return cc.query(sql=sql, decode_geom=decode_geom)
+        sql = sql.lower().replace('from dataset',f"FROM {self.attributes.get('tableName')}")
+        if not self.attributes.get('connectorUrl'):
+            raise ValueError("ConnectorUrl attribute missing.")
+        account = self.attributes.get('connectorUrl').split('/')[2].split('.')[0]
+        urlCarto = f"https://{account}.carto.com/api/v2/sql"
+        params = {"q": sql}
+        r = requests.get(urlCarto, params=params)
+        if r.status_code == 200:
+            return gpd.GeoDataFrame(r.json().get('rows'))
+        else:
+            raise ValueError(f"Bad response from Carto {r.status_code}: {r.json()}")
 
-    def query(self, sql="SELECT * FROM data LIMIT 5", decode_geom=False):
+    def query(self, sql="SELECT * FROM data LIMIT 5"):
         """
         Query a Dataset object
 
@@ -97,15 +96,12 @@ class Dataset:
         ----------
         sql: str
             Valid SQL string.
-        decode_geom: bool
-            A bool, if True geometry will be decoded and converted to a shapefile in the output table.
         """
         provider = self.attributes.get('provider', None)
         if provider == 'cartodb':
-            return self.carto_query(sql=sql, decode_geom=decode_geom)
+            return self.carto_query(sql=sql)
         else:
             raise ValueError(f'Unable to perform query on datasets with provider {provider}. Must be `cartodb`.')
-
 
     def head(self, n=5, decode_geom=True, token=None):
         """
@@ -146,7 +142,6 @@ class Dataset:
         update_blacklist = ['metadata','layer', 'vocabulary', 'updatedAt', 'userId', 'slug', "clonedHost", "errorMessage", "taskId", "dataLastUpdated"]
         attributes = {f'{k}':v for k,v in self.attributes.items() if k not in update_blacklist}
         payload = { f'{key}': update_params[key] for key in update_params if key in list(attributes.keys()) }
-        ### Update here
         try:
             url = f"{self.server}/dataset/{self.id}"
             headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
@@ -161,9 +156,9 @@ class Dataset:
         if show_difference:
             old_attributes = { f'{k}': attributes[k] for k,v in payload.items() }
             print(f"Attributes to change:")
-            pprint(old_attributes)
+            print(old_attributes)
             print('Updated!')
-            pprint({ f'{k}': v for k, v in response['attributes'].items() if k in payload })
+            print({ f'{k}': v for k, v in response['attributes'].items() if k in payload })
         self.attributes = self.get_dataset()
         return self
 
@@ -185,7 +180,6 @@ class Dataset:
         """
         if not token:
             raise ValueError(f'[token] Resource Watch API token required to delete.')
-        ### Check if dataset has layers first. Cannot delete
         layer_count = len(self.layers)
         if layer_count > 0:
             print(f'WARNING - Dataset has {layer_count} associated Layer(s).')
@@ -212,7 +206,7 @@ class Dataset:
                 raise ValueError(f'Layer deletion failed.')
             if r.status_code == 200:
                 print(r.url)
-                pprint('Deletion successful!')
+                print('Deletion successful!')
                 self = None
         else:
             print('Deletion aborted.')
@@ -225,11 +219,6 @@ class Dataset:
         """
         if not token:
             raise ValueError(f'[token] Resource Watch API token required to clone.')
-        # unneccesary?
-        # if not all(x not in dataset_params.keys() for x in ['name', 'app']):
-        #     print('The keys "name" and "app" must be defined in dataset_params.')
-        #     return None
-
         if not target_dataset_id:
             print('Must specify target_dataset_id.')
             return None
@@ -263,24 +252,26 @@ class Dataset:
                 self.attributes = Dataset(clone_dataset_id).attributes
                 return Dataset(clone_dataset_id)
 
-    def intersect(self, geometry, token=None):
+    def intersect(self, geometry):
+        """."""
+        if self.attributes.get('provider') != 'gee':
+            raise ValueError("Intersect currently only supported for EE raster data")
+        # geojson = geometry.attributes['geojson']['features'][0]['geometry']
+        # geom_id = geometry.id
+        # table_name = self.attributes.get('tableName', 'data')
+        # sql = f'SELECT * FROM {table_name}'
 
-        geojson = geometry.attributes['geojson']['features'][0]['geometry']
-        geom_id = geometry.id
-        table_name = self.attributes.get('tableName', 'data')
-        sql = f'SELECT * FROM {table_name}'
+        # try:
+        #     url = (f'{self.server}/v1/query/{self.id}?sql={sql}&geostore={geom_id}&format=geojson')
 
-        try:
-            url = (f'{self.server}/v1/query/{self.id}?sql={sql}&geostore={geom_id}&format=geojson')
-
-            r = requests.get(url)
-            if r.status_code == 200:
-                response_data = r.json().get('data')
-                parsed_json = [{**d['properties'], 'geometry': shape(d['geometry'])} for d in response_data[0]['features']]
-                df = gpd.GeoDataFrame(parsed_json).set_geometry('geometry')
-                return df
-            else:
-                raise ValueError(f'Unable to get table {self.id} from {r.url}')
-        except:
-            raise ValueError(f'Unable to get table {self.id} from {r.url}')
+        #     r = requests.get(url)
+        #     if r.status_code == 200:
+        #         response_data = r.json().get('data')
+        #         parsed_json = [{**d['properties'], 'geometry': shape(d['geometry'])} for d in response_data[0]['features']]
+        #         df = gpd.GeoDataFrame(parsed_json).set_geometry('geometry')
+        #         return df
+        #     else:
+        #         raise ValueError(f'Unable to get table {self.id} from {r.url}')
+        # except:
+        #     raise ValueError(f'Unable to get table {self.id} from {r.url}')
 
