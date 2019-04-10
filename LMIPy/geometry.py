@@ -29,7 +29,7 @@ class Geometry:
         self.server = server
         if s:
             attributes = self.create_attributes_from_shapely(s)
-        elif attributes:
+        if attributes:
             self.attributes = self.create_geostore_from_geojson(attributes)
         elif parameters:
             self.attributes = self.create_attributes_from_table(parameters)
@@ -117,11 +117,8 @@ class Geometry:
                 }
         url = self.server + '/v1/geostore'
         r = requests.post(url, headers=header, json=body)
-        print(f'In create geostore: {r.json()}')
-        print(f'status cde {r.status_code}')
         if r.status_code == 200:
             self.id = r.json().get('data').get('id')
-            print(f"INSIDE: {r.json().get('data').get('attributes')}")
             return r.json().get('data').get('attributes')
         else:
             raise ValueError(f'Recieved response of {r.status_code} from {r.url} when posting to geostore.')
