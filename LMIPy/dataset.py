@@ -254,25 +254,29 @@ class Dataset:
                 return Dataset(clone_dataset_id)
 
     def intersect(self, geometry):
-        """."""
+        """
+        Intersect an EE raster with a geometry
+
+        Given a valid LMIPy.Geometry object, return a dictionary based on reduceRegion
+        Parameters
+        ---------
+        geometry: Geometry
+            An LMIPy.Geometry object
+        server: str
+            A string of a server to call to.
+        """
         if self.attributes.get('provider') != 'gee':
             raise ValueError("Intersect currently only supported for EE raster data")
-        # geojson = geometry.attributes['geojson']['features'][0]['geometry']
-        # geom_id = geometry.id
-        # table_name = self.attributes.get('tableName', 'data')
-        # sql = f'SELECT * FROM {table_name}'
-
-        # try:
-        #     url = (f'{self.server}/v1/query/{self.id}?sql={sql}&geostore={geom_id}&format=geojson')
-
-        #     r = requests.get(url)
-        #     if r.status_code == 200:
-        #         response_data = r.json().get('data')
-        #         parsed_json = [{**d['properties'], 'geometry': shape(d['geometry'])} for d in response_data[0]['features']]
-        #         df = gpd.GeoDataFrame(parsed_json).set_geometry('geometry')
-        #         return df
-        #     else:
-        #         raise ValueError(f'Unable to get table {self.id} from {r.url}')
-        # except:
-        #     raise ValueError(f'Unable to get table {self.id} from {r.url}')
-
+        url = f"{self.server}/query/{self.id}"
+        sql = f"SELECT ST_SUMMARYSTATS() from {self.attributes.get('tableName')}"
+        params = {"sql": sql,
+                  "geostore": geometry.id}
+        r = requests.get(url, params=params)
+        if r.status_code == 200:
+            try:
+                return r.json().get('data', None)[0].get('st_summarystats')
+            except:
+                raise ValueError(f'Unable to retrieve values from response {r.json()}')
+        else:
+            print("Hint: sometimes this service fails due to load on EE servers. Try again.")
+            raise ValueError(f'Bad response: {r.status_code} from query: {r.url}')

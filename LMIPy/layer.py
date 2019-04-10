@@ -1,6 +1,6 @@
 import requests
 #import cartoframes as cf
-#import geopandas as gpd
+import geopandas as gpd
 #import re
 import folium
 import urllib
@@ -335,3 +335,93 @@ class Layer:
         print(f'{self.server}/v1/dataset/{target_dataset_id}/layer/{clone_layer_id}')
         self.attributes = Layer(clone_layer_id).attributes
         return Layer(clone_layer_id)
+
+    def parse_query(self, sql):
+        """
+        Distriibuter to decide interect method
+        """
+        if self.attributes.get('layerConfig') == None:
+            raise ValueError("No layerConfig present in layer from which to create a query.")
+        # if tileLayer
+        if self.attributes.get('provider') == 'leaflet' and self.attributes.get('layerConfig').get('type') == 'tileLayer':
+            print(f"Queries on provider type {self.attributes.get('provider')} currently unavailable.")
+            return None
+        # if GEE
+        if self.attributes.get('provider') == 'gee':
+            print(f"Queries on provider type {self.attributes.get('provider')} currently unavailable.")
+            return None
+        # If CARTO
+        if self.attributes.get('provider') == 'cartodb':
+            return self.get_carto_query(sql)
+        return None
+
+    def get_carto_query(self, sql):
+        """
+        Intersect layer against some geometry class object, geosjon object, shapely shape, or by id.
+        """
+        attributes = self.attributes
+        sql_config = attributes.get('layerConfig').get('sql_config', None)
+        layerConfig = attributes.get('layerConfig')
+        if sql_config:
+            for config in sql_config:
+                key = config['key']
+                key_params = config['key_params']
+                if key_params[0].get('required', False):
+                    for l in layerConfig["body"]["layers"]:
+                        l['options']['sql'] = l['options']['sql'].replace(f'{{{key}}}', '0').format(key_params['key'])
+                else:
+                    for l in layerConfig["body"]["layers"]:
+                        l['options']['sql'] = l['options']['sql'].replace(f'{{{key}}}', '0').format('')
+
+        base_query = f'with t as ({layerConfig["body"]["layers"][0]["options"]["sql"]}) '
+
+        sql = base_query + sql.lower().replace('from data', f'FROM t').replace('"', "'")
+        account = layerConfig.get('account')
+        urlCarto = f"https://{account}.carto.com/api/v2/sql"
+        params = {"q": sql}
+        r = requests.get(urlCarto, params=params)
+        if r.status_code == 200:
+            return gpd.GeoDataFrame(r.json().get('rows'))
+        else:
+            raise ValueError(f"Bad response from Carto {r.status_code}: {r.json()}")
+
+    def query(self, sql='SELECT * FROM data LIMIT 5'):
+        """
+        Intersect layer against some geometry class object, geosjon object, shapely shape, or by id.
+        """
+        return self.parse_query(sql=sql)
+
+    def dataset(self):
+        """
+        Returns parent datset
+        """
+        from .dataset import Dataset
+        return Dataset(self.attributes['dataset'])
+
+    def intersect(self, geometry):
+        """
+        Intersect an EE raster with a geometry
+
+        Given a valid LMIPy.Geometry object, return a dictionary based on reduceRegion
+        Parameters
+        ---------
+        geometry: Geometry
+            An LMIPy.Geometry object
+        server: str
+            A string of a server to call to.
+        """
+        if self.attributes.get('provider') != 'gee':
+            raise ValueError("Intersect currently only supported for EE raster data")
+        url = f"{self.server}/query/{self.attributes.get('dataset')}"
+        sql = f"SELECT ST_SUMMARYSTATS() from {self.attributes.get('layerConfig').get('assetId')}"
+        params = {"sql": sql,
+                  "geostore": geometry.id}
+        r = requests.get(url, params=params)
+        if r.status_code == 200:
+            try:
+                return r.json().get('data', None)[0].get('st_summarystats')
+            except:
+                raise ValueError(f'Unable to retrieve values from response {r.json()}')
+        else:
+            print("Hint: sometimes this service fails due to load on EE servers. Try again.")
+            raise ValueError(f'Bad response: {r.status_code} from query: {r.url}')
