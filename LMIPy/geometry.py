@@ -25,12 +25,14 @@ class Geometry:
     s: obj
         A shapely object.
     """
-    def __init__(self, id_hash=None, attributes=None, s=None, server='https://production-api.globalforestwatch.org'):
+    def __init__(self, id_hash=None, attributes=None, s=None, params={}, server='https://production-api.globalforestwatch.org'):
         self.server = server
         if s:
             attributes = self.create_attributes_from_shapely(s)
         if attributes:
             self.attributes = self.create_geostore_from_geojson(attributes)
+        if params:
+            self.attributes = self.create_attributes_from_table(params)
         else:
             self.id = id_hash
             self.attributes = self.get_geometry()
@@ -55,6 +57,58 @@ class Geometry:
             return atts
         else:
             raise ValueError('shape object was not of suitable geometry type')
+
+    def create_attributes_from_table(self, params={}):
+        if not params:
+            raise ValueError(f'Params requires!')
+        
+        iso = params.get('iso', None)
+        id1 = params.get('adm1', None)
+        id2 = params.get('adm2', None)
+        gadm = params.get('gadm', None)
+        cartodb_id = params.get('id', None)
+        table = params.get('table', None)
+
+        gadm_ver = {
+            '2.7': 'v1',
+            '3.6': 'v2'
+        }
+
+        if not gadm:
+            gadm = '3.6'
+        elif gadm not in ['2.7', '3.6']:
+            raise ValueError(f'GADM must be 2.7 (v1) or 3.6 (v2)')
+
+        version = gadm_ver[gadm]
+
+        if iso:
+            if id2 and id1 and iso:
+                url = f'/{version}/geostore/admin/{iso}/{id1}/{id2}'
+            elif id1 and iso:
+                url = f'/{version}/geostore/admin/{iso}/{id1}'
+            elif iso:
+                url = f'/{version}/geostore/admin/{iso}'
+            else:
+                raise ValueError(f'Invalid admin params. Requires: iso, adm1, adm2 keys')
+        elif table:
+            if table and cartodb_id:
+                url = f'/{version}/geostore/use/{table}/{int(cartodb_id)}'
+            else:
+                raise ValueError(f'Invalid table params. Requires: table and cartodb_id keys')
+
+        else:
+            raise ValueError(f'Invalid params! Valid keys: [iso, adm1, adm2] or [table, cartodb_id]')
+
+        header= {
+                'Content-Type':'application/json'
+                }
+        url = self.server + url
+        r = requests.get(url, headers=header)
+        if r.status_code == 200:
+            self.id = r.json().get('data').get('id')
+            return r.json().get('data').get('attributes')
+        else:
+            raise ValueError(f'Recieved response of {r.status_code} from {r.url} when posting to geostore.')
 
     def create_geostore_from_geojson(self, attributes):
         """Parse valid geojson into a geostore object and register it to a
