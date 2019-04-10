@@ -25,13 +25,13 @@ class Geometry:
     s: obj
         A shapely object.
     """
-    def __init__(self, id_hash=None, attributes=None, s=None, parameters={}, server='https://production-api.globalforestwatch.org'):
+    def __init__(self, id_hash=None, attributes=None, s=None, parameters=None, server='https://production-api.globalforestwatch.org'):
         self.server = server
         if s:
             attributes = self.create_attributes_from_shapely(s)
-        if attributes:
+        elif attributes:
             self.attributes = self.create_geostore_from_geojson(attributes)
-        if parameters:
+        elif parameters:
             self.attributes = self.create_attributes_from_table(parameters)
         else:
             self.id = id_hash
@@ -58,7 +58,7 @@ class Geometry:
         else:
             raise ValueError('shape object was not of suitable geometry type')
 
-    def create_attributes_from_table(self, parameters={}):
+    def create_attributes_from_table(self, parameters=None):
         if not parameters:
             raise ValueError(f'parameters requires!')
         iso = parameters.get('iso', None)
@@ -117,8 +117,11 @@ class Geometry:
                 }
         url = self.server + '/v1/geostore'
         r = requests.post(url, headers=header, json=body)
+        print(f'In create geostore: {r.json()}')
+        print(f'status cde {r.status_code}')
         if r.status_code == 200:
             self.id = r.json().get('data').get('id')
+            print(f"INSIDE: {r.json().get('data').get('attributes')}")
             return r.json().get('data').get('attributes')
         else:
             raise ValueError(f'Recieved response of {r.status_code} from {r.url} when posting to geostore.')
