@@ -2,7 +2,7 @@ import requests
 #import cartoframes as cf
 import geopandas as gpd
 #import re
-from shapely.geometry import shape
+#from shapely.geometry import shape
 import folium
 import urllib
 import json
@@ -162,6 +162,17 @@ class Layer:
     def map(self, lat=0, lon=0, zoom=3, geometry=None):
         """
         Returns a folim map with styles applied
+
+        Parameters
+        ----------
+        lat: float
+            A latitude to focus the map on.
+        lon: float
+            A longitude to focus the map on.
+        zoom: int
+            A z-level for the map.
+        geometry: LMIPy.Geometry()
+            A geometry object.
         """
         url = self.parse_map_url()
         map = folium.Map(
@@ -171,19 +182,13 @@ class Layer:
                 detect_retina=True,
                 prefer_canvas=True
         )
-
-        map.add_tile_layer(
-            tiles=url,
-            attr=self.attributes.get('name')
-        )
-
+        map.add_tile_layer(tiles=url, attr=self.attributes.get('name'))
         if geometry:
             geojson = geometry.attributes['geojson']
             geom = geojson['features'][0]['geometry']
-            shapely_geometry = shape(geom)
-            centroid = list(shapely_geometry.centroid.coords)[0][::-1]
-            bbox = geometry.attributes['bbox']
-            bounds = [bbox[2:][::-1], bbox[:2][::-1]]
+            centroid = list(geometry.shape()[0].centroid.coords)
+            bounds = [geometry.attributes['bbox'][2:][::-1],
+                      geometry.attributes['bbox'][:2][::-1]]
             if geom['type'] == 'Point':
                 folium.Marker(
                     centroid
@@ -196,9 +201,7 @@ class Layer:
                     'weight': 2
                     }
                 ).add_to(map)
-
             map.fit_bounds(bounds)
-
         return map
 
     def update_keys(self):
