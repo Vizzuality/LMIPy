@@ -254,7 +254,29 @@ class Dataset:
                 return Dataset(clone_dataset_id)
 
     def intersect(self, geometry):
-        """."""
+        """
+        Intersect an EE raster with a geometry
+
+        Given a valid LMIPy.Geometry object, return a dictionary based on reduceRegion
+        Parameters
+        ---------
+        geometry: Geometry
+            An LMIPy.Geometry object
+        server: str
+            A string of a server to call to.
+        """
         if self.attributes.get('provider') != 'gee':
             raise ValueError("Intersect currently only supported for EE raster data")
-
+        url = f"{self.server}/query/{self.id}"
+        sql = f"SELECT ST_SUMMARYSTATS() from {self.attributes.get('tableName')}"
+        params = {"sql": sql,
+                  "geostore": geometry.id}
+        r = requests.get(url, params=params)
+        if r.status_code == 200:
+            try:
+                return r.json().get('data', None)[0].get('st_summarystats')
+            except:
+                raise ValueError(f'Unable to retrieve values from response {r.json()}')
+        else:
+            print("Hint: sometimes this service fails due to load on EE servers. Try again.")
+            raise ValueError(f'Bad response: {r.status_code} from query: {r.url}')
