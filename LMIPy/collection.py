@@ -87,7 +87,6 @@ class Collection:
         if len(response_list) < 1:
             raise ValueError('No items found')
         identified_layers = self.filter_results(response_list)
-        print(identified_layers)
         return identified_layers
 
     def get_layers(self):
