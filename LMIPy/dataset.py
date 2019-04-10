@@ -257,22 +257,4 @@ class Dataset:
         """."""
         if self.attributes.get('provider') != 'gee':
             raise ValueError("Intersect currently only supported for EE raster data")
-        # geojson = geometry.attributes['geojson']['features'][0]['geometry']
-        # geom_id = geometry.id
-        # table_name = self.attributes.get('tableName', 'data')
-        # sql = f'SELECT * FROM {table_name}'
-
-        # try:
-        #     url = (f'{self.server}/v1/query/{self.id}?sql={sql}&geostore={geom_id}&format=geojson')
-
-        #     r = requests.get(url)
-        #     if r.status_code == 200:
-        #         response_data = r.json().get('data')
-        #         parsed_json = [{**d['properties'], 'geometry': shape(d['geometry'])} for d in response_data[0]['features']]
-        #         df = gpd.GeoDataFrame(parsed_json).set_geometry('geometry')
-        #         return df
-        #     else:
-        #         raise ValueError(f'Unable to get table {self.id} from {r.url}')
-        # except:
-        #     raise ValueError(f'Unable to get table {self.id} from {r.url}')
 
