@@ -149,10 +149,13 @@ class Collection:
         return tmp_sorted
 
     def save(self, path='./'):
-        today = datetime.datetime.today().strftime('%Y-%m-%d|%Hh-%Mm')
-        path = path + f'LMI-BACKUP/{today}'
+        path += 'LMI-BACKUP'
         if not os.path.isdir(path):
             os.mkdir(path)
+            today = datetime.datetime.today().strftime('%Y-%m-%d|%Hh-%Mm')
+            path += f'/{today}'
+            if not os.path.isdir(path):
+                os.mkdir(path)
         print(f'Saving to path: {path}')
         saved = []
         for item in tqdm(self):

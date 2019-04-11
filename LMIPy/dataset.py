@@ -288,8 +288,13 @@ class Dataset:
         Construct dataset json and save to local path in a date-referenced folder
         """
         if not path:
-            today = datetime.datetime.today().strftime('%Y-%m-%d | %Hh %Mm')
-            path = path + f'LMI-BACKUP/{today}'
+            path = './LMI-BACKUP'
+            if not os.path.isdir(path):
+                os.mkdir(path)
+                today = datetime.datetime.today().strftime('%Y-%m-%d|%Hh-%Mm')
+                path += f'/{today}'
+                if not os.path.isdir(path):
+                    os.mkdir(path)
 
         save_json = {
             "id": self.id,
