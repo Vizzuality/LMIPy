@@ -234,13 +234,12 @@ class Layer:
         res = attr('reset')
         if not token:
             raise ValueError(f'[token=None] Resource Watch API TOKEN required for updates.')
-        if not update_params:
-            print('Requires update_params dictionary.')
-            return self.update_keys()
         update_blacklist = ['updatedAt', 'userId', 'dataset', 'slug']
         attributes = {f'{k}':v for k,v in self.attributes.items() if k not in update_blacklist}
-        payload = { f'{key}': update_params[key] for key in update_params if key in list(attributes.keys()) }
-        ### Update here
+        if not update_params:
+            payload = { **attributes }
+        else:
+            payload = { f'{key}': update_params[key] for key in update_params if key in list(attributes.keys()) }
         try:
             url = f"{self.server}/dataset/{self.attributes['dataset']}/layer/{self.id}"
             headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
@@ -255,7 +254,7 @@ class Layer:
         if show_difference:
             old_attributes = { f'{k}': attributes[k] for k,v in payload.items() }
             print(f"Attributes to change:")
-            print(red_color + old_attributes + red)
+            print(red_color + old_attributes + res)
             print(green_color + 'Updated!'+ res)
             print({ f'{k}': v for k, v in response['attributes'].items() if k in payload })
         self.attributes = self.get_layer()
@@ -453,3 +452,28 @@ class Layer:
         else:
             print("Hint: sometimes this service fails due to load on EE servers. Try again.")
             raise ValueError(f'Bad response: {r.status_code} from query: {r.url}')
+
+    def load(self, path=None, check=True):
+        """
+        From a local backup at the specified path, loads and returns a previous version of the current dataset.
+        """
+        from .dataset import Dataset
+        if not path:
+            print('Requires a file path to valid backup .json file.')
+            return None
+        try:
+            with open(f"{path}") as f:
+                backups = json.load(f)
+        except:
+            raise ValueError(f'Failed to load backup from f{path}')
+
+        recovered_dataset = [d for d in backups if d['id'] == self.dataset().id][0]
+        recovered_layer = [l for l in recovered_dataset.layers if l.id == self.id][0]
+
+        if check and recovered_layer['attributes'] == self.attributes:
+            print('Loaded == Existing')
+        elif check:
+            print('Load != Existing')
+        
+        return Layer(id_hash=recovered_layer['id'], attributes=recovered_layer['attributes'])
+

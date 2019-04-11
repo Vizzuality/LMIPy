@@ -8,6 +8,7 @@ import datetime
 from .layer import Layer
 from .utils import html_box
 from .lmipy import Vocabulary, Metadata
+from colored import fg, bg, attr
 
 
 class Dataset:
@@ -137,14 +138,17 @@ class Dataset:
         show_difference: bool
             If set to True a verbose description of the updates will be returned to the user.
         """
+        red_color = fg('#FF0000')
+        green_color = fg('#00FF00')
+        res = attr('reset')
         if not token:
             raise ValueError(f'[token=None] Resource Watch API TOKEN required for updates.')
-        if not update_params:
-            print('Requires update_params dictionary.')
-            return self.update_keys()
         update_blacklist = ['metadata','layer', 'vocabulary', 'updatedAt', 'userId', 'slug', "clonedHost", "errorMessage", "taskId", "dataLastUpdated"]
         attributes = {f'{k}':v for k,v in self.attributes.items() if k not in update_blacklist}
-        payload = { f'{key}': update_params[key] for key in update_params if key in list(attributes.keys()) }
+        if not update_params:        
+            payload = { **attributes }
+        else:
+            payload = { f'{key}': update_params[key] for key in update_params if key in list(attributes.keys()) }
         try:
             url = f"{self.server}/dataset/{self.id}"
             headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
@@ -159,8 +163,8 @@ class Dataset:
         if show_difference:
             old_attributes = { f'{k}': attributes[k] for k,v in payload.items() }
             print(f"Attributes to change:")
-            print(old_attributes)
-            print('Updated!')
+            print(red_color + old_attributes + res)
+            print(green_color + 'Updated!'+ res)
             print({ f'{k}': v for k, v in response['attributes'].items() if k in payload })
         self.attributes = self.get_dataset()
         return self
@@ -291,7 +295,7 @@ class Dataset:
             path = './LMI-BACKUP'
             if not os.path.isdir(path):
                 os.mkdir(path)
-                today = datetime.datetime.today().strftime('%Y-%m-%d|%Hh-%Mm')
+                today = datetime.datetime.today().strftime('%Y-%m-%dT%Hh-%MmZ')
                 path += f'/{today}'
                 if not os.path.isdir(path):
                     os.mkdir(path)
@@ -316,3 +320,25 @@ class Dataset:
 
         with open(f"{path}/{self.id}.json", 'w') as fp:
             json.dump(save_json, fp)
+
+    def load(self, path=None, check=True):
+        """
+        From a local backup at the specified path, loads and returns a previous version of the current dataset.
+        """
+        if not path:
+            print('Requires a file path to valid backup .json file.')
+            return None
+        try:
+            with open(f"{path}") as f:
+                backups = json.load(f)
+        except:
+            raise ValueError(f'Failed to load backup from f{path}')
+
+        recovered = [d for d in backups if d['id'] == self.id][0]
+
+        if check and recovered['attributes'] == self.attributes:
+            print('Loaded == Existing')
+        elif check:
+            print('Load != Existing')
+        
+        return Dataset(id_hash=recovered['id'], attributes=recovered['attributes'])

@@ -152,7 +152,7 @@ class Collection:
         path += 'LMI-BACKUP'
         if not os.path.isdir(path):
             os.mkdir(path)
-            today = datetime.datetime.today().strftime('%Y-%m-%d|%Hh-%Mm')
+            today = datetime.datetime.today().strftime('%Y-%m-%dT%Hh-%MmZ')
             path += f'/{today}'
             if not os.path.isdir(path):
                 os.mkdir(path)
