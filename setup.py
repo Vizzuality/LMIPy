@@ -19,7 +19,7 @@ setuptools.setup(
                         'cartoframes==0.9.2',
                         'colored==1.3.93',
                         'geojson==2.4.1'],
-    packages=['LMIPy']
+    packages=['LMIPy'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
