@@ -2,6 +2,8 @@ import requests
 import json
 import random
 import geopandas as gpd
+import os
+import datetime
 #from shapely.geometry import shape
 from .layer import Layer
 from .utils import html_box
@@ -33,15 +35,15 @@ class Dataset:
             self.layers = [Layer(attributes=l) for l in self.attributes.get('layer')]
             _ = self.attributes.pop('layer')
         if len(self.attributes.get('metadata')) > 0:
-            self.metadata = Metadata(self.attributes.get('metadata')[0])
+            self.metadata = [Metadata(attributes=m) for m in self.attributes.get('metadata')]
             _ = self.attributes.pop('metadata')
         else:
-            self.metadata = False
+            self.metadata = []
         if len(self.attributes.get('vocabulary')) > 0:
-            self.vocabulary = Vocabulary(self.attributes.get('vocabulary')[0])
+            self.vocabulary =[Vocabulary(attributes=v) for v in self.attributes.get('vocabulary')]
             _ = self.attributes.pop('vocabulary')
         else:
-            self.vocabulary = False
+            self.vocabulary = []
         self.url = f"{server}/v1/dataset/{id_hash}?hash={random.getrandbits(16)}"
 
     def __repr__(self):
@@ -109,7 +111,7 @@ class Dataset:
         Returns a table as a GeoPandas GeoDataframe from a Vizzuality API using the query endpoint.
         """
         sql = f'SELECT * FROM data LIMIT {n}'
-        return self.carto_query(sql=sql, decode_geom=decode_geom)
+        return self.carto_query(sql=sql)
 
     def update_keys(self):
         """
@@ -280,3 +282,32 @@ class Dataset:
         else:
             print("Hint: sometimes this service fails due to load on EE servers. Try again.")
             raise ValueError(f'Bad response: {r.status_code} from query: {r.url}')
+
+    def save(self, path=None):
+        """
+        Construct dataset json and save to local path in a date-referenced folder
+        """
+        if not path:
+            today = datetime.datetime.today().strftime('%Y-%m-%d | %Hh %Mm')
+            path = path + f'LMI-BACKUP/{today}'
+
+        save_json = {
+            "id": self.id,
+            "type": "dataset",
+            "attributes": {
+                **self.attributes,
+                'layer': [{
+                    "id": layer.id,
+                    "type": "layer",
+                    "attributes": layer.attributes
+                    } for layer in self.layers],
+                'metadata': [m.attributes for m in self.metadata],
+                'vocabulary': [v.attributes for v in self.vocabulary]
+                },
+        }
+
+        if not os.path.isdir(path):
+            os.mkdir(path)
+
+        with open(f"{path}/{self.id}.json", 'w') as fp:
+            json.dump(save_json, fp)

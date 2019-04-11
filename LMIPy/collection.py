@@ -1,5 +1,8 @@
 import requests
 import random
+import os
+import datetime
+from tqdm import tqdm
 from .dataset import Dataset
 from .table import Table
 from .layer import Layer
@@ -26,11 +29,11 @@ class Collection:
     object_type: list
         A list of strings of object types to search, e.g. [‘dataset’, ‘layer’]
     """
-    def __init__(self, search, app=['gfw','rw'], env='production', limit=1000, order='name', sort='desc',
+    def __init__(self, search='', app=['gfw','rw'], env='production', limit=1000, order='name', sort='desc',
                  object_type=['dataset', 'layer','table'], server='https://api.resourcewatch.org',
                  mapbox_token=None):
-        self.server = server
         self.search = search.lower().strip().split(' ')
+        self.server = server
         self.app = ",".join(app)
         self.env = env
         self.limit = limit
@@ -144,3 +147,21 @@ class Collection:
         if self.limit < len(tmp_sorted):
             tmp_sorted = tmp_sorted[0:self.limit]
         return tmp_sorted
+
+    def save(self, path='./'):
+        today = datetime.datetime.today().strftime('%Y-%m-%d|%Hh-%Mm')
+        path = path + f'LMI-BACKUP/{today}'
+        if not os.path.isdir(path):
+            os.mkdir(path)
+        print(f'Saving to path: {path}')
+        saved = []
+        for item in tqdm(self):
+            if item.id not in saved:
+                if type(item) == Layer:
+                    item = item.dataset()
+                elif type(item) == Dataset or type(item) == Table:
+                    for layer in item.layers:
+                        saved.append(layer.id)
+                
+                item.save(path)
+                saved.append(item.id)
