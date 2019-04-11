@@ -1,8 +1,5 @@
 import requests
-#import cartoframes as cf
 import geopandas as gpd
-#import re
-#from shapely.geometry import shape
 import folium
 import urllib
 import json
