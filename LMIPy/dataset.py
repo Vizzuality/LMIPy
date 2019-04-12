@@ -344,10 +344,12 @@ class Dataset:
             if check:
                 blacklist = ['metadata','layer', 'vocabulary', 'updatedAt']
                 attributes = {f'{k}':v for k,v in recovered_dataset['attributes'].items() if k not in blacklist}
-                if self.attributes == attributes:
+                difs = {f'{k}': [v, self.attributes[k]] for k,v in attributes.items() if k not in blacklist and self.attributes[k] != attributes[k]}
+                if check and self.attributes == attributes:
                     print('Loaded attributes == existing attributes')
-                elif check:
+                elif check and self.attributes == attributes:
                     print('Loaded attributes != existing attributes')
+                    pprint(difs)
         except:
             raise ValueError(f'Failed to load backup from f{path}/{self.id}.json')
         return Dataset(id_hash=recovered_dataset['id'], attributes=recovered_dataset['attributes'])
