@@ -453,7 +453,7 @@ class Layer:
             print("Hint: sometimes this service fails due to load on EE servers. Try again.")
             raise ValueError(f'Bad response: {r.status_code} from query: {r.url}')
 
-    def save(self, path=None):
+    def save(self, path='./LMI-BACKUP'):
         """
         Construct dataset json and save to local path in a date-referenced folder
         """
