@@ -148,11 +148,10 @@ class Collection:
             tmp_sorted = tmp_sorted[0:self.limit]
         return tmp_sorted
 
-    def save(self, path='./'):
-        path += 'LMI-BACKUP'
+    def save(self, path='./LMI-BACKUP'):
         if not os.path.isdir(path):
             os.mkdir(path)
-            today = datetime.datetime.today().strftime('%Y-%m-%dT%Hh-%MmZ')
+            today = datetime.datetime.today().strftime('%Y-%m-%d@%Hh-%Mm')
             path += f'/{today}'
             if not os.path.isdir(path):
                 os.mkdir(path)

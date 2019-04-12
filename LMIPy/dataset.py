@@ -5,6 +5,7 @@ import geopandas as gpd
 import os
 import datetime
 #from shapely.geometry import shape
+from pprint import pprint
 from .layer import Layer
 from .utils import html_box
 from .lmipy import Vocabulary, Metadata
@@ -32,15 +33,16 @@ class Dataset:
             self.attributes = self.get_dataset()
         else:
             self.attributes = attributes
-        if len(self.attributes.get('layer')) > 0:
+
+        if len(self.attributes.get('layer', [])) > 0:
             self.layers = [Layer(attributes=l) for l in self.attributes.get('layer')]
             _ = self.attributes.pop('layer')
-        if len(self.attributes.get('metadata')) > 0:
+        if len(self.attributes.get('metadata', [])) > 0:
             self.metadata = [Metadata(attributes=m) for m in self.attributes.get('metadata')]
             _ = self.attributes.pop('metadata')
         else:
             self.metadata = []
-        if len(self.attributes.get('vocabulary')) > 0:
+        if len(self.attributes.get('vocabulary', [])) > 0:
             self.vocabulary =[Vocabulary(attributes=v) for v in self.attributes.get('vocabulary')]
             _ = self.attributes.pop('vocabulary')
         else:
@@ -295,7 +297,7 @@ class Dataset:
             path = './LMI-BACKUP'
             if not os.path.isdir(path):
                 os.mkdir(path)
-                today = datetime.datetime.today().strftime('%Y-%m-%dT%Hh-%MmZ')
+                today = datetime.datetime.today().strftime('%Y-%m-%d@%Hh-%Mm')
                 path += f'/{today}'
                 if not os.path.isdir(path):
                     os.mkdir(path)
@@ -310,8 +312,16 @@ class Dataset:
                     "type": "layer",
                     "attributes": layer.attributes
                     } for layer in self.layers],
-                'metadata': [m.attributes for m in self.metadata],
-                'vocabulary': [v.attributes for v in self.vocabulary]
+                'metadata': [{
+                    "id": m.id,
+                    "type": "metadata",
+                    "attributes": m.attributes
+                    } for m in self.metadata],
+                'vocabulary': [{
+                    "id": v.id,
+                    "type": "vocabulary",
+                    "attributes": v.attributes
+                    } for v in self.vocabulary]
                 },
         }
 
@@ -326,19 +336,19 @@ class Dataset:
         From a local backup at the specified path, loads and returns a previous version of the current dataset.
         """
         if not path:
-            print('Requires a file path to valid backup .json file.')
+            print('Requires a file path to valid backup folder.')
             return None
         try:
-            with open(f"{path}") as f:
-                backups = json.load(f)
+            with open(f"{path}/{self.id}.json") as f:
+                recovered_dataset = json.load(f)
+            if check:
+                blacklist = ['metadata','layer', 'vocabulary', 'updatedAt']
+                attributes = {f'{k}':v for k,v in recovered_dataset['attributes'].items() if k not in blacklist}
+                if self.attributes == attributes:
+                    print('Loaded attributes == existing attributes')
+                elif check:
+                    print('Loaded attributes != existing attributes')
         except:
-            raise ValueError(f'Failed to load backup from f{path}')
-
-        recovered = [d for d in backups if d['id'] == self.id][0]
-
-        if check and recovered['attributes'] == self.attributes:
-            print('Loaded == Existing')
-        elif check:
-            print('Load != Existing')
+            raise ValueError(f'Failed to load backup from f{path}/{self.id}.json')
+        return Dataset(id_hash=recovered_dataset['id'], attributes=recovered_dataset['attributes'])
         
-        return Dataset(id_hash=recovered['id'], attributes=recovered['attributes'])

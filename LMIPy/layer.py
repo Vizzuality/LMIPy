@@ -453,6 +453,13 @@ class Layer:
             print("Hint: sometimes this service fails due to load on EE servers. Try again.")
             raise ValueError(f'Bad response: {r.status_code} from query: {r.url}')
 
+    def save(self, path=None):
+        """
+        Construct dataset json and save to local path in a date-referenced folder
+        """
+        from .dataset import Dataset
+        self.dataset().save(path=path)
+
     def load(self, path=None, check=True):
         """
         From a local backup at the specified path, loads and returns a previous version of the current dataset.
@@ -462,18 +469,20 @@ class Layer:
             print('Requires a file path to valid backup .json file.')
             return None
         try:
-            with open(f"{path}") as f:
-                backups = json.load(f)
+            with open(f"{path}/{self.id}.json") as f:
+                recovered_dataset = json.load(f)
+            recovered_layer = [l for l in recovered_dataset.layers if l.id == self.id][0]
+
+            if check:
+                blacklist = ['updatedAt']
+                attributes = {f'{k}':v for k,v in recovered_layer['attributes'].items() if k not in blacklist}
+                if self.attributes == attributes:
+                    print('Loaded == existing')
+                elif check:
+                    print('Loaded != existing')
         except:
             raise ValueError(f'Failed to load backup from f{path}')
-
-        recovered_dataset = [d for d in backups if d['id'] == self.dataset().id][0]
-        recovered_layer = [l for l in recovered_dataset.layers if l.id == self.id][0]
-
-        if check and recovered_layer['attributes'] == self.attributes:
-            print('Loaded == Existing')
-        elif check:
-            print('Load != Existing')
         
-        return Layer(id_hash=recovered_layer['id'], attributes=recovered_layer['attributes'])
+        return Layer(id_hash=recovered_layer['id'], attributes=recovered_dataset['attributes'])
+
 
