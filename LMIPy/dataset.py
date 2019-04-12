@@ -289,17 +289,20 @@ class Dataset:
             print("Hint: sometimes this service fails due to load on EE servers. Try again.")
             raise ValueError(f'Bad response: {r.status_code} from query: {r.url}')
 
-    def save(self, path='./LMI-BACKUP'):
+    def save(self, path=None):
         """
         Construct dataset json and save to local path in a date-referenced folder
         """
-        if path[-1] == '/':
-            path = path[:-1]
-        if not os.path.isdir(path):
-            os.mkdir(path)
+        if not path:
+            path = './LMI-BACKUP'
+            if not os.path.isdir(path):
+                os.mkdir(path)
             today = datetime.datetime.today().strftime('%Y-%m-%d@%Hh-%Mm')
             path += f'/{today}'
             if not os.path.isdir(path):
+                os.mkdir(path)
+        else:
+           if not os.path.isdir(path):
                 os.mkdir(path)
 
         save_json = {
