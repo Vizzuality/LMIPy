@@ -1,12 +1,10 @@
 # LMIPy
 ## The Layer Manager Interface for Python
 
-[![PyPI](https://img.shields.io/pypi/v/LMIPy.svg?style=flat)](https://pypi.org/project/LMIPy/) ![](https://img.shields.io/pypi/pyversions/LMIPy.svg?style=flat)  ![](https://img.shields.io/pypi/wheel/LMIPy.svg?style=flat) [![Documentation Status](https://readthedocs.org/projects/lmipy/badge/?version=latest)](https://lmipy.readthedocs.io/en/latest/?badge=latest) [![License](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://github.com/Vizzuality/LMIPy/blob/master/LICENSE)
+[![Build Status](https://travis-ci.org/Vizzuality/LMIPy.svg?branch=master)](https://travis-ci.org/Vizzuality/LMIPy) [![codecov](https://codecov.io/gh/Vizzuality/LMIPy/branch/master/graph/badge.svg)](https://codecov.io/gh/Vizzuality/LMIPy) [![PyPI](https://img.shields.io/pypi/v/LMIPy.svg?style=flat)](https://pypi.org/project/LMIPy/) ![](https://img.shields.io/pypi/pyversions/LMIPy.svg?style=flat)  ![](https://img.shields.io/pypi/wheel/LMIPy.svg?style=flat) [![Documentation Status](https://readthedocs.org/projects/lmipy/badge/?version=latest)](https://lmipy.readthedocs.io/en/latest/?badge=latest) [![License](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://github.com/Vizzuality/LMIPy/blob/master/LICENSE)
 
 
 LMIPy is a python abstraction to the [Layer Manager](https://github.com/Vizzuality/layer-manager).
-
-Currently this software is not ready for use.
 
 ## Read the Docs
 
@@ -58,7 +56,4 @@ Obtain a collection of objects using a search term.
  Dataset 044f4af8-be72-4999-b7dd-13434fc4a394]
 ```
 
-
-
-
-Check back soon as this library is under development.
+Check the docs for more info!
