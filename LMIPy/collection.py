@@ -64,6 +64,9 @@ class Collection:
     def __getitem__(self, key):
         return self.collection[key]
 
+    def __len__(self):
+        return len(self.collection)
+
     def get_collection(self):
         """
         Getter for the a collection object. In this case dataset and layers
