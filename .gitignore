@@ -11,6 +11,8 @@ test_nbk.ipynb
 .DS_Store
 LMI-dev-nbk.ipynb
 LMIPy/__pycache__/
+Untitled.ipynb
 
 sample.geojson
 .vscode
+.coverage

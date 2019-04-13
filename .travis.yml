@@ -5,4 +5,4 @@ python:
 install:
   - pip install pytest pytest-cov LMIPy
 script:
-  - pytest --cov./
+  - pytest --cov=LMIPy tests/
