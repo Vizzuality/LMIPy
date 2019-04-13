@@ -17,7 +17,8 @@ setuptools.setup(
                         'folium==0.8.3',
                         'geopandas==0.4.1',
                         'colored==1.3.93',
-                        'geojson==2.4.1'],
+                        'geojson==2.4.1',
+                        'tqdm==4.21.0'],
     packages=['LMIPy'],
     classifiers=[
         "Programming Language :: Python :: 3",
