@@ -251,8 +251,8 @@ class Layer:
         if show_difference:
             old_attributes = { f'{k}': attributes[k] for k,v in payload.items() }
             print(f"Attributes to change:")
-            print(red_color + old_attributes + res)
-            print(green_color + 'Updated!'+ res)
+            print(red_color + f'{old_attributes} {res}')
+            print(green_color + f'Updated! {res}')
             print({ f'{k}': v for k, v in response['attributes'].items() if k in payload })
         self.attributes = self.get_layer()
         return self
