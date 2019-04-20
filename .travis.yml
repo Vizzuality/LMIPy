@@ -3,6 +3,7 @@ language: python
 python:
   - "3.7"
 install:
-  - pip install pytest pytest-cov LMIPy
+  - pip install pytest-cov LMIPy
 script:
-  - pytest --cov=LMIPy tests/
+#- pytest --cov=LMIPy tests/
+  - py.test --cov-report=xml --cov=LMIPy tests/
