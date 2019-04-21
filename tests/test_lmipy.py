@@ -16,3 +16,7 @@ def test_search_collection():
     """Search all gfw collection for an object"""
     col = Collection(search='forest', app=['gfw'])
     assert len(col) > 1
+
+def test_layer_creation():
+    ly = Layer(id_hash='dc6f6dd2-0718-4e41-81d2-109866bb9edd')
+    assert ly is not None
