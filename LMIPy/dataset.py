@@ -35,7 +35,7 @@ class Dataset:
             self.attributes = attributes
 
         if len(self.attributes.get('layer', [])) > 0:
-            self.layers = [Layer(attributes=l) for l in self.attributes.get('layer')]
+            self.layers = [Layer(attributes=l, server=self.server) for l in self.attributes.get('layer')]
             _ = self.attributes.pop('layer')
         if len(self.attributes.get('metadata', [])) > 0:
             self.metadata = [Metadata(attributes=m) for m in self.attributes.get('metadata')]
@@ -147,7 +147,7 @@ class Dataset:
             raise ValueError(f'[token=None] Resource Watch API TOKEN required for updates.')
         update_blacklist = ['metadata','layer', 'vocabulary', 'updatedAt', 'userId', 'slug', "clonedHost", "errorMessage", "taskId", "dataLastUpdated"]
         attributes = {f'{k}':v for k,v in self.attributes.items() if k not in update_blacklist}
-        if not update_params:        
+        if not update_params:
             payload = { **attributes }
         else:
             payload = { f'{key}': update_params[key] for key in update_params if key in list(attributes.keys()) }
@@ -356,4 +356,3 @@ class Dataset:
         except:
             raise ValueError(f'Failed to load backup from f{path}/{self.id}.json')
         return Dataset(id_hash=recovered_dataset['id'], attributes=recovered_dataset['attributes'])
-        
