@@ -479,7 +479,7 @@ class Layer:
                     print('Loaded != existing')
         except:
             raise ValueError(f'Failed to load backup from f{path}')
-        
+
         return Layer(id_hash=recovered_layer['id'], attributes=recovered_dataset['attributes'])
 
 
