@@ -4,6 +4,7 @@ import folium
 import urllib
 import json
 import random
+import re
 from .utils import html_box
 from colored import fg, bg, attr
 
@@ -396,10 +397,9 @@ class Layer:
                 else:
                     for l in layerConfig["body"]["layers"]:
                         l['options']['sql'] = l['options']['sql'].replace(f'{{{key}}}', '0').format('')
-
         base_query = f'with t as ({layerConfig["body"]["layers"][0]["options"]["sql"]}) '
-
-        sql = base_query + sql.lower().replace('from data', f'FROM t').replace('"', "'")
+        sql = re.sub("from data", "from t", sql, flags=re.I)
+        sql = base_query + sql.replace('"', "'")
         account = layerConfig.get('account')
         urlCarto = f"https://{account}.carto.com/api/v2/sql"
         params = {"q": sql}
@@ -407,6 +407,7 @@ class Layer:
         if r.status_code == 200:
             return gpd.GeoDataFrame(r.json().get('rows'))
         else:
+            print(f'{r.url}')
             raise ValueError(f"Bad response from Carto {r.status_code}: {r.json()}")
 
     def query(self, sql='SELECT * FROM data LIMIT 5'):
