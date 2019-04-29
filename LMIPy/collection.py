@@ -133,7 +133,7 @@ class Collection:
                     collection.append(Dataset(id_hash = item.get('id'), attributes=item.get('attributes')), server=self.server)
                 if item.get('type') == 'layer' and return_layers:
                     collection.append(Layer(id_hash = item.get('id'), attributes=item.get('attributes'),
-                                            mapbox_token=self.mapbox_token), sever=self.server)
+                                            mapbox_token=self.mapbox_token, sever=self.server)
         return collection
 
     def order_results(self, collection_list):
