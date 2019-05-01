@@ -32,7 +32,7 @@ class Metadata:
         app = self.attributes.get('application', None)
         lang = update_params.get('language', 'en')
         info = update_params.get('info', None)
-        ds_id = self.id
+        ds_id = self.attributes.get('dataset', None)
         if info and app:
             payload = {
                 "application": app,
