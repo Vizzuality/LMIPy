@@ -379,5 +379,37 @@ class Dataset:
                 print(f'Vocabulary {vocab_type} created.')
                 self.attributes = self.get_dataset()
                 return self
+            else:
+                print(f'Failed with error code {r.status_code}')
+                return None
         else:
-            raise ValueError(f'Vocabulary creation requires: app string, name string, and a list of tags.')
+            raise ValueError(f'Vocabulary creation requires: application string, name string, and a list of tags.')
+
+    def add_metadata(self, meta_params=None, token=None):
+        if not token:
+            raise ValueError(f'[token] Resource Watch API token required to create new vocabulary.')
+        info = meta_params.get('info', None)
+        app = meta_params.get('application', None)
+        ds_id = self.id
+        if info and app:
+            payload = { 
+                "info": info,
+                "application": app,
+                "language": meta_params.get('language', 'en')
+            }
+            try:
+                url = f'https://api.resourcewatch.org/v1/dataset/{ds_id}/metadata'
+                headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
+                r = requests.post(url, data=json.dumps(payload), headers=headers)
+            except:
+                raise ValueError(f'Vocabulary creation failed.')
+            if r.status_code == 200:
+                print(f'Metadata created.')
+                self.attributes = self.get_dataset()
+                return self
+            else:
+                print(f'Failed with error code {r.status_code}')
+                return None
+        else:
+            raise ValueError(f'Metadata creation requires an info object and application string.')
+

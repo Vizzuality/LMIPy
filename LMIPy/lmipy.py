@@ -25,6 +25,51 @@ class Metadata:
     def __str__(self):
         return f"Metadata {self.id}"
 
+    def update(self, update_params=None, token=None):
+        from .dataset import Dataset
+        if not token:
+            raise ValueError(f'[token] Resource Watch API token required to update metadata.')
+        app = self.attributes.get('application', None)
+        lang = update_params.get('language', 'en')
+        info = update_params.get('info', None)
+        ds_id = self.id
+        if info and app:
+            payload = {
+                "application": app,
+                "language": lang,
+                "info": info,
+            }
+            try:
+                url = f'https://api.resourcewatch.org/v1/dataset/{ds_id}/metadata'
+                headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
+                r = requests.patch(url, data=json.dumps(payload), headers=headers)
+            except:
+                raise ValueError(f'Vocabulary creation failed.')
+            if r.status_code == 200:
+                print(f'Metadata updated.')
+                return Dataset(ds_id).metadata
+            else:
+                print(f'Failed with error code {r.status_code}')
+                return None
+        else:
+            raise ValueError(f'Metadata update requires info object and application string.')
+            
+    def delete(self, token=None):
+        if not token:
+            raise ValueError(f'[token] Resource Watch API token required to delete vocabulary.')
+        lang = self.attributes.get('language', None)
+        app = self.attributes.get('application', None)
+        ds_id = self.id
+        if lang and app:
+            try:
+                url = f'http://api.resourcewatch.org/dataset/{ds_id}/metadata?application={app}&language={lang}'
+                headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
+                r = requests.delete(url, headers=headers)
+            except:
+                raise ValueError(f'Metdata deletion failed.')
+            if r.status_code == 200:
+                print(f'Metdata deleted.')
+        return None
 
 class Vocabulary:
     """
