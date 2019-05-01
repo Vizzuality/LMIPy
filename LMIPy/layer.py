@@ -296,9 +296,9 @@ class Layer:
 
     def clone(self, token=None, env='staging', layer_params={}, target_dataset_id=None):
         """
-        Create a clone of a target Layer (and its parent Dataset) as a new staging or prod Layer.
-        A set of attributes can be specified for the clone Layer.
-        Optionally, you can also select a target Dataset to attach your Layer-Clone to.
+        Create a clone of current Layer (and its parent Dataset) as a new staging or prod Layer.
+        A set of attributes can be specified for the clone Layer using layer_params.
+        Optionally, you can also select a target Dataset to attach your Layer clone to.
         """
         from .dataset import Dataset
         if not token:

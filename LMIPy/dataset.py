@@ -356,3 +356,28 @@ class Dataset:
         except:
             raise ValueError(f'Failed to load backup from f{path}/{self.id}.json')
         return Dataset(id_hash=recovered_dataset['id'], attributes=recovered_dataset['attributes'])
+
+    def add_vocabulary(self, vocab_params=None, token=None):
+        if not token:
+            raise ValueError(f'[token] Resource Watch API token required to create new vocabulary.')
+        vocab_type = vocab_params.get('name', None)
+        vocab_tags = vocab_params.get('tags', None)
+        app = vocab_params.get('application', None)
+        ds_id = self.id
+        if vocab_tags and len(vocab_tags) > 0 and vocab_type and app:
+            payload = { 
+                "tags": vocab_tags,
+                "application": app
+            }
+            try:
+                url = f'https://api.resourcewatch.org/v1/dataset/{ds_id}/vocabulary/{vocab_type}'
+                headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
+                r = requests.post(url, data=json.dumps(payload), headers=headers)
+            except:
+                raise ValueError(f'Vocabulary creation failed.')
+            if r.status_code == 200:
+                print(f'Vocabulary {vocab_type} created.')
+                self.attributes = self.get_dataset()
+                return self
+        else:
+            raise ValueError(f'Vocabulary creation requires: app string, name string, and a list of tags.')
