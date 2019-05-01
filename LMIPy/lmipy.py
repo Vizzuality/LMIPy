@@ -99,8 +99,8 @@ class Vocabulary:
         update_params['application'] = self.attributes.get('application', None)
         ds_id = self.id
         self.delete(token=token)
-        dataset = Dataset(ds_id).add_vocabulary(vocab_params=update_params, token=token)
-        return dataset.vocabulary
+        Dataset(ds_id).add_vocabulary(vocab_params=update_params, token=token)
+        return Dataset(ds_id).vocabulary
 
     def delete(self, token=None):
         if not token:
