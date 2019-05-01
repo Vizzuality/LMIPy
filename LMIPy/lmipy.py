@@ -39,12 +39,14 @@ class Metadata:
                 "language": lang,
                 "info": info,
             }
+            print('payload',payload)
             try:
                 url = f'https://api.resourcewatch.org/v1/dataset/{ds_id}/metadata'
+                print('url',url)
                 headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
                 r = requests.patch(url, data=json.dumps(payload), headers=headers)
             except:
-                raise ValueError(f'Vocabulary creation failed.')
+                raise ValueError(f'Metadata update failed.')
             if r.status_code == 200:
                 print(f'Metadata updated.')
                 return Dataset(ds_id).metadata
@@ -59,7 +61,7 @@ class Metadata:
             raise ValueError(f'[token] Resource Watch API token required to delete vocabulary.')
         lang = self.attributes.get('language', None)
         app = self.attributes.get('application', None)
-        ds_id = self.id
+        ds_id = self.attributes.get('dataset', None)
         if lang and app:
             try:
                 url = f'http://api.resourcewatch.org/dataset/{ds_id}/metadata?application={app}&language={lang}'
