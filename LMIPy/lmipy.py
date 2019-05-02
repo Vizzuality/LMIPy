@@ -26,6 +26,13 @@ class Metadata:
         return f"Metadata {self.id}"
 
     def update(self, update_params=None, token=None):
+        """
+        Update the attributes of a Metadata object providing a RW-API token is supplied.
+
+        A single application string and language string ('en' by default) must be specified within the
+        `update_params` dictionary, as well as an (optional) info dictionary.
+        Info has a free schema.
+        """
         from .dataset import Dataset
         if not token:
             raise ValueError(f'[token] Resource Watch API token required to update metadata.')
@@ -57,6 +64,10 @@ class Metadata:
             raise ValueError(f'Metadata update requires info object and application string.')
             
     def delete(self, token=None):
+        """
+        Delete the current metadata, removing it's association to the parent dataset.
+        A RW-API token is required.
+        """
         if not token:
             raise ValueError(f'[token] Resource Watch API token required to delete vocabulary.')
         lang = self.attributes.get('language', None)
@@ -95,6 +106,11 @@ class Vocabulary:
         return f"Vocabulary {self.id}"
 
     def update(self, update_params=None, token=None):
+        """
+        Update the attributes of a Vocabulary object providing a RW-API token is supplied.
+        
+        A single application string, name string and tags list must be specified within the `update_params` dictionary.
+        """
         from .dataset import Dataset
         if not token:
             raise ValueError(f'[token] Resource Watch API token required to update vocabulary.')
@@ -105,6 +121,10 @@ class Vocabulary:
         return Dataset(ds_id).vocabulary
 
     def delete(self, token=None):
+        """
+        Delete the current vocabulary, removing it's association to the parent dataset.
+        A RW-API token is required.
+        """
         if not token:
             raise ValueError(f'[token] Resource Watch API token required to delete vocabulary.')
         vocab_type = self.attributes.get('name', None)

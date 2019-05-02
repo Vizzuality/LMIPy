@@ -358,6 +358,13 @@ class Dataset:
         return Dataset(id_hash=recovered_dataset['id'], attributes=recovered_dataset['attributes'])
 
     def add_vocabulary(self, vocab_params=None, token=None):
+        """
+        Create a new vocabulary association to the current dataset.
+
+        A single application string, name string and tags list must be specified within the `vocab_params` dictionary.
+
+        A RW-API token is required.
+        """
         if not token:
             raise ValueError(f'[token] Resource Watch API token required to create new vocabulary.')
         vocab_type = vocab_params.get('name', None)
@@ -386,6 +393,15 @@ class Dataset:
             raise ValueError(f'Vocabulary creation requires: application string, name string, and a list of tags.')
 
     def add_metadata(self, meta_params=None, token=None):
+        """
+        Create a new metadata association to the current dataset.
+
+        A single application string and language string ('en' by default) must be specified within the
+        `meta_params` dictionary, as well as an (optional) info dictionary.
+        Info has a free schema.
+
+        A RW-API token is required.
+        """
         if not token:
             raise ValueError(f'[token] Resource Watch API token required to create new vocabulary.')
         info = meta_params.get('info', None)
