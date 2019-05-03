@@ -1,5 +1,5 @@
 import pytest
-from LMIPy import Dataset, Collection, Layer
+from LMIPy import Dataset, Collection, Layer, Metadata, Vocabulary
 
 def test_create_dataset():
     ds = Dataset(id_hash='bb1dced4-3ae8-4908-9f36-6514ae69713f')
@@ -20,3 +20,14 @@ def test_search_collection():
 def test_layer_creation():
     ly = Layer(id_hash='dc6f6dd2-0718-4e41-81d2-109866bb9edd')
     assert ly is not None
+
+def test_access_vocab():
+    ds = Dataset(id_hash='bb1dced4-3ae8-4908-9f36-6514ae69713f')
+    assert type(ds.vocabulary) == list
+    assert len(ds.vocabulary) > 0
+
+def test_access_meta():
+    ds = Dataset(id_hash='bb1dced4-3ae8-4908-9f36-6514ae69713f')
+    assert type(ds.metadata) == list
+    assert len(ds.metadata) > 0
+    

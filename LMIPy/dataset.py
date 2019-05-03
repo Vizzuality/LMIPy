@@ -356,3 +356,76 @@ class Dataset:
         except:
             raise ValueError(f'Failed to load backup from f{path}/{self.id}.json')
         return Dataset(id_hash=recovered_dataset['id'], attributes=recovered_dataset['attributes'])
+
+    def add_vocabulary(self, vocab_params=None, token=None):
+        """
+        Create a new vocabulary association to the current dataset.
+
+        A single application string, name string and tags list must be specified within the `vocab_params` dictionary.
+
+        A RW-API token is required.
+        """
+        if not token:
+            raise ValueError(f'[token] Resource Watch API token required to create new vocabulary.')
+        vocab_type = vocab_params.get('name', None)
+        vocab_tags = vocab_params.get('tags', None)
+        app = vocab_params.get('application', None)
+        ds_id = self.id
+        if vocab_tags and len(vocab_tags) > 0 and vocab_type and app:
+            payload = { 
+                "tags": vocab_tags,
+                "application": app
+            }
+            try:
+                url = f'https://api.resourcewatch.org/v1/dataset/{ds_id}/vocabulary/{vocab_type}'
+                headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
+                r = requests.post(url, data=json.dumps(payload), headers=headers)
+            except:
+                raise ValueError(f'Vocabulary creation failed.')
+            if r.status_code == 200:
+                print(f'Vocabulary {vocab_type} created.')
+                self.attributes = self.get_dataset()
+                return self
+            else:
+                print(f'Failed with error code {r.status_code}')
+                return None
+        else:
+            raise ValueError(f'Vocabulary creation requires: application string, name string, and a list of tags.')
+
+    def add_metadata(self, meta_params=None, token=None):
+        """
+        Create a new metadata association to the current dataset.
+
+        A single application string and language string ('en' by default) must be specified within the
+        `meta_params` dictionary, as well as an (optional) info dictionary.
+        Info has a free schema.
+
+        A RW-API token is required.
+        """
+        if not token:
+            raise ValueError(f'[token] Resource Watch API token required to create new vocabulary.')
+        info = meta_params.get('info', None)
+        app = meta_params.get('application', None)
+        ds_id = self.id
+        if info and app:
+            payload = { 
+                "info": info,
+                "application": app,
+                "language": meta_params.get('language', 'en')
+            }
+            try:
+                url = f'https://api.resourcewatch.org/v1/dataset/{ds_id}/metadata'
+                headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
+                r = requests.post(url, data=json.dumps(payload), headers=headers)
+            except:
+                raise ValueError(f'Vocabulary creation failed.')
+            if r.status_code == 200:
+                print(f'Metadata created.')
+                self.attributes = self.get_dataset()
+                return self
+            else:
+                print(f'Failed with error code {r.status_code}')
+                return None
+        else:
+            raise ValueError(f'Metadata creation requires an info object and application string.')
+
