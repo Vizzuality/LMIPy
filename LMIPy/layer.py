@@ -324,7 +324,7 @@ class Layer:
                 'connectorUrl': clone_dataset_attr['connectorUrl'],
                 'tableName': clone_dataset_attr['tableName'],
                 'provider': clone_dataset_attr['provider'],
-                'env': clone_dataset_attr['env'],
+                'env': env,
                 'name': clone_dataset_attr['name']
             }
             print(f'Creating clone dataset')
