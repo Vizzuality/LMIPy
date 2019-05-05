@@ -324,7 +324,7 @@ class Layer:
                 'connectorUrl': clone_dataset_attr['connectorUrl'],
                 'tableName': clone_dataset_attr['tableName'],
                 'provider': clone_dataset_attr['provider'],
-                'env': clone_dataset_attr['env'],
+                'env': env,
                 'name': clone_dataset_attr['name']
             }
             print(f'Creating clone dataset')
@@ -333,9 +333,29 @@ class Layer:
             r = requests.post(url, data=json.dumps(payload), headers=headers)
             if r.status_code == 200:
                 target_dataset_id = r.json()['data']['id']
+                clone_dataset = Dataset(target_dataset_id)
+                try:
+                    vocab = target_dataset.vocabulary[0].attributes
+                    vocab_payload = {
+                        'application': vocab['application'],
+                        'name': vocab['name'],
+                        'tags': vocab['tags']
+                    }
+                    clone_dataset.add_vocabulary(vocab_params=vocab_payload, token=token)
+                    meta = target_dataset.metadata[0].attributes
+                    meta_payload = {
+                        'application': meta['application'],
+                        'info': meta['info'],
+                        'language': meta['language']
+                    }
+                    clone_dataset.add_metadata(meta_params=meta_payload, token=token)
+                except:
+                    raise ValueError('Failed to clone Vocabulary and Metadata.')
             else:
                 print(r.status_code)
                 return None
+            
+
         payload = {
             'application': clone_layer_attr['application'],
             'applicationConfig': clone_layer_attr['applicationConfig'],
