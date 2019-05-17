@@ -128,7 +128,7 @@ class Collection:
                 if len(filtered_response) < self.limit:
                     filtered_response.append(item)
                 if item.get('type') == 'dataset' and item.get('attributes').get('provider') in ['csv', 'json'] and return_tables:
-                    collection.append(Table(id_hash = item.get('id'), attributes=item.get('attributes')), self.server)
+                    collection.append(Table(id_hash = item.get('id'), attributes=item.get('attributes'), server=self.server))
                 elif item.get('type') == 'dataset' and item.get('attributes').get('provider') != ['csv','json'] and return_datasets:
                     collection.append(Dataset(id_hash = item.get('id'), attributes=item.get('attributes'), server=self.server))
                 if item.get('type') == 'layer' and return_layers:
