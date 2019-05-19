@@ -6,6 +6,7 @@ from tqdm import tqdm
 from .dataset import Dataset
 from .table import Table
 from .layer import Layer
+from .utils import create_class
 
 class Collection:
     """
@@ -32,7 +33,7 @@ class Collection:
     def __init__(self, search='', app=['gfw','rw'], env='production', limit=1000, order='name', sort='desc',
                  object_type=['dataset', 'layer','table'], server='https://api.resourcewatch.org',
                  mapbox_token=None):
-        self.search = search.lower().strip().split(' ')
+        self.search = [search.lower()] + search.lower().strip().split(' ')
         self.server = server
         self.app = ",".join(app)
         self.env = env
@@ -65,7 +66,11 @@ class Collection:
             return self.collection[self.iter_position - 1]
 
     def __getitem__(self, key):
-        return self.collection[key]
+        items = self.collection[key]
+        if type(items) == list:
+            return [create_class(item) for item in items]
+        else:
+            return create_class(items)
 
     def __len__(self):
         return len(self.collection)
@@ -112,28 +117,53 @@ class Collection:
         filtered_response = []
         collection = []
         for item in response_list:
-            in_description = False
-            in_name = False
+            # in_description = False
+            # in_name = False
+            # in_slug = False
             return_layers = 'layer' in self.object_type
             return_datasets = 'dataset' in self.object_type
             return_tables = 'dataset' in self.object_type
-            name = item.get('attributes').get('name').lower()
-            description = item.get('attributes').get('description')
+            name = item.get('attributes').get('name', None)
+            description = item.get('attributes').get('description', None)
+            slug = item.get('attributes').get('slug', None)
+            # if description:
+            #     description = description.lower()
+            #     in_description = any([s in description for s in self.search])
+            # if name:
+            #     name = name.lower()
+            #     in_name = any([s in name for s in self.search])
+            # if slug:
+            #     slug = slug.lower().split('_')
+            #     in_slug = any([s in slug for s in self.search])
+            # if in_name or in_description or in_slug:
+                # if len(filtered_response) < self.limit:
+                #     filtered_response.append(item)
+                # if item.get('type') == 'dataset' and item.get('attributes').get('provider') in ['csv', 'json'] and return_tables:
+                #     collection.append(Table(id_hash = item.get('id'), attributes=item.get('attributes'), server=self.server))
+                # elif item.get('type') == 'dataset' and item.get('attributes').get('provider') != ['csv','json'] and return_datasets:
+                #     collection.append(Dataset(id_hash = item.get('id'), attributes=item.get('attributes'), server=self.server))
+                # if item.get('type') == 'layer' and return_layers:
+                #     collection.append(Layer(id_hash = item.get('id'), attributes=item.get('attributes'),
+                #                             mapbox_token=self.mapbox_token, server=self.server))
+            found = []
             if description:
                 description = description.lower()
-                in_description = any([s in description for s in self.search])
+                found.append(any([s in description for s in self.search]))
             if name:
-                in_name = any([s in name for s in self.search])
-            if in_name or in_description:
+                name = name.lower()
+                found.append(any([s in name for s in self.search]))
+            if slug:
+                slug = slug.lower().split('_')
+                found.append(any([s in slug for s in self.search]))
+            if any(found):
                 if len(filtered_response) < self.limit:
                     filtered_response.append(item)
                 if item.get('type') == 'dataset' and item.get('attributes').get('provider') in ['csv', 'json'] and return_tables:
-                    collection.append(Table(id_hash = item.get('id'), attributes=item.get('attributes'), server=self.server))
+                    collection.append({'type': 'table','id': item.get('id'), 'attributes': item.get('attributes'), 'server': self.server})
                 elif item.get('type') == 'dataset' and item.get('attributes').get('provider') != ['csv','json'] and return_datasets:
-                    collection.append(Dataset(id_hash = item.get('id'), attributes=item.get('attributes'), server=self.server))
+                    collection.append({'type': 'dataset','id': item.get('id'), 'attributes': item.get('attributes'), 'server': self.server})
                 if item.get('type') == 'layer' and return_layers:
-                    collection.append(Layer(id_hash = item.get('id'), attributes=item.get('attributes'),
-                                            mapbox_token=self.mapbox_token, server=self.server))
+                    collection.append({'type': 'layer', 'id': item.get('id'), 'attributes': item.get('attributes'), 'server': self.server, 'mapbox_token':self.mapbox_token})
         return collection
 
     def order_results(self, collection_list):
@@ -141,7 +171,7 @@ class Collection:
         tmp_sorted = []
         try:
             d = {}
-            for n, z in enumerate([c.attributes.get(self.order.lower()) for c in collection_list]):
+            for n, z in enumerate([c['attributes'].get(self.order.lower()) for c in collection_list]):
                 d[z] = collection_list[n]
             keys = sorted(d, reverse=self.sort.lower() == 'asc')
             for key in keys:

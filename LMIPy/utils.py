@@ -1,5 +1,4 @@
 
-
 def html_box(item):
     """Returns an HTML block with template strings filled-in based on item attributes."""
     is_layer = str(type(item)) == "<class 'LMIPy.layer.Layer'>"
@@ -73,3 +72,15 @@ def html_box(item):
             " </div> </div>")
     return html
 
+def create_class(item):
+    from . dataset import Dataset
+    from .table import Table
+    from .layer import Layer
+    if item['type'] == 'table':
+        item = Table(id_hash = item.get('id'), attributes=item.get('attributes'), server=item.get('server'))
+    if item['type'] == 'dataset':
+        item = Dataset(id_hash = item.get('id'), attributes=item.get('attributes'), server=item.get('server'))
+    if item['type'] == 'layer':
+        item = Layer(id_hash = item.get('id'), attributes=item.get('attributes'),
+                        mapbox_token=item.get('mapbox_token'), server=item.get('server'))
+    return item
