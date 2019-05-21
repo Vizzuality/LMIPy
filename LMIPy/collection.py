@@ -48,9 +48,9 @@ class Collection:
     def __repr__(self):
         rep_string = "["
         for n, c in enumerate(self.collection):
-            rep_string += str(c)
+            rep_string += str(f"{c['type']} {c['id']} {c['attributes']['name']}")
             if n < len(self.collection)-1:
-                rep_string += ', '
+                rep_string += ',\n '
         rep_string += ']'
         return rep_string
 
@@ -117,34 +117,12 @@ class Collection:
         filtered_response = []
         collection = []
         for item in response_list:
-            # in_description = False
-            # in_name = False
-            # in_slug = False
             return_layers = 'layer' in self.object_type
             return_datasets = 'dataset' in self.object_type
             return_tables = 'dataset' in self.object_type
             name = item.get('attributes').get('name', None)
             description = item.get('attributes').get('description', None)
             slug = item.get('attributes').get('slug', None)
-            # if description:
-            #     description = description.lower()
-            #     in_description = any([s in description for s in self.search])
-            # if name:
-            #     name = name.lower()
-            #     in_name = any([s in name for s in self.search])
-            # if slug:
-            #     slug = slug.lower().split('_')
-            #     in_slug = any([s in slug for s in self.search])
-            # if in_name or in_description or in_slug:
-                # if len(filtered_response) < self.limit:
-                #     filtered_response.append(item)
-                # if item.get('type') == 'dataset' and item.get('attributes').get('provider') in ['csv', 'json'] and return_tables:
-                #     collection.append(Table(id_hash = item.get('id'), attributes=item.get('attributes'), server=self.server))
-                # elif item.get('type') == 'dataset' and item.get('attributes').get('provider') != ['csv','json'] and return_datasets:
-                #     collection.append(Dataset(id_hash = item.get('id'), attributes=item.get('attributes'), server=self.server))
-                # if item.get('type') == 'layer' and return_layers:
-                #     collection.append(Layer(id_hash = item.get('id'), attributes=item.get('attributes'),
-                #                             mapbox_token=self.mapbox_token, server=self.server))
             found = []
             if description:
                 description = description.lower()
@@ -159,11 +137,11 @@ class Collection:
                 if len(filtered_response) < self.limit:
                     filtered_response.append(item)
                 if item.get('type') == 'dataset' and item.get('attributes').get('provider') in ['csv', 'json'] and return_tables:
-                    collection.append({'type': 'table','id': item.get('id'), 'attributes': item.get('attributes'), 'server': self.server})
+                    collection.append({'type': 'Table','id': item.get('id'), 'attributes': item.get('attributes'), 'server': self.server})
                 elif item.get('type') == 'dataset' and item.get('attributes').get('provider') != ['csv','json'] and return_datasets:
-                    collection.append({'type': 'dataset','id': item.get('id'), 'attributes': item.get('attributes'), 'server': self.server})
+                    collection.append({'type': 'Dataset','id': item.get('id'), 'attributes': item.get('attributes'), 'server': self.server})
                 if item.get('type') == 'layer' and return_layers:
-                    collection.append({'type': 'layer', 'id': item.get('id'), 'attributes': item.get('attributes'), 'server': self.server, 'mapbox_token':self.mapbox_token})
+                    collection.append({'type': 'Layer', 'id': item.get('id'), 'attributes': item.get('attributes'), 'server': self.server, 'mapbox_token':self.mapbox_token})
         return collection
 
     def order_results(self, collection_list):

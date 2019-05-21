@@ -76,11 +76,11 @@ def create_class(item):
     from . dataset import Dataset
     from .table import Table
     from .layer import Layer
-    if item['type'] == 'table':
+    if item['type'].lower() == 'table':
         item = Table(id_hash = item.get('id'), attributes=item.get('attributes'), server=item.get('server'))
-    if item['type'] == 'dataset':
+    if item['type'].lower() == 'dataset':
         item = Dataset(id_hash = item.get('id'), attributes=item.get('attributes'), server=item.get('server'))
-    if item['type'] == 'layer':
+    if item['type'].lower() == 'layer':
         item = Layer(id_hash = item.get('id'), attributes=item.get('attributes'),
                         mapbox_token=item.get('mapbox_token'), server=item.get('server'))
     return item
