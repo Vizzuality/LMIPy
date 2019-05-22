@@ -41,7 +41,7 @@ class Layer:
         return self.__str__()
 
     def __str__(self):
-        return f"Layer {self.id}"
+        return f"Layer {self.id} {self.attributes['name']}"
 
     def _repr_html_(self):
         return html_box(item=self)

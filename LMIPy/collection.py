@@ -6,7 +6,7 @@ from tqdm import tqdm
 from .dataset import Dataset
 from .table import Table
 from .layer import Layer
-from .utils import create_class
+from .utils import create_class, show
 
 class Collection:
     """
@@ -45,10 +45,18 @@ class Collection:
         self.collection = self.get_collection()
         self.iter_position = 0
 
+    def _repr_html_(self):
+        str_html = ""
+        for n, c in enumerate(self.collection):
+            str_html += show(c, n)
+            if n < len(self.collection)-1:
+                str_html += '<p></p>'
+        return str_html
+
     def __repr__(self):
         rep_string = "["
         for n, c in enumerate(self.collection):
-            rep_string += str(f"{c['type']} {c['id']} {c['attributes']['name']}")
+            rep_string += str(f"{n}. {c['type']} {c['id']} {c['attributes']['name']}")
             if n < len(self.collection)-1:
                 rep_string += ',\n '
         rep_string += ']'
