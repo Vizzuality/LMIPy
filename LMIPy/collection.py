@@ -183,7 +183,8 @@ class Collection:
         print(f'Saving to path: {path}')
         saved = []
         for item in tqdm(self):
-            if item.id not in saved:
+            if item['id'] not in saved:
+                item = create_class(item)
                 if type(item) == Layer:
                     item = item.dataset()
                 elif type(item) == Dataset or type(item) == Table:

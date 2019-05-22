@@ -91,15 +91,6 @@ def show(item, i):
     elif is_table:
         kind_of_item = 'Table'
         url_link = f'{server}/v1/dataset/{item_id}?includes=vocabulary,metadata,layer'
-
-        for k,v in attributes.get('info').items():
-            if v and k != 'simplifyThresh':
-                html_string += f"<br><i>{k}: {v}</i>"
-
-        html_string += (""
-            " </div> </div>")
-
-        return html_string
     else:
         kind_of_item = 'Unknown'
         url_link = None
