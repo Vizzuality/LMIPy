@@ -25,7 +25,7 @@ class Table(Dataset):
         return self.__str__()
 
     def __str__(self):
-        return f"Table {self.id}"
+        return f"Table {self.id} {self.attributes['name'])"
 
     def fetch_query(self, sql):
         """
