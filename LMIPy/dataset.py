@@ -53,7 +53,7 @@ class Dataset:
         return self.__str__()
 
     def __str__(self):
-        return f"Dataset {self.id}"
+        return f"Dataset {self.id} {self.attributes['name']}"
 
     def _repr_html_(self):
         return html_box(item=self)

@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="LMIPy",
-    version="0.1.15",
+    version="0.1.16",
     author="Vizzuality",
     author_email="benjamin.laken@vizzuality.com",
     description="Interface to data and layers in the Resource Watch API",
