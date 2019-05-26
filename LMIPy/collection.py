@@ -31,7 +31,7 @@ class Collection:
         A list of strings of object types to search, e.g. [‘dataset’, ‘layer’]
     """
     def __init__(self, search='', app=['gfw','rw'], env='production', limit=1000, order='name', sort='desc',
-                 object_type=['dataset', 'layer','table'], server='https://api.resourcewatch.org',
+                 object_type=['dataset', 'layer','table', 'widget'], server='https://api.resourcewatch.org',
                  mapbox_token=None):
         self.search = [search.lower()] + search.lower().strip().split(' ')
         self.server = server
@@ -111,8 +111,7 @@ class Collection:
     def get_layers(self):
         """Return all layers from specified apps and environment within a limit number"""
         hash = random.getrandbits(16)
-        url = (f"{self.server}/v1/layer?app={self.app}&env={self.env}"
-               f"&includes=vocabulary,metadata,widget&page[size]=1000&hash={hash}")
+        url = (f"{self.server}/v1/layer?app={self.app}&env={self.env}&page[size]=1000&hash={hash}")
         r = requests.get(url)
         response_list = r.json().get('data', None)
         if len(response_list) < 1:
