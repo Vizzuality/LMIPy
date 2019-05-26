@@ -10,10 +10,10 @@ def html_box(item):
         url_link = f'{item.server}/v1/layer/{item.id}?includes=vocabulary,metadata'
     elif is_dataset:
         kind_of_item = 'Dataset'
-        url_link = f'{item.server}/v1/dataset/{item.id}?includes=vocabulary,metadata,layer'
+        url_link = f'{item.server}/v1/dataset/{item.id}?includes=vocabulary,metadata,layer,widget'
     elif is_table:
         kind_of_item = 'Table'
-        url_link = f'{item.server}/v1/dataset/{item.id}?includes=vocabulary,metadata,layer'
+        url_link = f'{item.server}/v1/dataset/{item.id}?includes=vocabulary,metadata,layer,widget'
     elif is_geometry:
         kind_of_item = 'Geometry'
         url_link = f'{item.server}/v1/geostore/{item.id}'
@@ -87,10 +87,10 @@ def show(item, i):
         url_link = f'{server}/v1/layer/{item_id}?includes=vocabulary,metadata'
     elif is_dataset:
         kind_of_item = 'Dataset'
-        url_link = f'{server}/v1/dataset/{item_id}?includes=vocabulary,metadata,layer'
+        url_link = f'{server}/v1/dataset/{item_id}?includes=vocabulary,metadata,layer,widget'
     elif is_table:
         kind_of_item = 'Table'
-        url_link = f'{server}/v1/dataset/{item_id}?includes=vocabulary,metadata,layer'
+        url_link = f'{server}/v1/dataset/{item_id}?includes=vocabulary,metadata,layer,widget'
     else:
         kind_of_item = 'Unknown'
         url_link = None
@@ -136,10 +136,9 @@ def create_class(item):
     from .table import Table
     from .layer import Layer
     if item['type'] == 'Table':
-        item = Table(id_hash = item.get('id'), attributes=item.get('attributes'), server=item.get('server'))
+        item = Table(id_hash = item.get('id'))
     elif item['type'] == 'Dataset':
-        item = Dataset(id_hash = item.get('id'), attributes=item.get('attributes'), server=item.get('server'))
+        item = Dataset(id_hash = item.get('id'))
     elif item['type'] == 'Layer':
-        item = Layer(id_hash = item.get('id'), attributes=item.get('attributes'),
-                        mapbox_token=item.get('mapbox_token'), server=item.get('server'))
+        item = Layer(id_hash = item.get('id'))
     return item

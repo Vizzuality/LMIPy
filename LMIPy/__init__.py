@@ -1,4 +1,4 @@
-from .lmipy import Vocabulary, Metadata
+from .lmipy import Vocabulary, Metadata, Widget
 from .layer import Layer
 from .dataset import Dataset
 from .geometry import Geometry

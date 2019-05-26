@@ -140,3 +140,79 @@ class Vocabulary:
             if r.status_code == 200:
                 print(f'Vocabulary {vocab_type} deleted.')
         return None
+
+class Widget:
+    """
+    This is the main Widget class.
+
+    Parameters
+    ----------
+    attributes: dic
+        A dictionary holding the attributes of a widget (which are attached to a Dataset).
+    """
+    def __init__(self, attributes=None):
+        if attributes.get('type') != 'widget':
+            raise ValueError(f"Non widget attributes passed to Widget class ({attributes.get('type')})")
+        self.id = attributes.get('id')
+        self.attributes = attributes.get('attributes')
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return f"Widget {self.id}"
+
+    def update(self, update_params=None, token=None):
+        """
+        Update the attributes of a Widget object providing a RW-API token is supplied.
+
+        A single application string must be specified within the
+        `update_params` dictionary, as well as an (optional) widgetCOnfig dictionary.
+
+        Note, widgetConfig has a free schema.
+        """
+        from .dataset import Dataset
+        if not token:
+            raise ValueError(f'[token] Resource Watch API token required to update widget.')
+        app = self.attributes.get('application', None)
+        ds_id = self.attributes.get('dataset', None)
+        if app:
+            payload = {
+                **update_params,
+                "application": app
+            }
+            print('payload',payload)
+            try:
+                url = f'https://api.resourcewatch.org/v1/dataset/{ds_id}/widget'
+                print('url',url)
+                headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
+                r = requests.patch(url, data=json.dumps(payload), headers=headers)
+            except:
+                raise ValueError(f'Widget update failed.')
+            if r.status_code == 200:
+                print(f'Widget updated.')
+                return Dataset(ds_id).widget
+            else:
+                print(f'Failed with error code {r.status_code}')
+                return None
+        else:
+            raise ValueError(f'Widget update requires info object and application string.')
+            
+    def delete(self, token=None):
+        """
+        Delete the current widget.
+        A RW-API token is required.
+        """
+        if not token:
+            raise ValueError(f'[token] Resource Watch API token required to delete vocabulary.')
+        w_id = self.id
+        ds_id = self.attributes.get('dataset', None)
+        try:
+            url = f'http://api.resourcewatch.org/dataset/{ds_id}/widget/{w_id}'
+            headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
+            r = requests.delete(url, headers=headers)
+        except:
+            raise ValueError(f'Widget deletion failed.')
+        if r.status_code == 200:
+            print(f'Widget deleted.')
+        return None

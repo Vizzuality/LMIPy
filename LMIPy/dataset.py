@@ -8,7 +8,7 @@ import datetime
 from pprint import pprint
 from .layer import Layer
 from .utils import html_box
-from .lmipy import Vocabulary, Metadata
+from .lmipy import Vocabulary, Metadata, Widget
 from colored import fg, bg, attr
 
 
@@ -47,6 +47,11 @@ class Dataset:
             _ = self.attributes.pop('vocabulary')
         else:
             self.vocabulary = []
+        if len(self.attributes.get('widget', [])) > 0:
+            self.widget =[Widget(attributes=w) for w in self.attributes.get('widget')]
+            _ = self.attributes.pop('widget')
+        else:
+            self.widget = []
         self.url = f"{server}/v1/dataset/{id_hash}?hash={random.getrandbits(16)}"
 
     def __repr__(self):
@@ -64,7 +69,7 @@ class Dataset:
         """
         try:
             hash = random.getrandbits(16)
-            url = (f'{self.server}/v1/dataset/{self.id}?includes=layer,vocabulary,metadata&hash={hash}')
+            url = (f'{self.server}/v1/dataset/{self.id}?includes=layer,widget,vocabulary,metadata&hash={hash}')
             r = requests.get(url)
         except:
             raise ValueError(f'Unable to get Dataset {self.id} from {r.url}')

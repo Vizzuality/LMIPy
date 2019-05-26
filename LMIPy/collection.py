@@ -100,7 +100,7 @@ class Collection:
         """Return all datasets and connected items within a limit and specified environment"""
         hash = random.getrandbits(16)
         url = (f'{self.server}/v1/dataset?app={self.app}&env={self.env}&'
-               f'includes=layer,vocabulary,metadata&page[size]=1000&hash={hash}')
+               f'includes=layer,vocabulary,metadata,widget&page[size]=1000&hash={hash}')
         r = requests.get(url)
         response_list = r.json().get('data', None)
         if len(response_list) < 1:
@@ -112,7 +112,7 @@ class Collection:
         """Return all layers from specified apps and environment within a limit number"""
         hash = random.getrandbits(16)
         url = (f"{self.server}/v1/layer?app={self.app}&env={self.env}"
-               f"&includes=vocabulary,metadata&page[size]=1000&hash={hash}")
+               f"&includes=vocabulary,metadata,widget&page[size]=1000&hash={hash}")
         r = requests.get(url)
         response_list = r.json().get('data', None)
         if len(response_list) < 1:
