@@ -195,29 +195,26 @@ class Widget:
         from .dataset import Dataset
         if not token:
             raise ValueError(f'[token] Resource Watch API token required to update widget.')
-        app = self.attributes.get('application', None)
         ds_id = self.attributes.get('dataset', None)
-        if app:
-            payload = {
-                **update_params,
-                "application": app
-            }
-            print('payload',payload)
+        w_id = self.id
+        if update_params:
+            print('payload',update_params)
             try:
-                url = f'https://api.resourcewatch.org/v1/dataset/{ds_id}/widget'
+                url = f'https://api.resourcewatch.org/v1/dataset/{ds_id}/widget/{w_id}'
                 print('url',url)
                 headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
-                r = requests.patch(url, data=json.dumps(payload), headers=headers)
+                r = requests.patch(url, data=json.dumps(update_params), headers=headers)
             except:
                 raise ValueError(f'Widget update failed.')
             if r.status_code == 200:
                 print(f'Widget updated.')
-                return Dataset(ds_id).widget
+                self.attributes = self.get_widget()
+                return self
             else:
                 print(f'Failed with error code {r.status_code}')
                 return None
         else:
-            raise ValueError(f'Widget update requires info object and application string.')
+            raise ValueError(f'Widget update requires update_params object.')
             
     def delete(self, token=None):
         """

@@ -145,13 +145,13 @@ def create_class(item):
     from .layer import Layer
     from .lmipy import Widget
     if item['type'] == 'Table':
-        item = Table(id_hash = item.get('id'))
+        item = Table(id_hash = item.get('id'), server = item.get('server'))
     elif item['type'] == 'Dataset':
-        item = Dataset(id_hash = item.get('id'))
+        item = Dataset(id_hash = item.get('id'), server = item.get('server'))
     elif item['type'] == 'Layer':
-        item = Layer(id_hash = item.get('id'))
+        item = Layer(id_hash = item.get('id'), server = item.get('server'))
     elif item['type'] == 'Widget':
-        item = Widget(id_hash = item.get('id'), attributes = item.get('attributes'), server = item.get('server'))
+        item = Widget(id_hash = item.get('id'), attributes=item.get('attributes'), server = item.get('server'))
     return item
 
 def flatten_list(nested_list):
