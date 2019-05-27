@@ -93,7 +93,7 @@ class Vocabulary:
     attributes: dic
         A dictionary holding the attributes of a vocabulary (which are attached to a Dataset).
     """
-    def __init__(self, attributes=None,):
+    def __init__(self, attributes=None):
         if attributes.get('type') != 'vocabulary':
             raise ValueError(f"Non vocabulary attributes passed to Vocabulary class ({attributes.get('type')})")
         self.attributes = attributes.get('attributes')
@@ -150,17 +150,38 @@ class Widget:
     attributes: dic
         A dictionary holding the attributes of a widget (which are attached to a Dataset).
     """
-    def __init__(self, attributes=None):
-        if attributes.get('type') != 'widget':
-            raise ValueError(f"Non widget attributes passed to Widget class ({attributes.get('type')})")
-        self.id = attributes.get('id')
-        self.attributes = attributes.get('attributes')
+    def __init__(self, id_hash=None, attributes=None, server=None):
+        self.id = id_hash
+        self.server = server
+        if attributes:
+            self.attributes = attributes
+        else:
+            self.attributes = self.get_widget()
 
     def __repr__(self):
         return self.__str__()
+    
+    def _repr_html_(self):
+        return html_box(item=self)
 
     def __str__(self):
-        return f"Widget {self.id}"
+        return f"Widget {self.id} {self.attributes['name']}"
+
+    def get_widget(self):
+        """
+        Returns a widget from a Vizzuality API.
+        """
+        try:
+            hash = random.getrandbits(16)
+            url = (f'{self.server}/v1/widget/{self.id}?hash={hash}')
+            r = requests.get(url)
+        except:
+            raise ValueError(f'Unable to get Widget {self.id} from {r.url}')
+
+        if r.status_code == 200:
+            return r.json().get('data').get('attributes')
+        else:
+            raise ValueError(f'Layer with id={self.id} does not exist.')
 
     def update(self, update_params=None, token=None):
         """

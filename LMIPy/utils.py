@@ -4,6 +4,7 @@ def html_box(item):
     is_layer = str(type(item)) == "<class 'LMIPy.layer.Layer'>"
     is_dataset = str(type(item)) == "<class 'LMIPy.dataset.Dataset'>"
     is_table = str(type(item)) == "<class 'LMIPy.table.Table'>"
+    is_widget = str(type(item)) == "<class 'LMIPy.lmipy.Widget'>"
     is_geometry = str(type(item)) == "<class 'LMIPy.geometry.Geometry'>"
     if is_layer:
         kind_of_item = 'Layer'
@@ -14,6 +15,9 @@ def html_box(item):
     elif is_table:
         kind_of_item = 'Table'
         url_link = f'{item.server}/v1/dataset/{item.id}?includes=vocabulary,metadata,layer,widget'
+    elif is_widget:
+        kind_of_item = 'Widget'
+        url_link = f'{item.server}/v1/widget/{item.id}'
     elif is_geometry:
         kind_of_item = 'Geometry'
         url_link = f'{item.server}/v1/geostore/{item.id}'
@@ -77,6 +81,7 @@ def show(item, i):
     is_layer = item['type'] == 'Layer'
     is_dataset = item['type'] == 'Dataset'
     is_table = item['type'] == 'Table'
+    is_widget = item['type'] == 'Widget'
 
     server = item['server']
     item_id = item['id']
@@ -91,6 +96,9 @@ def show(item, i):
     elif is_table:
         kind_of_item = 'Table'
         url_link = f'{server}/v1/dataset/{item_id}?includes=vocabulary,metadata,layer,widget'
+    elif is_widget:
+        kind_of_item = 'Table'
+        url_link = f'{server}/v1/widget/{item_id}'
     else:
         kind_of_item = 'Unknown'
         url_link = None
@@ -135,12 +143,15 @@ def create_class(item):
     from .dataset import Dataset
     from .table import Table
     from .layer import Layer
+    from .lmipy import Widget
     if item['type'] == 'Table':
         item = Table(id_hash = item.get('id'))
     elif item['type'] == 'Dataset':
         item = Dataset(id_hash = item.get('id'))
     elif item['type'] == 'Layer':
         item = Layer(id_hash = item.get('id'))
+    elif item['type'] == 'Widget':
+        item = Widget(id_hash = item.get('id'), attributes = item.get('attributes'), server = item.get('server'))
     return item
 
 def flatten_list(nested_list):
