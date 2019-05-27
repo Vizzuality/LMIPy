@@ -142,3 +142,9 @@ def create_class(item):
     elif item['type'] == 'Layer':
         item = Layer(id_hash = item.get('id'))
     return item
+
+def flatten_list(nested_list):
+    if len(nested_list) > 0:
+        return [item for sublist in nested_list for item in sublist]
+    else:
+        return []
