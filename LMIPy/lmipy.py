@@ -197,7 +197,8 @@ class Widget:
             raise ValueError(f'[token] Resource Watch API token required to update widget.')
         ds_id = self.attributes.get('dataset', None)
         w_id = self.id
-        if update_params:
+        update_keys = ["widgetConfig", "name", "description", "application", "default", "protected", "defaultEditableWidget", "published", "freeze"]
+        if update_params and any([x in update_keys for x in list(update_params.keys())]):
             print('payload',update_params)
             try:
                 url = f'https://api.resourcewatch.org/v1/dataset/{ds_id}/widget/{w_id}'
