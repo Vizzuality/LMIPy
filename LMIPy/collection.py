@@ -6,7 +6,7 @@ from tqdm import tqdm
 from .dataset import Dataset
 from .table import Table
 from .layer import Layer
-from .utils import create_class, show
+from .utils import create_class, show, flatten_list
 
 class Collection:
     """
@@ -31,7 +31,7 @@ class Collection:
         A list of strings of object types to search, e.g. [‘dataset’, ‘layer’]
     """
     def __init__(self, search='', app=['gfw','rw'], env='production', limit=1000, order='name', sort='desc',
-                 object_type=['dataset', 'layer','table'], server='https://api.resourcewatch.org',
+                 object_type=['dataset', 'layer','table', 'widget'], server='https://api.resourcewatch.org',
                  mapbox_token=None):
         self.search = [search.lower()] + search.lower().strip().split(' ')
         self.server = server
@@ -88,37 +88,29 @@ class Collection:
         Getter for the a collection object. In this case dataset and layers
         are the objects in the API. I.e. tables are a dataset type.
         """
+        datasets = self.get_entities()
+        layers = flatten_list([d['attributes']['layer'] for d in datasets if len(d['attributes']['layer']) > 0])
+        widgets = flatten_list([d['attributes']['widget'] for d in datasets if len(d['attributes']['widget']) > 0])
         response_list = []
         if 'layer' in self.object_type:
-            _ = [response_list.append(l) for l in self.get_layers()]
-        if 'dataset' in self.object_type:
-            _ = [response_list.append(d) for d in self.get_datasets()]
-        ordered_list = self.order_results(response_list)
+            _ = [response_list.append(l) for l in layers]
+        if 'dataset' in self.object_type or 'table' in self.object_type:
+            _ = [response_list.append(d) for d in datasets]
+        if 'widget' in self.object_type:
+            _ = [response_list.append(w) for w in widgets]
+        filtered_list = self.filter_results(response_list)
+        ordered_list = self.order_results(filtered_list)
         return ordered_list
 
-    def get_datasets(self):
-        """Return all datasets and connected items within a limit and specified environment"""
+    def get_entities(self):
         hash = random.getrandbits(16)
         url = (f'{self.server}/v1/dataset?app={self.app}&env={self.env}&'
-               f'includes=layer,vocabulary,metadata&page[size]=1000&hash={hash}')
+               f'includes=layer,vocabulary,metadata,widget&page[size]=1000&hash={hash}')
         r = requests.get(url)
         response_list = r.json().get('data', None)
         if len(response_list) < 1:
             raise ValueError('No items found')
-        identified_layers = self.filter_results(response_list)
-        return identified_layers
-
-    def get_layers(self):
-        """Return all layers from specified apps and environment within a limit number"""
-        hash = random.getrandbits(16)
-        url = (f"{self.server}/v1/layer?app={self.app}&env={self.env}"
-               f"&includes=vocabulary,metadata&page[size]=1000&hash={hash}")
-        r = requests.get(url)
-        response_list = r.json().get('data', None)
-        if len(response_list) < 1:
-            raise ValueError('No items found')
-        identified_layers = self.filter_results(response_list)
-        return identified_layers
+        return response_list
 
     def filter_results(self, response_list):
         """Search by a list of strings to return a filtered list of Dataset or Layer objects"""
@@ -128,6 +120,7 @@ class Collection:
             return_layers = 'layer' in self.object_type
             return_datasets = 'dataset' in self.object_type
             return_tables = 'dataset' in self.object_type
+            return_widgets = 'widget' in self.object_type
             name = item.get('attributes').get('name', None)
             description = item.get('attributes').get('description', None)
             slug = item.get('attributes').get('slug', None)
@@ -150,6 +143,8 @@ class Collection:
                     collection.append({'type': 'Dataset','id': item.get('id'), 'attributes': item.get('attributes'), 'server': self.server})
                 if item.get('type') == 'layer' and return_layers:
                     collection.append({'type': 'Layer', 'id': item.get('id'), 'attributes': item.get('attributes'), 'server': self.server, 'mapbox_token':self.mapbox_token})
+                if item.get('type') == 'widget' and return_widgets:
+                    collection.append({'type': 'Widget', 'id': item.get('id'), 'attributes': item.get('attributes'), 'server': self.server})
         return collection
 
     def order_results(self, collection_list):

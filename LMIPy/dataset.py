@@ -8,7 +8,7 @@ import datetime
 from pprint import pprint
 from .layer import Layer
 from .utils import html_box
-from .lmipy import Vocabulary, Metadata
+from .lmipy import Vocabulary, Metadata, Widget
 from colored import fg, bg, attr
 
 
@@ -47,6 +47,11 @@ class Dataset:
             _ = self.attributes.pop('vocabulary')
         else:
             self.vocabulary = []
+        if len(self.attributes.get('widget', [])) > 0:
+            self.widget =[Widget(attributes=w) for w in self.attributes.get('widget')]
+            _ = self.attributes.pop('widget')
+        else:
+            self.widget = []
         self.url = f"{server}/v1/dataset/{id_hash}?hash={random.getrandbits(16)}"
 
     def __repr__(self):
@@ -64,7 +69,7 @@ class Dataset:
         """
         try:
             hash = random.getrandbits(16)
-            url = (f'{self.server}/v1/dataset/{self.id}?includes=layer,vocabulary,metadata&hash={hash}')
+            url = (f'{self.server}/v1/dataset/{self.id}?includes=layer,widget,vocabulary,metadata&hash={hash}')
             r = requests.get(url)
         except:
             raise ValueError(f'Unable to get Dataset {self.id} from {r.url}')
@@ -429,3 +434,42 @@ class Dataset:
         else:
             raise ValueError(f'Metadata creation requires an info object and application string.')
 
+    def add_widget(self, widget_params=None, token=None):
+        """
+        Create a new widget association to the current dataset.
+
+        A single application string, name and widgetConfig must be specified within the
+        `widget_params` dictionary.
+        The widgetConfig key has a free schema.
+
+        A RW-API token is required.
+        """
+        if not token:
+            raise ValueError(f'[token] Resource Watch API token required to create new vocabulary.')
+        name = widget_params.get('name', None)
+        description = widget_params.get('description', None)
+        widget_config = widget_params.get('widgetConfig', None)
+        app = widget_params.get('application', None)
+        ds_id = self.id
+        if name and widget_config and app:
+            payload = { 
+                "name": name,
+                "description": description,
+                "widgetConfig": widget_config,
+                "application": app
+            }
+            try:
+                url = f'https://api.resourcewatch.org/v1/widget/{ds_id}/widget'
+                headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
+                r = requests.post(url, data=json.dumps(payload), headers=headers)
+            except:
+                raise ValueError(f'Vocabulary creation failed.')
+            if r.status_code == 200:
+                print(f'Widget created.')
+                self.attributes = self.get_dataset()
+                return self
+            else:
+                print(f'Failed with error code {r.status_code}')
+                return None
+        else:
+            raise ValueError(f'Widget creation requires name string, application string and a widgetConfig object.')

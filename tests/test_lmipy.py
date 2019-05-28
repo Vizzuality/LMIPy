@@ -1,5 +1,5 @@
 import pytest
-from LMIPy import Dataset, Collection, Layer, Metadata, Vocabulary
+from LMIPy import Dataset, Collection, Layer, Metadata, Vocabulary, Widget
 
 def test_create_dataset():
     ds = Dataset(id_hash='bb1dced4-3ae8-4908-9f36-6514ae69713f')
@@ -30,4 +30,9 @@ def test_access_meta():
     ds = Dataset(id_hash='bb1dced4-3ae8-4908-9f36-6514ae69713f')
     assert type(ds.metadata) == list
     assert len(ds.metadata) > 0
+
+def test_access_widget():
+    ds = Dataset(id_hash='dcd1e9c7-1370-404e-8816-eaa51d4b1a39')
+    assert type(ds.widget) == list
+    assert len(ds.widget) > 0
     
