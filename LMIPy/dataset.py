@@ -266,6 +266,7 @@ class Dataset:
                 self.attributes = Dataset(clone_dataset_id).attributes
                 return Dataset(clone_dataset_id)
 
+
     def intersect(self, geometry):
         """
         Intersect an EE raster with a geometry
@@ -332,10 +333,8 @@ class Dataset:
                     } for v in self.vocabulary]
                 },
         }
-
         if not os.path.isdir(path):
             os.mkdir(path)
-
         with open(f"{path}/{self.id}.json", 'w') as fp:
             json.dump(save_json, fp)
 
@@ -377,7 +376,7 @@ class Dataset:
         app = vocab_params.get('application', None)
         ds_id = self.id
         if vocab_tags and len(vocab_tags) > 0 and vocab_type and app:
-            payload = { 
+            payload = {
                 "tags": vocab_tags,
                 "application": app
             }
@@ -413,7 +412,7 @@ class Dataset:
         app = meta_params.get('application', None)
         ds_id = self.id
         if info and app:
-            payload = { 
+            payload = {
                 "info": info,
                 "application": app,
                 "language": meta_params.get('language', 'en')
@@ -452,7 +451,7 @@ class Dataset:
         app = widget_params.get('application', None)
         ds_id = self.id
         if name and widget_config and app:
-            payload = { 
+            payload = {
                 "name": name,
                 "description": description,
                 "widgetConfig": widget_config,

@@ -8,7 +8,7 @@ from shapely.geometry import shape
 import shapely.wkt
 import geojson
 from .utils import html_box
-
+import json
 
 class Geometry:
     """
@@ -196,3 +196,57 @@ class Geometry:
                     attr="Live EE tiles"
                 )
         return map
+
+    def describe(self, lang='en', app='gfw'):
+        """Returns an object with a title and description of a region. Running
+        this function adds a property to the object of self.description.
+
+        Parameters
+        ----------
+        lang: str
+            A 2-character language string of the description output
+        app: str
+            An optional application id string (such as 'gfw') to tailor the description to.
+        """
+        # If the geostore exists on the right server, send the id, else send the valid geojson attributes
+        valid_servers = ['https://pro11duction-api.globalforestwatch.org',
+                         'https://staging-api.globalforestwatch.org']
+        if self.server in valid_servers:
+            params = {"geostore": self.id,
+                      "lang": lang,
+                      "app": app}
+            url = "/v1/geodescriber"
+            url = self.server + url
+            r = requests.get(url, params=params)
+            if r.status_code == 200:
+                d = {'title': r.json().get('data').get('title'),
+                     'description': r.json().get('data').get('description'),
+                     'lang': r.json().get('data').get('lang')}
+                self.description = d
+                print(f"Title: {d.get('title')}")
+                print(f"Description: {d.get('description')}")
+                return
+            else:
+                print(f"Description attempt failed: response: {r.status_code}, \n {r.json()}")
+                return None
+        else:
+            url = "https://production-api.globalforestwatch.org/v1/geodescriber/geom"
+            payload = json.dumps(self.attributes)
+            querystring = {"lang": lang, "app": app}
+            headers = {
+                        'Content-Type': "application/json",
+                        'cache-control': "no-cache",
+                        }
+            r = requests.request("POST", url, data=payload, headers=headers, params=querystring)
+            if r.status_code == 200:
+                d = {'title': r.json().get('data').get('title'),
+                     'description': r.json().get('data').get('description'),
+                     'lang': r.json().get('data').get('lang')}
+                self.description = d
+                print(f"Title: {d.get('title')}")
+                print(f"Description: {d.get('description')}")
+                return
+            else:
+                print(f"Description attempt failed: response: {r.status_code}, \n {r.json()}")
+                return None
+        return None
