@@ -161,7 +161,41 @@ class Geometry:
         if len(features) > 0:
             return [shape(feature['geometry']) for feature in features]
 
-    def map(self, image=False):
+        def get_base_map(self, centroid, geometry, bounds):
+        polygon = False
+        result_map = folium.Map(location=centroid, tiles='Mapbox Bright')
+        if geometry['type'] == 'Point' or geometry['type'] == 'MultiPoint':
+            folium.Marker(centroid).add_to(result_map)
+        elif geometry['type'] == 'Polygon' or geometry['type'] == 'MultiPolygon:
+            polygon = True
+        else:
+            folium.GeoJson(data=self.table()).add_to(result_map)
+            result_map.fit_bounds(bounds)
+        return result_map, polygon
+    
+    def get_point_image(self, centroid, classify, result_map):
+        url = f"https://production-api.globalforestwatch.org/v1/recent-tiles?lat={centroid[1]}&lon={centroid[0]}&start=2019-01-01end=2019-04-01"
+        req = requests.get(url)
+        image_attributes = req.json()['data']['tiles'][0]['attributes']
+        #print(f"Image taken {image_attributes['date_time']}\nSource: {image_attributes['instrument']}\nid: {image_attributes['source']}")
+        if classify:
+            img_source = image_attributes['source']
+            r2 = requests.get(f"http://localhost:9000/v1/recent-tiles-classifier?img_id={img_source}")
+            tile_url = r2.json().get('data').get('attributes').get('url')
+        else:
+            tile_url = image_attributes['tile_url']
+        result_map.add_tile_layer(tiles=tile_url,attr="Live EE tiles")
+        return result_map
+    
+    def get_polygon_image(self, geostore_id, classify, result_map):
+        req = requests.get(f"http://localhost:9000/v1/composite-service?geostore={geostore_id}&classify={classify}")
+        if req.status_code == 200:
+            image_attributes = req.json()['attributes']
+            tile_url = image_attributes['tile_url']
+            result_map.add_tile_layer(tiles=tile_url,attr="Live EE tiles")
+        return result_map
+    
+    def map(self, image=False, classify=False, instrument='landsat'):
         """
         Returns a folium choropleth map with styles applied via attributes
         """
@@ -171,31 +205,12 @@ class Geometry:
         shapely_geometry = shape(geometry)
         centroid = list(shapely_geometry.centroid.coords)[0][::-1]
         bounds = [bbox[2:][::-1], bbox[:2][::-1]]
-        map = folium.Map(
-            location=centroid,
-            tiles='Mapbox Bright',
-        )
-        if geometry['type'] == 'Point':
-            folium.Marker(
-                centroid
-            ).add_to(map)
-        else:
-            folium.GeoJson(
-                data=self.table()
-                ).add_to(map)
-            map.fit_bounds(bounds)
-        if image:
-            url = f"https://production-api.globalforestwatch.org/v1/recent-tiles?lat={centroid[1]}&lon={centroid[0]}&start=2019-01-01&end=2019-04-01"
-            r = requests.get(url)
-            if r.status_code == 200:
-                image_attributes = r.json()['data']['tiles'][0]['attributes']
-                tile_url = image_attributes['tile_url']
-                print(f"Image taken {image_attributes['date_time']}\nSource: {image_attributes['instrument']}\nid: {image_attributes['source']}")
-                map.add_tile_layer(
-                    tiles=tile_url,
-                    attr="Live EE tiles"
-                )
-        return map
+        result_map, polygon = Geometry.get_base_map(self, centroid, geometry, bounds)
+        if image and not polygon:
+            result_map = Geometry.get_point_image(self, centroid, classify, result_map)
+        elif(image and polygon):
+            result_map = Geometry.get_polygon_image(self, self.id, classify, result_map)
+        return result_map
 
     def describe(self, lang='en', app='gfw'):
         """Returns an object with a title and description of a region. Running
