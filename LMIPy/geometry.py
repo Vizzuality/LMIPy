@@ -160,56 +160,103 @@ class Geometry:
         features = self.attributes['geojson']['features']
         if len(features) > 0:
             return [shape(feature['geometry']) for feature in features]
+        else:
+            return None
 
-        def get_base_map(self, centroid, geometry, bounds):
-        polygon = False
-        result_map = folium.Map(location=centroid, tiles='Mapbox Bright')
-        if geometry['type'] == 'Point' or geometry['type'] == 'MultiPoint':
-            folium.Marker(centroid).add_to(result_map)
-        elif geometry['type'] == 'Polygon' or geometry['type'] == 'MultiPolygon:
-            polygon = True
+    @staticmethod
+    def get_image_url(centroid, band_viz, start, end):
+        params = {"lat": centroid[1],
+                  "lon": centroid[0],
+                  "start": start,
+                  "end": end,
+                  "band_viz": json.dumps(band_viz)
+                  }
+        url = "https://production-api.globalforestwatch.org/v1/recent-tiles"
+        r = requests.get(url, params=params)
+        if r.status_code == 200:
+            tile_url = r.json().get('data').get('tiles')[0].get('attributes').get('tile_url')
+            return tile_url
         else:
-            folium.GeoJson(data=self.table()).add_to(result_map)
-            result_map.fit_bounds(bounds)
-        return result_map, polygon
-    
-    def get_point_image(self, centroid, classify, result_map):
-        url = f"https://production-api.globalforestwatch.org/v1/recent-tiles?lat={centroid[1]}&lon={centroid[0]}&start=2019-01-01end=2019-04-01"
-        req = requests.get(url)
-        image_attributes = req.json()['data']['tiles'][0]['attributes']
-        #print(f"Image taken {image_attributes['date_time']}\nSource: {image_attributes['instrument']}\nid: {image_attributes['source']}")
-        if classify:
-            img_source = image_attributes['source']
-            r2 = requests.get(f"http://localhost:9000/v1/recent-tiles-classifier?img_id={img_source}")
-            tile_url = r2.json().get('data').get('attributes').get('url')
+            return None
+
+    def get_composite_url(self, centroid, band_viz, instrument, date_range):
+        valid_servers = ['https://production-api.globalforestwatch.org',
+                         'https://staging-api.globalforestwatch.org']
+        if self.server in valid_servers:
+            params = {"geostore": self.id,
+                      "instrument": instrument,
+                      "date_range": date_range,
+                      "band_viz": json.dumps(band_viz)
+                     }
+            url = "/v1/composite-service"
+            url = self.server + url
+            r = requests.get(url, params=params)
+            if r.status_code == 200:
+                tile_url = r.json().get('attributes').get('tile_url')
+                return tile_url
         else:
-            tile_url = image_attributes['tile_url']
-        result_map.add_tile_layer(tiles=tile_url,attr="Live EE tiles")
-        return result_map
-    
-    def get_polygon_image(self, geostore_id, classify, result_map):
-        req = requests.get(f"http://localhost:9000/v1/composite-service?geostore={geostore_id}&classify={classify}")
-        if req.status_code == 200:
-            image_attributes = req.json()['attributes']
-            tile_url = image_attributes['tile_url']
-            result_map.add_tile_layer(tiles=tile_url,attr="Live EE tiles")
-        return result_map
-    
-    def map(self, image=False, classify=False, instrument='landsat'):
+            url = "https://production-api.globalforestwatch.org/v1/composite-service/geom"
+            payload = json.dumps(self.attributes)
+            params = {"instrument": instrument,
+                      "date_range": date_range,
+                      "band_viz": json.dumps(band_viz)
+                     }
+            headers = {
+                        'Content-Type': "application/json",
+                        'cache-control': "no-cache",
+                        }
+            r = requests.request("POST", url, data=payload, headers=headers, params=params)
+            if r.status_code == 200:
+                tile_url = r.json().get('attributes').get('tile_url')
+                return tile_url
+
+    def map(self, image=False, instrument='sentinel', start='2019-01-01', end='2019-04-01'):
         """
-        Returns a folium choropleth map with styles applied via attributes
+        Returns a folium choropleth map with styles applied via attributes.
+
+        Parameters
+        ----------
+        image: bool
+            If true, a satellite image will be returned related to your geometry.
+        instrument: str
+            Either landsat or sentinel. Depending on the string a different satellite
+            instrument will be used.
+        start: str
+            Start date for the composite time-range of the satellite image. If point
+            data the best intersecting image will be returned within the specified
+            time-range. If polygon-type data a cloud-free composite within the
+            time-range will be returned.
+        end: str
+            End date for the composite time-range. If point
+            data the best intersecting image will be returned within the specified
+            time-range. If polygon-type data a cloud-free composite within the
+            time-range will be returned.
         """
+        if instrument == 'sentinel':
+            band_viz = {'bands': ['B4', 'B3', 'B2'], 'min': 0, 'max': 0.4}
+        else:
+            band_viz = {'bands': ['B4', 'B3', 'B2'], 'min':0, 'max':0.2, 'gamma':[1.3, 1.3, 1.3]}
         geojson = self.attributes['geojson']
         geometry = geojson['features'][0]['geometry']
         bbox = self.attributes['bbox']
-        shapely_geometry = shape(geometry)
-        centroid = list(shapely_geometry.centroid.coords)[0][::-1]
+        centroid = list(self.shape()[0].centroid.coords)[0][::-1]
         bounds = [bbox[2:][::-1], bbox[:2][::-1]]
-        result_map, polygon = Geometry.get_base_map(self, centroid, geometry, bounds)
-        if image and not polygon:
-            result_map = Geometry.get_point_image(self, centroid, classify, result_map)
-        elif(image and polygon):
-            result_map = Geometry.get_polygon_image(self, self.id, classify, result_map)
+        result_map = folium.Map(location=centroid, tiles='Mapbox Bright')
+        result_map.fit_bounds(bounds)
+        if geometry['type'] == 'Point' or geometry['type'] == 'MultiPoint':
+            folium.Marker(centroid).add_to(result_map)
+            if image:
+                tile_url = self.get_image_url(centroid=centroid, band_viz=band_viz,
+                                              start=start, end=end)
+                result_map.add_tile_layer(tiles=tile_url, attr=f"{instrument} image")
+        else:
+            if image:
+                date_range = f'{start},{end}'
+                tile_url = self.get_composite_url(centroid=centroid, band_viz=band_viz,
+                                    instrument=instrument, date_range=date_range)
+                result_map.add_tile_layer(tiles=tile_url, attr=f"{instrument} image")
+            style_function = lambda x: {'fillOpacity': 0.0}
+            folium.GeoJson(data=self.table(), style_function=style_function).add_to(result_map)
         return result_map
 
     def describe(self, lang='en', app='gfw'):
