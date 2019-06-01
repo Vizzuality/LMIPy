@@ -31,8 +31,12 @@ def test_access_meta():
     assert type(ds.metadata) == list
     assert len(ds.metadata) > 0
 
+def test_access_meta_attributes():
+    ds = Dataset('044f4af8-be72-4999-b7dd-13434fc4a394')
+    meta = ds.metadata[0].attributes
+    assert type(meta) is dict
+
 def test_access_widget():
     ds = Dataset(id_hash='dcd1e9c7-1370-404e-8816-eaa51d4b1a39')
     assert type(ds.widget) == list
     assert len(ds.widget) > 0
-    
