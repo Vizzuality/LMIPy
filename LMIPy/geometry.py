@@ -29,10 +29,10 @@ class Geometry:
         self.server = server
         if s:
             attributes = self.create_attributes_from_shapely(s)
+        if parameters:
+            id_hash = self.get_id_from_params(parameters)
         if attributes:
             self.attributes = self.create_geostore_from_geojson(attributes)
-        elif parameters:
-            self.attributes = self.create_attributes_from_table(parameters)
         else:
             self.id = id_hash
             self.attributes = self.get_geometry()
@@ -58,7 +58,11 @@ class Geometry:
         else:
             raise ValueError('shape object was not of suitable geometry type')
 
-    def create_attributes_from_table(self, parameters=None):
+    def get_id_from_params(self, parameters):
+        """
+            If you are using this method, you need to use the GFW production server.
+        """
+        server = "https://production-api.globalforestwatch.org"
         if not parameters:
             raise ValueError(f'parameters requires!')
         iso = parameters.get('iso', None)
@@ -84,24 +88,24 @@ class Geometry:
             elif iso:
                 url = f'/{version}/geostore/admin/{iso}'
             else:
-                raise ValueError(f'Invalid admin parameters. Requires: iso, adm1, adm2 keys')
+                raise ValueError(f'Invalid admin parameters: Requires: iso, adm1, adm2 keys')
         elif table:
             if table and cartodb_id:
                 url = f'/{version}/geostore/use/{table}/{int(cartodb_id)}'
             else:
                 raise ValueError(f'Invalid table parameters. Requires: table and cartodb_id keys')
         else:
-            raise ValueError(f'Invalid parameters! Valid keys: [iso, adm1, adm2] or [table, cartodb_id]')
+            raise ValueError(f'Invalid parameters. Valid keys: [iso, adm1, adm2] or [table, cartodb_id]')
         header= {
                 'Content-Type':'application/json'
                 }
-        url = self.server + url
+        url = server + url
         r = requests.get(url, headers=header)
         if r.status_code == 200:
-            self.id = r.json().get('data').get('id')
-            return r.json().get('data').get('attributes')
+            self.server = server
+            return r.json().get('data').get('id')
         else:
-            raise ValueError(f'Recieved response of {r.status_code} from {r.url} when posting to geostore.')
+            raise ValueError(f'Response of {r.status_code} from {r.url} when calling Geostore.')
 
     def create_geostore_from_geojson(self, attributes):
         """Parse valid geojson into a geostore object and register it to a
@@ -195,6 +199,7 @@ class Geometry:
                 tile_url = r.json().get('attributes').get('tile_url')
                 return tile_url
         else:
+            #url = 'http://localhost:4500/api/v1/composite-service/geom'
             url = "https://production-api.globalforestwatch.org/v1/composite-service/geom"
             payload = json.dumps(self.attributes)
             params = {"instrument": instrument,
@@ -210,7 +215,7 @@ class Geometry:
                 tile_url = r.json().get('attributes').get('tile_url')
                 return tile_url
 
-    def map(self, image=False, instrument='sentinel', start='2019-01-01', end='2019-04-01'):
+    def map(self, image=False, instrument='sentinel', start='2017-01-01', end='2018-01-01'):
         """
         Returns a folium choropleth map with styles applied via attributes.
 
@@ -271,7 +276,7 @@ class Geometry:
             An optional application id string (such as 'gfw') to tailor the description to.
         """
         # If the geostore exists on the right server, send the id, else send the valid geojson attributes
-        valid_servers = ['https://pro11duction-api.globalforestwatch.org',
+        valid_servers = ['https://production-api.globalforestwatch.org',
                          'https://staging-api.globalforestwatch.org']
         if self.server in valid_servers:
             params = {"geostore": self.id,
