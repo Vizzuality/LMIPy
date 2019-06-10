@@ -217,7 +217,7 @@ class Geometry:
 
     def map(self, image=False, instrument='sentinel', start='2017-01-01', end='2018-01-01'):
         """
-        Returns a folium choropleth map with styles applied via attributes.
+        Returns a folium map with styles applied via attributes.
 
         Parameters
         ----------
@@ -246,7 +246,7 @@ class Geometry:
         bbox = self.attributes['bbox']
         centroid = list(self.shape()[0].centroid.coords)[0][::-1]
         bounds = [bbox[2:][::-1], bbox[:2][::-1]]
-        result_map = folium.Map(location=centroid, tiles='Mapbox Bright')
+        result_map = folium.Map(location=centroid, tiles='OpenStreetMap')
         result_map.fit_bounds(bounds)
         if geometry['type'] == 'Point' or geometry['type'] == 'MultiPoint':
             folium.Marker(centroid).add_to(result_map)
