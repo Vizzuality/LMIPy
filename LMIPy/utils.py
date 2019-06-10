@@ -6,6 +6,7 @@ def html_box(item):
     is_table = str(type(item)) == "<class 'LMIPy.table.Table'>"
     is_widget = str(type(item)) == "<class 'LMIPy.lmipy.Widget'>"
     is_geometry = str(type(item)) == "<class 'LMIPy.geometry.Geometry'>"
+    is_image = str(type(item)) == "<class 'LMIPy.geometry.Image'>"
     if is_layer:
         kind_of_item = 'Layer'
         url_link = f'{item.server}/v1/layer/{item.id}?includes=vocabulary,metadata'
@@ -15,6 +16,9 @@ def html_box(item):
     elif is_table:
         kind_of_item = 'Table'
         url_link = f'{item.server}/v1/dataset/{item.id}?includes=vocabulary,metadata,layer,widget'
+    elif is_image:
+        kind_of_item = 'Image'
+        url_link = 'test'
     elif is_widget:
         kind_of_item = 'Widget'
         url_link = f'{item.server}/v1/widget/{item.id}'
