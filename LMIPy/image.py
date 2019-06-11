@@ -33,7 +33,7 @@ class Image:
     """
 
     def __init__(self, source=None, instrument=None, date_time=None, cloud_score=None,
-                 thumb_url = None, bbox=None, tile_url=None,
+                 thumb_url = None, bbox=None, tile_url=None, ring=None,
                  server='https://production-api.globalforestwatch.org', type=None,
                  band_viz={'bands': ['B4', 'B3', 'B2'], 'min': 0, 'max': 0.4}):
         self.source = source
@@ -47,7 +47,10 @@ class Image:
         self.server = server
         self.band_viz = band_viz
         self.bbox = bbox
-        self.ring = self.get_ring()
+        if ring == None:
+            self.ring = self.get_ring()
+        else:
+            self.ring = ring
         self.tile_url = tile_url
         if thumb_url:
             self.thumb_url = thumb_url
@@ -85,9 +88,11 @@ class Image:
             return None
 
     def get_ring(self):
-        print(f"bbox fed to ring: {self.bbox.get('geometry').get('coordinates')}")
-        ring = LinearRing(self.bbox.get('geometry').get('coordinates'))
-        return ring
+            coords = self.bbox.get('geometry').get('coordinates', None)
+            if coords and any(isinstance(i, list) for i in coords[0]):
+                coords = coords[0]
+            ring = LinearRing(coords)
+            return ring
 
     def get_attributes(self):
         return {'provider': self.source}
@@ -133,7 +138,6 @@ class Image:
         if type == 'random_forest':
             url = self.server + '/recent-tiles-classifier'
             params = {'img_id': self.attributes.get('provider')}
-
             r = requests.get(url, params=params)
             if r.status_code == 200:
                 classified_tiles = r.json().get('data').get('attributes').get('url')
@@ -142,6 +146,7 @@ class Image:
                         'cloud_score': self.cloud_score,
                         'source': self.source,
                         'band_viz': None,
+                        'ring': self.ring,
                         'server': self.server,
                         'thumb_url': self.thumb_url,
                         'tile_url': classified_tiles,
