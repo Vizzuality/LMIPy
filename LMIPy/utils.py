@@ -17,13 +17,17 @@ def html_box(item):
         kind_of_item = 'Table'
         url_link = f'{item.server}/v1/dataset/{item.id}?includes=vocabulary,metadata,layer,widget'
     elif is_image:
+        if item.type == 'Classified Image':
+            instrument = 'Classfied Image'
+        else:
+            instrument = item.instrument
         html_string = ("<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #80ceb9;"
                     "border-radius: 2px; background: #f2fffb; line-height: 1.21429em; padding: 10px;''>"
                     "<div class='item_left' style='width: 100px; height: 100px; float: left; padding-right:10px''>"
                     f"<a href='{item.thumb_url}' target='_blank'>"
                     f"<img class='itemThumbnail' src='{item.thumb_url}'>"
                     "</a></div><div class='item_right' style='float: none; width: auto; overflow: hidden;''>"
-                    f"<b>Image Source</b>: {item.instrument} </br>"
+                    f"<b>Image Source</b>: {instrument} </br>"
                     f"<b>Datetime</b>: {item.date_time} </br>"
                     f"<b>Cloud score </b>: {item.cloud_score} </br>"
                     " </div> </div>")

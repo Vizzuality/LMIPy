@@ -31,11 +31,14 @@ class Image:
     """
 
     def __init__(self, source=None, instrument=None, date_time=None, cloud_score=None,
-                 thumb_url = None, bbox=None,
+                 thumb_url = None, bbox=None, tile_url=None,
                  server='https://production-api.globalforestwatch.org', type=None,
                  band_viz={'bands': ['B4', 'B3', 'B2'], 'min': 0, 'max': 0.4}):
         self.source = source
-        self.type = 'Image'
+        if type == None:
+            self.type = 'Image'
+        else:
+            self.type = type
         self.instrument = instrument
         self.cloud_score = cloud_score
         self.date_time = date_time
@@ -76,15 +79,49 @@ class Image:
         return {'provider': self.source}
 
     def map(self):
+        """
+        Returns a folium map with styles applied via attributes.
+        """
         centroid = [self.ring.centroid.xy[0][0], self.ring.centroid.xy[1][0]]
         #centroid = [28.3, -16.6]
         result_map = folium.Map(location=centroid, tiles='OpenStreetMap')
         #tile_url = self.get_image_url(centroid=centroid, band_viz=band_viz,
         #                                      start=start, end=end)
         #result_map.add_tile_layer(tiles=tile_url, attr=f"{instrument} image")
-
         result_map.fit_bounds(list(self.ring.bounds))
         style_function = lambda x: {'fillOpacity': 0.0}
         folium.GeoJson(data=self.bbox, style_function=style_function).add_to(result_map)
 
         return result_map
+
+    def classify(self, type='random_forest'):
+        """
+            Returns a classified Image object.
+
+        Parameters
+        ----------
+        type: string
+            A string ('random_forest' or '') determining which type of classification will be done.
+        """
+        if type == 'random_forest':
+            url = self.server + '/recent-tiles-classifier'
+            params = {'img_id': self.attributes.get('provider')}
+
+            r = requests.get(url, params=params)
+            if r.status_code == 200:
+                classified_tiles = r.json().get('data').get('attributes').get('url')
+                tmp = {'instrument': self.instrument,
+                        'date_time': self.date_time,
+                        'cloud_score': self.cloud_score,
+                        'source': self.source,
+                        'band_viz': None,
+                        'server': self.server,
+                        'thumb_url': self.thumb_url,
+                        'tile_url': classified_tiles,
+                        'type': 'Classified Image',
+                        'bbox': self.bbox
+                        }
+                return Image(**tmp)
+            else:
+                raise ValueError(f'Classification failed ({r.status_code} response): {r.json()}')
+            return None
