@@ -86,8 +86,8 @@ class ImageCollection:
     def get_collection(self):
         """Returns a list of Image objects."""
         url = 'https://production-api.globalforestwatch.org/recent-tiles'
-        params = {'lat':self.lat,
-                  'lon':self.lon,
+        params = {'lon':self.lon,
+                  'lat':self.lat,
                   'start':self.start,
                   'end':self.end}
         r = requests.get(url=url, params=params)
