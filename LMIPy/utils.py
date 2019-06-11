@@ -1,3 +1,4 @@
+import json
 
 def html_box(item):
     """Returns an HTML block with template strings filled-in based on item attributes."""
@@ -189,3 +190,10 @@ def flatten_list(nested_list):
         return [item for sublist in nested_list for item in sublist]
     else:
         return []
+
+def get_geojson_string(geom):
+    coords = geom.get('coordinates', None)
+    if coords and not any(isinstance(i, list) for i in coords[0]):
+        geom['coordinates'] = [coords]
+    feat_col = {"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {}, "geometry": geom}]}
+    return json.dumps(feat_col)
