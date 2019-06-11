@@ -1,8 +1,10 @@
-from .utils import html_box
+from .utils import html_box, get_geojson_string
 import requests
 import json
 import folium
+import geopandas as gpd
 from shapely.geometry.polygon import LinearRing
+from shapely.geometry import shape
 
 class Image:
     """
@@ -68,6 +70,16 @@ class Image:
             print(f'Failed to get tile {r.status_code}, {r.json()}')
             return None
 
+    def get_image_url(self):
+        payload = {'source_data': [{'source': self.source}], 'bands': self.band_viz.get('bands')}
+        url = self.server + '/recent-tiles/tiles'
+        r = requests.post(url, data=json.dumps(payload), headers={'Content-Type': 'application/json'})
+        if  r.status_code == 200:
+            return r.json().get('data').get('attributes')[0].get('tile_url')
+        else:
+            print(f'Failed to get tile {r.status_code}, {r.json()}')
+            return None
+
     def get_ring(self):
         ring = LinearRing(self.bbox.get('geometry').get('coordinates'))
         return ring
@@ -75,16 +87,30 @@ class Image:
     def get_attributes(self):
         return {'provider': self.source}
 
-    def map(self):
-        centroid = [self.ring.centroid.xy[0][0], self.ring.centroid.xy[1][0]]
-        #centroid = [28.3, -16.6]
-        result_map = folium.Map(location=centroid, tiles='OpenStreetMap')
-        #tile_url = self.get_image_url(centroid=centroid, band_viz=band_viz,
-        #                                      start=start, end=end)
-        #result_map.add_tile_layer(tiles=tile_url, attr=f"{instrument} image")
+    def map(self, color='#64D1B8', weight=6):
+        """
+        Returns a folim map of selected image with styles applied.
 
-        result_map.fit_bounds(list(self.ring.bounds))
-        style_function = lambda x: {'fillOpacity': 0.0}
-        folium.GeoJson(data=self.bbox, style_function=style_function).add_to(result_map)
+        weight: int
+            Weight of geom outline. Default = 6.
+        color: str
+            Hex code for geom outline. Default = #64D1B8.
+        """
+        centroid = [self.ring.centroid.xy[1][0], self.ring.centroid.xy[0][0]]
+        result_map = folium.Map(location=centroid, tiles='OpenStreetMap')
+        tile_url = self.get_image_url()
+        result_map.add_tile_layer(tiles=tile_url, attr=f"{self.instrument} image")
+        geojson_str = get_geojson_string(self.bbox['geometry'])
+        
+        folium.GeoJson(
+                    data=geojson_str,
+                    style_function=lambda x: {
+                    'fillOpacity': 0,
+                    'weight': weight,
+                    'color': color
+                    }
+                ).add_to(result_map)
+        w,s,e,n = list(self.ring.bounds)
+        result_map.fit_bounds([[s, w], [n, e]])
 
         return result_map
