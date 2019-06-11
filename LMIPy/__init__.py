@@ -1,5 +1,7 @@
 from .lmipy import Vocabulary, Metadata, Widget
 from .layer import Layer
+from .image import Image
+from .imageCollection import ImageCollection
 from .dataset import Dataset
 from .geometry import Geometry
 from .collection import Collection

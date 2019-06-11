@@ -7,7 +7,7 @@ import geopandas as gpd
 from shapely.geometry import shape
 import shapely.wkt
 import geojson
-from .utils import html_box
+from .utils import html_box, get_geojson_string
 import json
 
 class Geometry:
@@ -215,9 +215,9 @@ class Geometry:
                 tile_url = r.json().get('attributes').get('tile_url')
                 return tile_url
 
-    def map(self, image=False, instrument='sentinel', start='2017-01-01', end='2018-01-01'):
+    def map(self, image=False, instrument='sentinel', start='2017-01-01', end='2018-01-01', color='#64D1B8', weight=4):
         """
-        Returns a folium choropleth map with styles applied via attributes.
+        Returns a folium map with styles applied via attributes.
 
         Parameters
         ----------
@@ -236,6 +236,10 @@ class Geometry:
             data the best intersecting image will be returned within the specified
             time-range. If polygon-type data a cloud-free composite within the
             time-range will be returned.
+        weight: int
+            Weight of geom outline. Default = 4.
+        color: str
+            Hex code for geom outline. Default = #64D1B8.
         """
         if instrument == 'sentinel':
             band_viz = {'bands': ['B4', 'B3', 'B2'], 'min': 0, 'max': 0.4}
@@ -246,7 +250,7 @@ class Geometry:
         bbox = self.attributes['bbox']
         centroid = list(self.shape()[0].centroid.coords)[0][::-1]
         bounds = [bbox[2:][::-1], bbox[:2][::-1]]
-        result_map = folium.Map(location=centroid, tiles='Mapbox Bright')
+        result_map = folium.Map(location=centroid, tiles='OpenStreetMap')
         result_map.fit_bounds(bounds)
         if geometry['type'] == 'Point' or geometry['type'] == 'MultiPoint':
             folium.Marker(centroid).add_to(result_map)
@@ -260,8 +264,12 @@ class Geometry:
                 tile_url = self.get_composite_url(centroid=centroid, band_viz=band_viz,
                                     instrument=instrument, date_range=date_range)
                 result_map.add_tile_layer(tiles=tile_url, attr=f"{instrument} image")
-            style_function = lambda x: {'fillOpacity': 0.0}
-            folium.GeoJson(data=self.table(), style_function=style_function).add_to(result_map)
+            style_function = lambda x: {
+                'fillOpacity': 0.0,
+                    'weight': weight,
+                    'color': color
+                    }
+            folium.GeoJson(data=get_geojson_string(geometry), style_function=style_function).add_to(result_map)
         return result_map
 
     def describe(self, lang='en', app='gfw'):

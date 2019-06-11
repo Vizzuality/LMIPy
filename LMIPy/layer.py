@@ -5,7 +5,7 @@ import urllib
 import json
 import random
 import re
-from .utils import html_box
+from .utils import html_box, get_geojson_string
 from colored import fg, bg, attr
 
 
@@ -157,9 +157,9 @@ class Layer:
         else:
             raise ValueError('Mapbox target not found')
 
-    def map(self, lat=0, lon=0, zoom=3, geometry=None):
+    def map(self, lat=0, lon=0, zoom=3, geometry=None, color='#64D1B8', weight=4):
         """
-        Returns a folim map with styles applied
+        Returns a folim map with styles applied.
 
         Parameters
         ----------
@@ -171,12 +171,16 @@ class Layer:
             A z-level for the map.
         geometry: LMIPy.Geometry()
             A geometry object.
+        weight: int
+            Weight of geom outline. Default = 4.
+        color: str
+            Hex code for geom outline. Default = #64D1B8.
         """
         url = self.parse_map_url()
         map = folium.Map(
                 location=[lon, lat],
                 zoom_start=zoom,
-                tiles='Mapbox Bright',
+                tiles='OpenStreetMap',
                 detect_retina=True,
                 prefer_canvas=True
         )
@@ -193,10 +197,11 @@ class Layer:
                 ).add_to(map)
             else:
                 folium.GeoJson(
-                    data=geometry.table(),
+                    data=get_geojson_string(geom),
                     style_function=lambda x: {
                     'fillOpacity': 0,
-                    'weight': 2
+                    'weight': weight,
+                    'color': color
                     }
                 ).add_to(map)
             map.fit_bounds(bounds)
