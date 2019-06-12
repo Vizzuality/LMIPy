@@ -18,8 +18,8 @@ def html_box(item):
         kind_of_item = 'Table'
         url_link = f'{item.server}/v1/dataset/{item.id}?includes=vocabulary,metadata,layer,widget'
     elif is_image:
-        if item.type == 'Classified Image':
-            instrument = 'Classfied Image'
+        if item.type in ['Classified Image', 'Composite Image']:
+            instrument = item.type
         else:
             instrument = item.instrument
         html_string = ("<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #80ceb9;"

@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="LMIPy",
-    version="0.2.0",
+    version="0.2.1",
     author="Vizzuality",
     author_email="benjamin.laken@vizzuality.com",
     description="Interface to data and layers in the Resource Watch API",
@@ -18,6 +18,7 @@ setuptools.setup(
                         'geopandas>=0.4.1',
                         'colored>=1.3.93',
                         'geojson>=2.4.0',
+                        'pypng==0.0.19',
                         'tqdm>=4.21.0'],
     packages=['LMIPy'],
     classifiers=[

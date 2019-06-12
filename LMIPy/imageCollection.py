@@ -120,3 +120,50 @@ class ImageCollection:
             return image_list
         except:
             raise ValueError(f'Failed attempting to work with {item}')
+
+    @staticmethod
+    def ring_list_to_json_bbox(bbox):
+        """If a bbox has been returned without all the trimmings, as in the case of
+        the cloud func microservices we add some extra structure and return it.
+        """
+        tmp = [[bbox[0],bbox[1]],
+               [bbox[0], bbox[3]],
+               [bbox[2], bbox[3]],
+               [bbox[2], bbox[1]],
+               [bbox[0], bbox[1]]
+              ]
+        return {'geometry': {'coordinates': tmp, 'type': 'Polygon'}}
+
+    def composite(self, instrument='Sentinel2'):
+        """
+        Make a composite focused on a region for a specific Instrument. Returns an Image object.
+
+        Parameters
+        ----------
+        instrument: str
+            A string describing the Instrument type to composite ('Sentinel2', 'Landsat')
+        """
+        payload = {'instrument': instrument,
+                  'lon': self.lat,                 # tep fix for a bug in MS
+                  'lat': self.lon,
+                  'start': self.start,
+                  'end': self.end}
+        url = f'https://us-central1-skydipper-196010.cloudfunctions.net/composite'
+        headers = {'Content-Type': 'application/json'}
+        r = requests.post(url, data=json.dumps(payload), headers=headers)
+        if r.status_code == 200:
+            tmp = {'instrument': instrument,
+                    'date_time': f'{self.start}–{self.end}',
+                    'cloud_score': '-',
+                    'source': instrument,
+                    'band_viz': self.band_viz,
+                    'server': self.server,
+                    'thumb_url': r.json().get('thumb_url'),
+                    'tile_url': r.json().get('tile_url'),
+                    'type': 'Composite Image',
+                    'bbox': self.ring_list_to_json_bbox(r.json().get('bbox')),
+                    'np_array_bounds':r.json().get('bbox')
+                        }
+            return Image(**tmp)
+        else:
+            raise ValueError(f"Failure in composite service: {r.status_code} {r.url}")
