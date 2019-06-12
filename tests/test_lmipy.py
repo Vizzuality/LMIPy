@@ -1,5 +1,5 @@
 import pytest
-from LMIPy import Dataset, Collection, Layer, Metadata, Vocabulary, Widget
+from LMIPy import Dataset, Collection, Layer, Metadata, Vocabulary, Widget, Image, ImageCollection, Geometry
 
 def test_create_dataset():
     ds = Dataset(id_hash='bb1dced4-3ae8-4908-9f36-6514ae69713f')
@@ -40,3 +40,21 @@ def test_access_widget():
     ds = Dataset(id_hash='dcd1e9c7-1370-404e-8816-eaa51d4b1a39')
     assert type(ds.widget) == list
     assert len(ds.widget) > 0
+
+def test_image_collection_search():
+    ic = ImageCollection(lon=28.271979, lat=-16.457814, start='2018-06-01', end='2018-06-20')
+    assert len(ic) > 0
+
+def test_geometry_create_and_describe():
+    atts={'geojson': {'type': 'FeatureCollection',
+                        'features': [{'type': 'Feature',
+                            'properties': {},
+                            'geometry': {'type': 'Polygon',
+                            'coordinates': [[[-52.16308593749999, -1.669685500986571],
+                            [-46.9775390625, -1.669685500986571],
+                            [-46.9775390625, 0.7909904981540058],
+                            [-52.16308593749999, 0.7909904981540058],
+                            [-52.16308593749999, -1.669685500986571]]]}}]}}
+    g = Geometry(attributes=atts)
+    g.describe()
+    assert g.description.get('title') is not None
