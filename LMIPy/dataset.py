@@ -226,24 +226,20 @@ class Dataset:
             print('Deletion aborted.')
         return self
 
-    def clone(self, token=None, env='staging', dataset_params=None, target_dataset_id=None):
+    def clone(self, token=None, env='staging', dataset_params=None):
         """
         Create a clone of a target Dataset as a new staging or prod Dataset.
         A set of attributes can be specified for the clone Dataset.
         """
         if not token:
             raise ValueError(f'[token] Resource Watch API token required to clone.')
-        if not target_dataset_id:
-            print('Must specify target_dataset_id.')
-            return None
         else:
-            target_dataset = Dataset(target_dataset_id)
-            name = dataset_params.get('name', target_dataset.attributes['name'] + 'CLONE')
-            clone_dataset_attr = {**target_dataset.attributes, 'name': name}
+            name = dataset_params.get('name', self.attributes['name'] + 'CLONE')
+            clone_dataset_attr = {**self.attributes, 'name': name}
             for k,v in clone_dataset_attr.items():
                 if k in dataset_params:
                     clone_dataset_attr[k] = dataset_params[k]
-                clone_dataset_attr = {**target_dataset.attributes, 'name': name}
+                clone_dataset_attr = {**self.attributes, 'name': name}
                 payload = {
                     'application': clone_dataset_attr['application'],
                     'connectorType': clone_dataset_attr['connectorType'],
