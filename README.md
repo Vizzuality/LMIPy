@@ -3,8 +3,8 @@
 
 [![Build Status](https://travis-ci.org/Vizzuality/LMIPy.svg?branch=master)](https://travis-ci.org/Vizzuality/LMIPy) [![codecov](https://codecov.io/gh/Vizzuality/LMIPy/branch/master/graph/badge.svg)](https://codecov.io/gh/Vizzuality/LMIPy) [![PyPI](https://img.shields.io/pypi/v/LMIPy.svg?style=flat)](https://pypi.org/project/LMIPy/) ![](https://img.shields.io/pypi/pyversions/LMIPy.svg?style=flat)  ![](https://img.shields.io/pypi/wheel/LMIPy.svg?style=flat) [![Documentation Status](https://readthedocs.org/projects/lmipy/badge/?version=latest)](https://lmipy.readthedocs.io/en/latest/?badge=latest) [![License](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://github.com/Vizzuality/LMIPy/blob/master/LICENSE)
 
-
-LMIPy is a python abstraction to the [Layer Manager](https://github.com/Vizzuality/layer-manager).
+LMIPy is a Python library with hooks to Jupyter, backed by the [Skydipper API](https://github.com/Skydipper).
+It provides many functions related to adding, analysing and working with open geospatial datasets.
 
 ## Read the Docs
 
