@@ -241,40 +241,39 @@ class Dataset:
             for k,v in clone_dataset_attr.items():
                 if k in dataset_params:
                     clone_dataset_attr[k] = dataset_params[k]
-                clone_dataset_attr = {**self.attributes, 'name': name}
-                payload = {
-                    'application': clone_dataset_attr['application'],
-                    'connectorType': clone_dataset_attr['connectorType'],
-                    'connectorUrl': clone_dataset_attr['connectorUrl'],
-                    'tableName': clone_dataset_attr['tableName'],
-                    'provider': clone_dataset_attr['provider'],
-                    'env': clone_dataset_attr['env'],
-                    'name': clone_dataset_attr['name']
-                }
-                print(f'Creating clone dataset')
-                url = f'{self.server}/dataset'
-                headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
-                r = requests.post(url, data=json.dumps(payload), headers=headers)
-                if r.status_code == 200:
-                    clone_dataset_id = r.json()['data']['id']
-                else:
-                    print(r.status_code)
-                    return None
-                print(f'{self.server}/v1/dataset/{clone_dataset_id}')
+            payload = {
+                'application': clone_dataset_attr['application'],
+                'connectorType': clone_dataset_attr['connectorType'],
+                'connectorUrl': clone_dataset_attr['connectorUrl'],
+                'tableName': clone_dataset_attr['tableName'],
+                'provider': clone_dataset_attr['provider'],
+                'env': clone_dataset_attr['env'],
+                'name': clone_dataset_attr['name']
+            }
+            print(f'Creating clone dataset')
+            url = f'{self.server}/dataset'
+            headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
+            r = requests.post(url, data=json.dumps(payload), headers=headers)
+            if r.status_code == 200:
+                clone_dataset_id = r.json()['data']['id']
+            else:
+                print(r.status_code)
+                return None
+            print(f'{self.server}/v1/dataset/{clone_dataset_id}')
 
-                layers =  self.layers 
-                if clone_children and len(layers) > 0:
-                    for layer in layers:
-                        try:
-                            layer_name = layer.attributes['name']
-                            layer.clone(token=token, env=env, layer_params={'name': layer_name}, target_dataset_id=clone_dataset_id)
-                        except:
-                            raise ValueError(f'Layer cloning failed for {layer.id}')
-                elif clone_children and len(layers) == 0:
-                    print("No children to clone!")
+            layers =  self.layers 
+            if clone_children and len(layers) > 0:
+                for layer in layers:
+                    try:
+                        layer_name = layer.attributes['name']
+                        layer.clone(token=token, env=env, layer_params={'name': layer_name}, target_dataset_id=clone_dataset_id)
+                    except:
+                        raise ValueError(f'Layer cloning failed for {layer.id}')
+            elif clone_children and len(layers) == 0:
+                print("No children to clone!")
 
-                self.attributes = Dataset(clone_dataset_id).attributes
-                return Dataset(clone_dataset_id)
+            self.attributes = Dataset(clone_dataset_id).attributes
+            return Dataset(clone_dataset_id)
 
 
     def intersect(self, geometry):
