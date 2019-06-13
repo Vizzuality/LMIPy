@@ -266,7 +266,8 @@ class Dataset:
                 if clone_children and len(layers) > 0:
                     for layer in layers:
                         try:
-                            layer.clone(self, token=token, env=env, target_dataset_id=clone_dataset_id)
+                            layer_name = layer.attributes['name']
+                            layer.clone(token=token, env=env, layer_params={'name': layer_name}, target_dataset_id=clone_dataset_id)
                         except:
                             raise ValueError(f'Layer cloning failed for {layer.id}')
                 elif clone_children and len(layers) == 0:
