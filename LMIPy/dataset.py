@@ -226,10 +226,12 @@ class Dataset:
             print('Deletion aborted.')
         return self
 
-    def clone(self, token=None, env='staging', dataset_params=None):
+    def clone(self, token=None, env='staging', dataset_params=None, clone_children=False):
         """
         Create a clone of a target Dataset as a new staging or prod Dataset.
         A set of attributes can be specified for the clone Dataset.
+
+        Set clone_children=True to clone all child layers.
         """
         if not token:
             raise ValueError(f'[token] Resource Watch API token required to clone.')
@@ -259,6 +261,17 @@ class Dataset:
                     print(r.status_code)
                     return None
                 print(f'{self.server}/v1/dataset/{clone_dataset_id}')
+
+                layers =  self.layers 
+                if clone_children and len(layers) > 0:
+                    for layer in layers:
+                        try:
+                            layer.clone(self, token=token, env=env, target_dataset_id=clone_dataset_id)
+                        except:
+                            raise ValueError(f'Layer cloning failed for {layer.id}')
+                elif clone_children and len(layers) == 0:
+                    print("No children to clone!")
+
                 self.attributes = Dataset(clone_dataset_id).attributes
                 return Dataset(clone_dataset_id)
 
