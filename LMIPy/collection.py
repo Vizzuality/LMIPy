@@ -6,7 +6,7 @@ from tqdm import tqdm
 from .dataset import Dataset
 from .table import Table
 from .layer import Layer
-from .utils import create_class, show, flatten_list
+from .utils import create_class, show, flatten_list, parse_filters
 
 class Collection:
     """
@@ -29,10 +29,13 @@ class Collection:
         String to search records by, e.g. ’Forest loss’
     object_type: list
         A list of strings of object types to search, e.g. [‘dataset’, ‘layer’]
+    filters: dict
+        A dictionary of filter key, value pairs e.g. {'provider', 'gee'}
+        Possible search keys: 'connectorType', 'provider', 'status', 'published', 'protected', 'geoInfo'.
     """
     def __init__(self, search='', app=['gfw','rw'], env='production', limit=1000, order='name', sort='desc',
                  object_type=['dataset', 'layer','table', 'widget'], server='https://api.resourcewatch.org',
-                 mapbox_token=None):
+                 filters=None, mapbox_token=None):
         self.search = [search.lower()] + search.lower().strip().split(' ')
         self.server = server
         self.app = ",".join(app)
@@ -40,6 +43,7 @@ class Collection:
         self.limit = limit
         self.order = order
         self.sort = sort
+        self.filters = filters
         self.mapbox_token = mapbox_token
         self.object_type = object_type
         self.collection = self.get_collection()
@@ -104,7 +108,8 @@ class Collection:
 
     def get_entities(self):
         hash = random.getrandbits(16)
-        url = (f'{self.server}/v1/dataset?app={self.app}&env={self.env}&'
+        filter_string = parse_filters(self.filters)
+        url = (f'{self.server}/v1/dataset?app={self.app}&env={self.env}&{filter_string}'
                f'includes=layer,vocabulary,metadata,widget&page[size]=1000&hash={hash}')
         r = requests.get(url)
         response_list = r.json().get('data', None)

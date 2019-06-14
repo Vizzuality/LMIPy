@@ -197,3 +197,18 @@ def get_geojson_string(geom):
         geom['coordinates'] = [coords]
     feat_col = {"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {}, "geometry": geom}]}
     return json.dumps(feat_col)
+
+def parse_filters(filter_objects):
+    filter_whitelist = ['connectorType', 'provider', 'status', 'published', 'protected', 'geoInfo']
+    return_string = ''
+    error_string = ''
+    if filter_objects:
+        for k, v in filter_objects.items():
+            if k in filter_whitelist:
+                return_string += f'{k}={v}&'
+            else:
+                error_string += f' {k},'
+        if error_string:
+            print(f'Unable to filter by{error_string[:-1]}.')
+        return return_string
+    return ''
