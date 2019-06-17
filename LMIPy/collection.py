@@ -157,8 +157,14 @@ class Collection:
         tmp_sorted = []
         try:
             d = {}
+            duplicate = {}
             for n, z in enumerate([c['attributes'].get(self.order.lower()) for c in collection_list]):
-                d[z] = collection_list[n]
+                if duplicate.get(z, None):
+                    d[f'{z} {duplicate[z]}'] = collection_list[n]
+                    duplicate[z] += 1
+                else:
+                    d[z] = collection_list[n]
+                    duplicate[z] = 1
             keys = sorted(d, reverse=self.sort.lower() == 'asc')
             for key in keys:
                 tmp_sorted.append(d[key])
