@@ -239,9 +239,9 @@ def sldParse(sld_str):
     """
     Builds a dictionary from an SldStyle string.
     """
-    sld_str = sld_str.replace("'", '"')
+    sld_str = sld_str.replace("'", '"').replace('\"', '"')
     values = ['color', 'label', 'quantity', 'opacity']
-    items = [el.strip() for el in sld_str.split('+') if 'ColorMapEntry'in el]
+    items = [el.strip() for el in sld_str.split('ColorMapEntry') if '<RasterSymbolizer>' not in el]
     sld_items = []
     for i in items:
         tmp = {}
