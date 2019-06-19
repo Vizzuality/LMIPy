@@ -236,19 +236,18 @@ def sldDump(sldObj):
     return sld_str + "+ </ColorMap> + </RasterSymbolizer>"
 
 def sldParse(sld_str):
+    """
+    Builds a dictionary from an SldStyle string.
+    """
     sld_str = sld_str.replace("'", '"')
     values = ['color', 'label', 'quantity', 'opacity']
     items = [el.strip() for el in sld_str.split('+') if 'ColorMapEntry'in el]
-
     sld_items = []
-
     for i in items:
         tmp = {}
         for v in values:
             tmp[v] = find_between(i, f'{v}="', '"')
-
-        sld_items.append(tmp)    
-    
+        sld_items.append(tmp)
     return {
         'type': find_between(sld_str, 'type="', '"'),
         'extended': find_between(sld_str, 'extended="', '"'),
