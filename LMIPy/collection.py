@@ -176,7 +176,7 @@ class Collection:
 
     def save(self, path=None):
         """
-        Save all entities in the collection to a loca path.
+        Save all entities in the collection to a local path.
         """
         if not path:
             path = './LMI-BACKUP'
