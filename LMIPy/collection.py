@@ -175,6 +175,9 @@ class Collection:
         return tmp_sorted
 
     def save(self, path=None):
+        """
+        Save all entities in the collection to a loca path.
+        """
         if not path:
             path = './LMI-BACKUP'
             if not os.path.isdir(path):
