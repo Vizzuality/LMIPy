@@ -25,14 +25,16 @@ class Dataset:
     sever: str
         A URL string of the vizzuality server.
     """
-    def __init__(self, id_hash=None, attributes=None, server='https://api.resourcewatch.org'):
+    def __init__(self, id_hash=None, attributes=None, server='https://api.resourcewatch.org', token=None):
         self.id = id_hash
         self.layers = []
         self.server = server
         if not attributes:
             self.attributes = self.get_dataset()
-        else:
-            self.attributes = attributes
+        elif attributes and token and server == 'https://api.resourcewatch.org' and not id_hash:   
+            created_dataset = self.new_dataset(token=token, attributes=attributes)
+            self.attributes = created_dataset.attributes
+            self.id = created_dataset.id
 
         if len(self.attributes.get('layer', [])) > 0:
             self.layers = [Layer(attributes=l, server=self.server) for l in self.attributes.get('layer')]
@@ -481,3 +483,26 @@ class Dataset:
                 return None
         else:
             raise ValueError(f'Widget creation requires name string, application string and a widgetConfig object.')
+
+    def new_dataset(self, token=None, attributes=None):
+        """
+        Create a new staging or prod Dataset entity from attributes.
+        """
+        if not token:
+            raise ValueError(f'[token] Resource Watch API token required to create a new dataset.')
+        elif not attributes:
+            raise ValueError(f'Attributes required to create a new dataset.')
+        else:
+            url = f'http://api.resourcewatch.org/dataset'
+            headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
+            payload = {'dataset': attributes}
+
+            r = requests.post(url, data=json.dumps(payload), headers=headers)
+            if r.status_code == 200:
+                new_dataset_id = r.json()['data']['id']
+            else:
+                print(r.status_code)
+                return None
+            print(f'{self.server}/v1/dataset/{new_dataset_id}')
+            return Dataset(new_dataset_id)
+            

@@ -23,19 +23,16 @@ class Layer:
         A string of the server URL.
     """
     def __init__(self, id_hash=None, attributes=None,
-                    server='https://api.resourcewatch.org', mapbox_token=None):
+                    server='https://api.resourcewatch.org', mapbox_token=None, token=None):
         self.server = server
         self.mapbox_token = mapbox_token
-        if not id_hash:
-            if attributes:
-                self.id = attributes.get('id', None)
-                self.attributes = attributes.get('attributes', None)
-            else:
-                self.id = None
-                self.attributes = None
-        else:
+        if not attributes:
             self.id = id_hash
             self.attributes = self.get_layer()
+        elif attributes and token and server == 'https://api.resourcewatch.org':  
+            created_layer = self.new_layer(token=token, attributes=attributes)
+            self.attributes = created_layer.attributes
+            self.id = created_layer.id
 
     def __repr__(self):
         return self.__str__()
@@ -509,3 +506,27 @@ class Layer:
         return Layer(id_hash=recovered_layer['id'], attributes=recovered_dataset['attributes'])
 
 
+    def new_layer(self, token=None, attributes=None):
+        """
+        Create a new staging or prod Layer entity from attributes.
+        """
+        if not token:
+            raise ValueError(f'[token] Resource Watch API token required to create a new dataset.')
+        elif not attributes:
+            raise ValueError(f'Attributes required to create a new dataset.')
+        elif not attributes.get('dataset', None):
+            raise ValueError(f'Attributes must include dataset key.')
+        else:
+            dataset_id = attributes['dataset']
+            url = f'http://api.resourcewatch.org/dataset/{dataset_id}/layer'
+            headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
+            payload = {**attributes}
+
+            r = requests.post(url, data=json.dumps(payload), headers=headers)
+            if r.status_code == 200:
+                new_layer_id = r.json()['data']['id']
+            else:
+                print(r.status_code)
+                return None
+            print(f'{self.server}/v1/layer/{new_layer_id}')
+            return Layer(new_layer_id)
