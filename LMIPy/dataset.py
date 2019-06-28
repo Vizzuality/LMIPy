@@ -339,7 +339,12 @@ class Dataset:
                     "id": v.id,
                     "type": "vocabulary",
                     "attributes": v.attributes
-                    } for v in self.vocabulary]
+                    } for v in self.vocabulary],
+                'widget': [{
+                    "id": w.id,
+                    "type": "widget",
+                    "attributes": w.attributes
+                    } for w in self.widget]
                 },
         }
         if not os.path.isdir(path):

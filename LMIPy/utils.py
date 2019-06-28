@@ -212,3 +212,52 @@ def parse_filters(filter_objects):
             print(f'Unable to filter by{error_string[:-1]}.')
         return return_string
     return ''
+
+def sldDump(sldObj):
+    """
+    Creates valid SldStyle string from an object.
+    """
+    sld_type = sldObj.get('type', None)
+    extended = str(sldObj.get('extended', 'false')).lower()
+    items = sldObj.get('items', None)
+    
+    if sld_type not in ["values", "ramp", "intervals"]:
+        print('Unable to create SldStyle. Type must be in "values", "ramp", "intervals".')
+        return None
+    if items:
+        sld_str = f'<RasterSymbolizer> + <ColorMap type="{sld_type}" extended="{extended}"> '
+        for item in items:
+            color = item.get("color", "")
+            quantity = item.get("quantity", "")
+            label = item.get("label", "")
+            opacity = item.get("opacity", "1")
+            
+            sld_str += f'+ <ColorMapEntry color="{color}" label="{label}" quantity="{quantity}" opacity="{opacity}"/> '
+    return sld_str + "+ </ColorMap> + </RasterSymbolizer>"
+
+def sldParse(sld_str):
+    """
+    Builds a dictionary from an SldStyle string.
+    """
+    sld_str = sld_str.replace("'", '"').replace('\"', '"')
+    values = ['color', 'label', 'quantity', 'opacity']
+    items = [el.strip() for el in sld_str.split('ColorMapEntry') if '<RasterSymbolizer>' not in el]
+    sld_items = []
+    for i in items:
+        tmp = {}
+        for v in values:
+            tmp[v] = find_between(i, f'{v}="', '"')
+        sld_items.append(tmp)
+    return {
+        'type': find_between(sld_str, 'type="', '"'),
+        'extended': find_between(sld_str, 'extended="', '"'),
+        'items': sld_items
+    }
+
+def find_between(s, first, last):
+    try:
+        start = s.index(first) + len(first)
+        end = s.index(last, start)
+        return s[start:end]
+    except ValueError:
+        return ""
