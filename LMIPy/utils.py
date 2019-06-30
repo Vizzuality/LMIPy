@@ -220,33 +220,33 @@ def sldDump(sldObj):
     sld_type = sldObj.get('type', None)
     extended = str(sldObj.get('extended', 'false')).lower()
     items = sldObj.get('items', None)
+    sld_attr = {'color': None, 'label': None, 'quantity': None, 'opacity': None}
     
-    if sld_type not in ["values", "ramp", "intervals"]:
+    if sld_type not in ['linear', 'ramp', 'gradient', 'intervals', 'values']:
         print('Unable to create SldStyle. Type must be in "values", "ramp", "intervals".')
         return None
     if items:
-        sld_str = f'<RasterSymbolizer> + <ColorMap type="{sld_type}" extended="{extended}"> '
+        sld_str = f'<RasterSymbolizer> <ColorMap type="{sld_type}" extended="{extended}"> '
         for item in items:
-            color = item.get("color", "")
-            quantity = item.get("quantity", "")
-            label = item.get("label", "")
-            opacity = item.get("opacity", "1")
-            
-            sld_str += f'+ <ColorMapEntry color="{color}" label="{label}" quantity="{quantity}" opacity="{opacity}"/> '
-    return sld_str + "+ </ColorMap> + </RasterSymbolizer>"
+            sld_str += f'<ColorMapEntry '
+            for k in sld_attr.keys():
+                if item.get(k, None): sld_str += f'{k}="{item[k]}"  '
+            sld_str += '/>  + '
+    return sld_str + "</ColorMap> </RasterSymbolizer>"
 
 def sldParse(sld_str):
     """
     Builds a dictionary from an SldStyle string.
     """
     sld_str = sld_str.replace("'", '"').replace('\"', '"')
-    values = ['color', 'label', 'quantity', 'opacity']
+    keys = ['color', 'label', 'quantity', 'opacity']
     items = [el.strip() for el in sld_str.split('ColorMapEntry') if '<RasterSymbolizer>' not in el]
     sld_items = []
     for i in items:
         tmp = {}
-        for v in values:
-            tmp[v] = find_between(i, f'{v}="', '"')
+        for k in keys:
+            v = find_between(i, f'{k}="', '"')
+            if v: tmp[k] = v
         sld_items.append(tmp)
     return {
         'type': find_between(sld_str, 'type="', '"'),
