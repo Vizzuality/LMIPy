@@ -9,7 +9,7 @@ from pprint import pprint
 from .layer import Layer
 from .utils import html_box
 from .lmipy import Vocabulary, Metadata, Widget
-from colored import fg, bg, attr
+from colored import fg, bg, attr, nested_set
 
 
 class Dataset:
@@ -155,9 +155,17 @@ class Dataset:
         update_blacklist = ['metadata','layer', 'vocabulary', 'updatedAt', 'userId', 'slug', "clonedHost", "errorMessage", "taskId", "dataLastUpdated"]
         attributes = {f'{k}':v for k,v in self.attributes.items() if k not in update_blacklist}
         if not update_params:
-            payload = { **attributes }
+            raise ValueError(f'[update_params=None] Must specify update parameters.')
         else:
-            payload = { f'{key}': update_params[key] for key in update_params if key in list(attributes.keys()) }
+            payload = {}
+            for k, v in update_params.items():
+                if '.' in k:
+                    nested_keys = k.split('.')
+                    if len(nested_keys) > 1 and nested_keys[0] in list(attributes.keys()):
+                        payload[nested_keys[0]] = attributes.get(nested_keys[0])
+                        nested_set(payload, nested_keys, v)
+                elif k in list(attributes.keys()):
+                    payload[k] = v
         try:
             url = f"{self.server}/dataset/{self.id}"
             headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
