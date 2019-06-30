@@ -223,7 +223,7 @@ def sldDump(sldObj):
     sld_attr = {'color': None, 'label': None, 'quantity': None, 'opacity': None}
     
     if sld_type not in ['linear', 'ramp', 'gradient', 'intervals', 'values']:
-        print('Unable to create SldStyle. Type must be in "values", "ramp", "intervals".')
+        print('Unable to create SldStyle. Type must be in "linear", "ramp", "gradient", "intervals", "values".')
         return None
     if items:
         sld_str = f'<RasterSymbolizer> <ColorMap type="{sld_type}" extended="{extended}"> '
