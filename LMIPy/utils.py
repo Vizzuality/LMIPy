@@ -230,8 +230,8 @@ def sldDump(sldObj):
         for item in items:
             sld_str += f'<ColorMapEntry '
             for k in sld_attr.keys():
-                if item.get(k, None): sld_str += f'{k}="{item[k]}"  '
-            sld_str += '/>  + '
+                if item.get(k, None): sld_str += f'{k}="{item[k]}" '
+            sld_str += '/> + '
     return sld_str + "</ColorMap> </RasterSymbolizer>"
 
 def sldParse(sld_str):
