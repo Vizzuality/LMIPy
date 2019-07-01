@@ -7,9 +7,9 @@ import datetime
 #from shapely.geometry import shape
 from pprint import pprint
 from .layer import Layer
-from .utils import html_box
+from .utils import html_box, nested_set
 from .lmipy import Vocabulary, Metadata, Widget
-from colored import fg, bg, attr, nested_set
+from colored import fg, bg, attr
 
 
 class Dataset:
