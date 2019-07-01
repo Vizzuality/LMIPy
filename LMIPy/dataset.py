@@ -7,7 +7,7 @@ import datetime
 #from shapely.geometry import shape
 from pprint import pprint
 from .layer import Layer
-from .utils import html_box
+from .utils import html_box, nested_set
 from .lmipy import Vocabulary, Metadata, Widget
 from colored import fg, bg, attr
 
@@ -155,9 +155,17 @@ class Dataset:
         update_blacklist = ['metadata','layer', 'vocabulary', 'updatedAt', 'userId', 'slug', "clonedHost", "errorMessage", "taskId", "dataLastUpdated"]
         attributes = {f'{k}':v for k,v in self.attributes.items() if k not in update_blacklist}
         if not update_params:
-            payload = { **attributes }
+            raise ValueError(f'[update_params=None] Must specify update parameters.')
         else:
-            payload = { f'{key}': update_params[key] for key in update_params if key in list(attributes.keys()) }
+            payload = {}
+            for k, v in update_params.items():
+                if '.' in k:
+                    nested_keys = k.split('.')
+                    if len(nested_keys) > 1 and nested_keys[0] in list(attributes.keys()):
+                        payload[nested_keys[0]] = attributes.get(nested_keys[0])
+                        nested_set(payload, nested_keys, v)
+                elif k in list(attributes.keys()):
+                    payload[k] = v
         try:
             url = f"{self.server}/dataset/{self.id}"
             headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
@@ -265,7 +273,8 @@ class Dataset:
 
             layers =  self.layers 
             if clone_children and len(layers) > 0:
-                for layer in layers:
+                for i in range(0, len(layers)):
+                    layer = layers[i]
                     try:
                         layer_name = layer.attributes['name']
                         layer.clone(token=token, env=env, layer_params={'name': layer_name}, target_dataset_id=clone_dataset_id)

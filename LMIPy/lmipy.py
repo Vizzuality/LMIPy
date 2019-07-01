@@ -1,7 +1,7 @@
 import requests
 import random
 import json
-from .utils import html_box
+from .utils import html_box, nested_set
 
 
 class Metadata:
@@ -198,13 +198,22 @@ class Widget:
         ds_id = self.attributes.get('dataset', None)
         w_id = self.id
         update_keys = ["widgetConfig", "name", "description", "application", "default", "protected", "defaultEditableWidget", "published", "freeze"]
+        attributes = {f'{k}':v for k,v in self.attributes.items() if k in update_keys}
         if update_params and any([x in update_keys for x in list(update_params.keys())]):
-            print('payload',update_params)
+            payload = {}
+            for k, v in update_params.items():
+                if '.' in k:
+                    nested_keys = k.split('.')
+                    if len(nested_keys) > 1 and nested_keys[0] in list(attributes.keys()):
+                        payload[nested_keys[0]] = attributes.get(nested_keys[0])
+                        nested_set(payload, nested_keys, v)
+                elif k in list(attributes.keys()):
+                    payload[k] = v
             try:
                 url = f'https://api.resourcewatch.org/v1/dataset/{ds_id}/widget/{w_id}'
                 print('url',url)
                 headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
-                r = requests.patch(url, data=json.dumps(update_params), headers=headers)
+                r = requests.patch(url, data=json.dumps(payload), headers=headers)
             except:
                 raise ValueError(f'Widget update failed.')
             if r.status_code == 200:
