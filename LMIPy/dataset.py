@@ -273,7 +273,8 @@ class Dataset:
 
             layers =  self.layers 
             if clone_children and len(layers) > 0:
-                for layer in layers:
+                for i in range(0, len(layers)):
+                    layer = layers[i]
                     try:
                         layer_name = layer.attributes['name']
                         layer.clone(token=token, env=env, layer_params={'name': layer_name}, target_dataset_id=clone_dataset_id)
