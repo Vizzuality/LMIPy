@@ -26,13 +26,16 @@ class Layer:
                     server='https://api.resourcewatch.org', mapbox_token=None, token=None):
         self.server = server
         self.mapbox_token = mapbox_token
-        if not attributes:
+        if not attributes and id_hash:
             self.id = id_hash
             self.attributes = self.get_layer()
         elif attributes and token and server == 'https://api.resourcewatch.org':  
             created_layer = self.new_layer(token=token, attributes=attributes)
             self.attributes = created_layer.attributes
             self.id = created_layer.id
+        elif attributes:
+            self.id = attributes.get('id')
+            self.attributes = self.get_layer()
 
     def __repr__(self):
         return self.__str__()
