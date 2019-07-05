@@ -150,7 +150,7 @@ class Widget:
     attributes: dic
         A dictionary holding the attributes of a widget (which are attached to a Dataset).
     """
-    def __init__(self, id_hash=None, attributes=None, server=None):
+    def __init__(self, id_hash=None, attributes=None, server='https://api.resourcewatch.org'):
         self.id = id_hash
         self.server = server
         if attributes:
@@ -181,7 +181,7 @@ class Widget:
         if r.status_code == 200:
             return r.json().get('data').get('attributes')
         else:
-            raise ValueError(f'Layer with id={self.id} does not exist.')
+            raise ValueError(f'Widget with id={self.id} does not exist.')
 
     def update(self, update_params=None, token=None):
         """

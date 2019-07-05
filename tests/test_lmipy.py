@@ -1,6 +1,25 @@
 import pytest
 from LMIPy import Dataset, Collection, Layer, Metadata, Vocabulary, Widget, Image, ImageCollection, Geometry
 
+### Collection Tests
+
+def test_search_collection():
+    """Search all gfw collection for an object"""
+    col = Collection(search='forest', app=['gfw'])
+    assert len(col) > 1
+
+def test_search_collection_object_type():
+    """Search all gfw collection for an object"""
+    col = Collection(search='forest', object_type=['layer', 'dataset', 'widget'] app=['gfw'])
+    assert len(col) > 1
+
+def test_search_collection_filters():
+    """Search all gfw collection for an object"""
+    col = Collection(search='forest', object_type=['layer'], filters={'provider': 'gee'}, app=['gfw'])
+    assert len(col) > 1
+
+### Dataset Tests
+
 def test_create_dataset():
     ds = Dataset(id_hash='bb1dced4-3ae8-4908-9f36-6514ae69713f')
     assert ds.id == 'bb1dced4-3ae8-4908-9f36-6514ae69713f'
@@ -11,15 +30,6 @@ def test_queries_on_datasets():
     ds = Dataset(id_hash='bd5d7924-611e-4302-9185-8054acb0b44b')
     df = ds.query('SELECT fid, ST_ASGEOJSON(the_geom_webmercator) FROM data LIMIT 5')
     assert len(df) > 1
-
-def test_search_collection():
-    """Search all gfw collection for an object"""
-    col = Collection(search='forest', app=['gfw'])
-    assert len(col) > 1
-
-def test_layer_creation():
-    ly = Layer(id_hash='dc6f6dd2-0718-4e41-81d2-109866bb9edd')
-    assert ly is not None
 
 def test_access_vocab():
     ds = Dataset(id_hash='bb1dced4-3ae8-4908-9f36-6514ae69713f')
@@ -41,9 +51,41 @@ def test_access_widget():
     assert type(ds.widget) == list
     assert len(ds.widget) > 0
 
-def test_image_collection_search():
-    ic = ImageCollection(lon=28.271979, lat=-16.457814, start='2018-06-01', end='2018-06-20')
-    assert len(ic) > 0
+### Clone Dataset
+### Update Dataset
+### Delete Dataset
+
+#----- Layer Tests -----#
+
+def test_layer_creation():
+    ly = Layer(id_hash='dc6f6dd2-0718-4e41-81d2-109866bb9edd')
+    assert ly is not None
+
+### Widget Tests
+
+def test_create_widget():
+    w = Widget(id_hash='8571b2c4-9478-4b63-8444-d308b191df92')
+    assert w.id == '8571b2c4-9478-4b63-8444-d308b191df92'
+    assert type(w.attributes) == dict
+    assert len(w.attributes) > 0
+
+### Clone Layer
+### Update Layer
+### Delete Layer
+
+#----- Vocab Tests -----#
+
+### Add Vocab
+### Update Vocab
+### Delete Vocab
+
+#----- Meta Tests -----#
+
+### Clone Meta
+### Update Meta
+### Delete Meta
+
+#----- Geometry Tests -----#
 
 def test_geometry_create_and_describe():
     atts={'geojson': {'type': 'FeatureCollection',
@@ -58,3 +100,11 @@ def test_geometry_create_and_describe():
     g = Geometry(attributes=atts)
     g.describe()
     assert g.description.get('title') is not None
+
+#----- ImageCollection Tests -----#
+
+def test_image_collection_search():
+    ic = ImageCollection(lon=28.271979, lat=-16.457814, start='2018-06-01', end='2018-06-20')
+    assert len(ic) > 0
+
+#----- Image Tests -----#
