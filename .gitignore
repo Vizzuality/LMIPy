@@ -16,5 +16,5 @@ Untitled.ipynb
 sample.geojson
 .vscode
 .coverage
-.env
+keys.json
 coverage.xml
