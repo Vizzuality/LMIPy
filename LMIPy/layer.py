@@ -5,6 +5,7 @@ import urllib
 import json
 import random
 import re
+from pprint import pprint
 from .utils import html_box, get_geojson_string, nested_set
 from colored import fg, bg, attr
 
@@ -330,8 +331,8 @@ class Layer:
             target_dataset = Dataset(target_dataset_id)
         else:
             target_dataset = Dataset(self.attributes['dataset'])
-            clone_dataset_attr = {**target_dataset.attributes, 'name': name}
-            payload = {
+            clone_dataset_attr = {**target_dataset.attributes, 'name': name, }
+            payload = {"dataset":{
                 'application': clone_dataset_attr['application'],
                 'connectorType': clone_dataset_attr['connectorType'],
                 'connectorUrl': clone_dataset_attr['connectorUrl'],
@@ -339,11 +340,14 @@ class Layer:
                 'provider': clone_dataset_attr['provider'],
                 'env': env,
                 'name': clone_dataset_attr['name']
+                }
             }
             print(f'Creating clone dataset')
             url = f'{self.server}/dataset'
             headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
             r = requests.post(url, data=json.dumps(payload), headers=headers)
+            print(r.url)
+            pprint(payload)
             if r.status_code == 200:
                 target_dataset_id = r.json()['data']['id']
                 clone_dataset = Dataset(target_dataset_id)
@@ -529,7 +533,7 @@ class Layer:
             raise ValueError(f'Attributes must include dataset key.')
         else:
             dataset_id = attributes['dataset']
-            url = f'http://api.resourcewatch.org/dataset/{dataset_id}/layer'
+            url = f'http://api.resourcewatch.org/v1/dataset/{dataset_id}/layer'
             headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
             payload = {**attributes}
 
