@@ -1,12 +1,10 @@
 import pytest
 import random
-import json
 import os
-from LMIPy import Dataset, Collection, Layer, Metadata, Vocabulary, Widget, Image, ImageCollection, Geometry
+from LMIPy import Dataset, Collection, Layer, Metadata, Vocabulary, Widget, Image, ImageCollection, Geometry, utils
 
 try:
-    with open("./keys.json") as f:
-        API_TOKEN = json.load(f)[0]["API_TOKEN"]
+    API_TOKEN = os.environ.get("API_TOKEN", None)
 except:
     raise ValueError(f"Failed to access keys for test.")
 
@@ -192,14 +190,20 @@ def test_geometry_create_and_describe():
                         'features': [{'type': 'Feature',
                             'properties': {},
                             'geometry': {'type': 'Polygon',
-                            'coordinates': [[[-52.16308593749999, -1.669685500986571],
-                            [-46.9775390625, -1.669685500986571],
-                            [-46.9775390625, 0.7909904981540058],
-                            [-52.16308593749999, 0.7909904981540058],
-                            [-52.16308593749999, -1.669685500986571]]]}}]}}
+                            'coordinates': [[[28.00004197633704,49.710191987352424],
+                            [28.00004197633704,48.18737001395745],
+                            [27.750103011493355,48.18737001395745],
+                            [27.50016404664967,48.18737001395745],
+                            [27.25022508180598,48.18737001395745],
+                            [26.99982835329041,48.18737001395745],
+                            [26.99982835329041,49.710191987352424],
+                            [27.25022508180598,49.710191987352424],
+                            [27.50016404664967,49.710191987352424],
+                            [27.750103011493355,49.710191987352424],
+                            [28.00004197633704,49.710191987352424]]]}}]}}
     g = Geometry(attributes=atts)
     g.describe()
-    # assert g.description.get('title') is not None
+    assert g.description.get('title') is not None
 
 #----- ImageCollection Tests -----#
 
@@ -208,3 +212,38 @@ def test_image_collection_search():
     assert len(ic) > 0
 
 #----- Image Tests -----#
+
+#----- Utils Tests -----#
+
+def test_sld_functions():
+    sld_obj = {
+        'extended': 'false',
+        'items': [
+            {'color': '#F8EBFF', 'quantity': -40},
+            {'color': '#ECCAFC', 'quantity': -20.667},
+            {'color': '#DFA4FF', 'quantity': -14.667},
+            {'color': '#C26DFE', 'quantity': -10},
+            {'color': '#9D36F7', 'quantity': -3.333},
+            {'color': '#6D00E1', 'quantity': -0.667},
+            {'color': '#3C00AB', 'quantity': 0}
+        ],
+        'type': 'ramp'
+    }
+
+    test_sld = {
+        'extended': 'false',
+        'items': [
+            {'color': '#F8EBFF', 'quantity': '-40'},
+            {'color': '#ECCAFC', 'quantity': '-20.667'},
+            {'color': '#DFA4FF', 'quantity': '-14.667'},
+            {'color': '#C26DFE', 'quantity': '-10'},
+            {'color': '#9D36F7', 'quantity': '-3.333'},
+            {'color': '#6D00E1', 'quantity': '-0.667'},
+            {'color': '#3C00AB'}
+        ],
+        'type': 'ramp'
+        }
+
+    sld_str = utils.sldDump(sld_obj)
+    assert sld_str == '<RasterSymbolizer> <ColorMap type="ramp" extended="false"> <ColorMapEntry color="#F8EBFF" quantity="-40" /> + <ColorMapEntry color="#ECCAFC" quantity="-20.667" /> + <ColorMapEntry color="#DFA4FF" quantity="-14.667" /> + <ColorMapEntry color="#C26DFE" quantity="-10" /> + <ColorMapEntry color="#9D36F7" quantity="-3.333" /> + <ColorMapEntry color="#6D00E1" quantity="-0.667" /> + <ColorMapEntry color="#3C00AB" /> + </ColorMap> </RasterSymbolizer>'
+    assert utils.sldParse(sld_str) == test_sld
