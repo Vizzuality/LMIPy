@@ -252,13 +252,15 @@ class Dataset:
                 if k in dataset_params:
                     clone_dataset_attr[k] = dataset_params[k]
             payload = {
-                'application': clone_dataset_attr['application'],
-                'connectorType': clone_dataset_attr['connectorType'],
-                'connectorUrl': clone_dataset_attr['connectorUrl'],
-                'tableName': clone_dataset_attr['tableName'],
-                'provider': clone_dataset_attr['provider'],
-                'env': clone_dataset_attr['env'],
-                'name': clone_dataset_attr['name']
+                'dataset': {
+                    'application': clone_dataset_attr['application'],
+                    'connectorType': clone_dataset_attr['connectorType'],
+                    'connectorUrl': clone_dataset_attr['connectorUrl'],
+                    'tableName': clone_dataset_attr['tableName'],
+                    'provider': clone_dataset_attr['provider'],
+                    'env': clone_dataset_attr['env'],
+                    'name': clone_dataset_attr['name']
+                }
             }
             print(f'Creating clone dataset')
             url = f'{self.server}/dataset'
