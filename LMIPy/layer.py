@@ -30,8 +30,8 @@ class Layer:
         if not attributes and id_hash:
             self.id = id_hash
             self.attributes = self.get_layer()
-        elif attributes and token and server == 'https://api.resourcewatch.org':  
-            created_layer = self.new_layer(token=token, attributes=attributes)
+        elif attributes and token: #and server == 'https://api.resourcewatch.org':  
+            created_layer = self.new_layer(token=token, attributes=attributes, server=self.server)
             self.attributes = created_layer.attributes
             self.id = created_layer.id
         elif attributes:
@@ -332,9 +332,9 @@ class Layer:
             if k in layer_params:
                 clone_layer_attr[k] = layer_params[k]
         if target_dataset_id:
-            target_dataset = Dataset(target_dataset_id)
+            target_dataset = Dataset(id_hash=target_dataset_id, server=self.server)
         else:
-            target_dataset = Dataset(self.attributes['dataset'])
+            target_dataset = Dataset(attributes=self.attributes['dataset'], server=self.server)
             clone_dataset_attr = {**target_dataset.attributes, 'name': name, }
             payload = {"dataset":{
                 'application': clone_dataset_attr['application'],
@@ -383,7 +383,7 @@ class Layer:
             return None
         print(f'{clone_server}/v1/dataset/{target_dataset_id}/layer/{clone_layer_id}')
         self.attributes = Layer(id_hash=clone_layer_id, server=clone_server).attributes
-        return Layer(clone_layer_id)
+        return Layer(id_hash=clone_layer_id, server=self.server)
 
     def parse_query(self, sql):
         """
@@ -445,7 +445,7 @@ class Layer:
         Returns parent datset
         """
         from .dataset import Dataset
-        return Dataset(self.attributes['dataset'])
+        return Dataset(self.attributes['dataset'], server=self.server)
 
     def intersect(self, geometry):
         """
@@ -493,8 +493,8 @@ class Layer:
         try:
             with open(f"{path}/{self.id}.json") as f:
                 recovered_dataset = json.load(f)
-            recovered_layer = [l for l in recovered_dataset.layers if l.id == self.id][0]
-
+            recovered_layer = [l for l in recovered_dataset['layers'] if l.id == self.id][0]
+            server = recovered_layer.get('server', 'https://api.resourcewatch.org')
             if check:
                 blacklist = ['updatedAt']
                 attributes = {f'{k}':v for k,v in recovered_layer['attributes'].items() if k not in blacklist}
@@ -505,10 +505,10 @@ class Layer:
         except:
             raise ValueError(f'Failed to load backup from f{path}')
 
-        return Layer(id_hash=recovered_layer['id'], attributes=recovered_dataset['attributes'])
+        return Layer(id_hash=recovered_layer['id'], attributes=recovered_dataset['attributes'], server=server)
 
 
-    def new_layer(self, token=None, attributes=None):
+    def new_layer(self, token=None, attributes=None, server='https://api.resourcewatch.org'):
         """
         Create a new staging or prod Layer entity from attributes.
         """
@@ -520,7 +520,7 @@ class Layer:
             raise ValueError(f'Attributes must include dataset key.')
         else:
             dataset_id = attributes['dataset']
-            url = f'http://api.resourcewatch.org/v1/dataset/{dataset_id}/layer'
+            url = f'{server}/v1/dataset/{dataset_id}/layer'
             headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
             payload = {**attributes}
 
@@ -530,5 +530,5 @@ class Layer:
             else:
                 print(r.status_code)
                 return None
-            print(f'{self.server}/v1/layer/{new_layer_id}')
-            return Layer(new_layer_id)
+            print(f'{server}/v1/layer/{new_layer_id}')
+            return Layer(id_hash=new_layer_id, server=server)

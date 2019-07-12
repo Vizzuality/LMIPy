@@ -40,21 +40,21 @@ class Dataset:
             self.layers = [Layer(attributes=l, server=self.server) for l in self.attributes.get('layer')]
             _ = self.attributes.pop('layer')
         if len(self.attributes.get('metadata', [])) > 0:
-            self.metadata = [Metadata(attributes=m) for m in self.attributes.get('metadata')]
+            self.metadata = [Metadata(attributes=m, server=self.server) for m in self.attributes.get('metadata')]
             _ = self.attributes.pop('metadata')
         else:
             self.metadata = []
         if len(self.attributes.get('vocabulary', [])) > 0:
-            self.vocabulary =[Vocabulary(attributes=v) for v in self.attributes.get('vocabulary')]
+            self.vocabulary =[Vocabulary(attributes=v, server=self.server) for v in self.attributes.get('vocabulary')]
             _ = self.attributes.pop('vocabulary')
         else:
             self.vocabulary = []
         if len(self.attributes.get('widget', [])) > 0:
-            self.widget =[Widget(attributes=w) for w in self.attributes.get('widget')]
+            self.widget =[Widget(attributes=w, server=self.server) for w in self.attributes.get('widget')]
             _ = self.attributes.pop('widget')
         else:
             self.widget = []
-        self.url = f"{server}/v1/dataset/{id_hash}?hash={random.getrandbits(16)}"
+        self.url = f"{self.server}/v1/dataset/{id_hash}?hash={random.getrandbits(16)}"
 
     def __repr__(self):
         return self.__str__()
@@ -275,10 +275,8 @@ class Dataset:
                 print(r.status_code)
                 return None
             print(f'{clone_server}/v1/dataset/{clone_dataset_id}')
-
-            layers =  self.layers 
             if clone_children:
-                # CLONE WIDGETS!?
+                layers =  self.layers 
                 if len(layers) > 0:
                     for i in range(0, len(layers)):
                         layer = layers[i]
@@ -289,6 +287,17 @@ class Dataset:
                             raise ValueError(f'Layer cloning failed for {layer.id}')
                 else:
                     print("No children to clone!")
+                # widgets =  self.widget 
+                # if len(layers) > 0:
+                #     for i in range(0, len(layers)):
+                #         layer = layers[i]
+                #         try:
+                #             layer_name = layer.attributes['name']
+                #             layer.clone(token=token, env=env, layer_params={'name': layer_name}, clone_server=clone_server, target_dataset_id=clone_dataset_id)
+                #         except:
+                #             raise ValueError(f'Layer cloning failed for {layer.id}')
+                # else:
+                #     print("No children to clone!")
                 clone_dataset = Dataset(id_hash=clone_dataset_id, server=clone_server)
                 vocabs = self.vocabulary
                 if len(vocabs) > 0:
@@ -316,7 +325,7 @@ class Dataset:
                             clone_dataset.add_metadata(meta_params=meta_payload, token=token)
                         except:
                             raise ValueError('Failed to clone Metadata.')
-            self.attributes = Dataset(clone_dataset_id, server=clone_server).attributes
+            # self.attributes = Dataset(clone_dataset_id, server=clone_server).attributes
             return Dataset(id_hash=clone_dataset_id, server=clone_server)
 
 
@@ -367,6 +376,7 @@ class Dataset:
         save_json = {
             "id": self.id,
             "type": "dataset",
+            "server": self.server,
             "attributes": {
                 **self.attributes,
                 'layer': [{
@@ -531,7 +541,7 @@ class Dataset:
         else:
             raise ValueError(f'Widget creation requires name string, application string and a widgetConfig object.')
 
-    def new_dataset(self, token=None, attributes=None):
+    def new_dataset(self, token=None, attributes=None, server='https://api.resourcewatch.org'):
         """
         Create a new staging or prod Dataset entity from attributes.
         """
@@ -540,7 +550,7 @@ class Dataset:
         elif not attributes:
             raise ValueError(f'Attributes required to create a new dataset.')
         else:
-            url = f'http://api.resourcewatch.org/dataset'
+            url = f'{server}/dataset'
             headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
             payload = {'dataset': attributes}
 
@@ -551,5 +561,5 @@ class Dataset:
                 print(r.status_code)
                 return None
             print(f'{self.server}/v1/dataset/{new_dataset_id}')
-            return Dataset(new_dataset_id)
+            return Dataset(id_hash=new_dataset_id, server=server)
             
