@@ -241,6 +241,8 @@ class Dataset:
         Create a clone of a target Dataset as a new staging or prod Dataset.
         A set of attributes can be specified for the clone Dataset.
 
+        The argument `clone_server` specifies the server to clone to. Default server = https://api.resourcewatch.org
+
         Set clone_children=True to clone all child layers.
         """
         if not clone_server: clone_server = self.server
@@ -287,7 +289,7 @@ class Dataset:
                 else:
                     print("No children to clone!")
                 clone_dataset = Dataset(id_hash=clone_dataset_id, server=clone_server)
-                vocabs = target_dataset.vocabulary
+                vocabs = self.vocabulary
                 if len(vocabs) > 0:
                     for v in vocabs:
                         vocab = v.attributes
@@ -300,7 +302,7 @@ class Dataset:
                             clone_dataset.add_vocabulary(vocab_params=vocab_payload, token=token)
                         except:
                             raise ValueError('Failed to clone Vocabulary.')
-                metas = target_dataset.metadata
+                metas = self.metadata
                 if len(metas) > 0:
                     for m in metas:
                         meta = m.attributes

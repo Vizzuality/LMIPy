@@ -313,6 +313,8 @@ class Layer:
         Create a clone of current Layer (and its parent Dataset) as a new staging or prod Layer.
         A set of attributes can be specified for the clone Layer using layer_params.
         Optionally, you can also select a target Dataset to attach your Layer clone to.
+
+        The argument `clone_server` specifies the server to clone to. Default server = https://api.resourcewatch.org
         """
         from .dataset import Dataset
         if not clone_server: clone_server = self.server
