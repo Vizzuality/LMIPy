@@ -236,13 +236,14 @@ class Dataset:
             print('Deletion aborted.')
         return self
 
-    def clone(self, token=None, env='staging', dataset_params=None, clone_children=False):
+    def clone(self, token=None, env='staging', clone_server=None, dataset_params=None, clone_children=False):
         """
         Create a clone of a target Dataset as a new staging or prod Dataset.
         A set of attributes can be specified for the clone Dataset.
 
         Set clone_children=True to clone all child layers.
         """
+        if not clone_server: clone_server = self.server
         if not token:
             raise ValueError(f'[token] Resource Watch API token required to clone.')
         else:
@@ -263,29 +264,56 @@ class Dataset:
                 }
             }
             print(f'Creating clone dataset')
-            url = f'{self.server}/dataset'
+            url = f'{clone_server}/dataset'
             headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
             r = requests.post(url, data=json.dumps(payload), headers=headers)
             if r.status_code == 200:
-                clone_dataset_id = r.json()['data']['id']
+                clone_dataset_id = r.json()['data']['id'] 
             else:
                 print(r.status_code)
                 return None
-            print(f'{self.server}/v1/dataset/{clone_dataset_id}')
+            print(f'{clone_server}/v1/dataset/{clone_dataset_id}')
 
             layers =  self.layers 
-            if clone_children and len(layers) > 0:
-                for i in range(0, len(layers)):
-                    layer = layers[i]
-                    try:
-                        layer_name = layer.attributes['name']
-                        layer.clone(token=token, env=env, layer_params={'name': layer_name}, target_dataset_id=clone_dataset_id)
-                    except:
-                        raise ValueError(f'Layer cloning failed for {layer.id}')
-            elif clone_children and len(layers) == 0:
-                print("No children to clone!")
-
-            self.attributes = Dataset(clone_dataset_id).attributes
+            if clone_children:
+                if len(layers) > 0:
+                    for i in range(0, len(layers)):
+                        layer = layers[i]
+                        try:
+                            layer_name = layer.attributes['name']
+                            layer.clone(token=token, env=env, layer_params={'name': layer_name}, clone_server=clone_server, target_dataset_id=clone_dataset_id)
+                        except:
+                            raise ValueError(f'Layer cloning failed for {layer.id}')
+                else:
+                    print("No children to clone!")
+                clone_dataset = Dataset(id_hash=clone_dataset_id, server=clone_server)
+                vocabs = target_dataset.vocabulary
+                if len(vocabs) > 0:
+                    for v in vocabs:
+                        vocab = v.attributes
+                        vocab_payload = {
+                            'application': vocab['application'],
+                            'name': vocab['name'],
+                            'tags': vocab['tags']
+                        }
+                        try:
+                            clone_dataset.add_vocabulary(vocab_params=vocab_payload, token=token)
+                        except:
+                            raise ValueError('Failed to clone Vocabulary.')
+                metas = target_dataset.metadata
+                if len(metas) > 0:
+                    for m in metas:
+                        meta = m.attributes
+                        meta_payload = {
+                            'application': meta['application'],
+                            'info': meta['info'],
+                            'language': meta['language']
+                        }
+                        try:
+                            clone_dataset.add_metadata(meta_params=meta_payload, token=token)
+                        except:
+                            raise ValueError('Failed to clone Metadata.')
+            self.attributes = Dataset(clone_dataset_id, server=clone_server).attributes
             return Dataset(clone_dataset_id)
 
 

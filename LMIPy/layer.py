@@ -308,13 +308,15 @@ class Layer:
             print('Deletion aborted')
         return None
 
-    def clone(self, token=None, env='staging', layer_params={}, target_dataset_id=None):
+    def clone(self, token=None, env='staging', clone_server=None, layer_params={}, target_dataset_id=None):
         """
         Create a clone of current Layer (and its parent Dataset) as a new staging or prod Layer.
         A set of attributes can be specified for the clone Layer using layer_params.
         Optionally, you can also select a target Dataset to attach your Layer clone to.
         """
         from .dataset import Dataset
+        if not clone_server: clone_server = self.server
+
         if not token:
             raise ValueError(f'[token] Resource Watch API token required to clone.')
         # unneccesary?
@@ -343,31 +345,14 @@ class Layer:
                 }
             }
             print(f'Creating clone dataset')
-            url = f'{self.server}/dataset'
+            url = f'{clone_server}/dataset'
             headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
             r = requests.post(url, data=json.dumps(payload), headers=headers)
             print(r.url)
             pprint(payload)
             if r.status_code == 200:
                 target_dataset_id = r.json()['data']['id']
-                clone_dataset = Dataset(target_dataset_id)
-                try:
-                    vocab = target_dataset.vocabulary[0].attributes
-                    vocab_payload = {
-                        'application': vocab['application'],
-                        'name': vocab['name'],
-                        'tags': vocab['tags']
-                    }
-                    clone_dataset.add_vocabulary(vocab_params=vocab_payload, token=token)
-                    meta = target_dataset.metadata[0].attributes
-                    meta_payload = {
-                        'application': meta['application'],
-                        'info': meta['info'],
-                        'language': meta['language']
-                    }
-                    clone_dataset.add_metadata(meta_params=meta_payload, token=token)
-                except:
-                    raise ValueError('Failed to clone Vocabulary and Metadata.')
+                clone_dataset = Dataset(id_hash=target_dataset_id, server=clone_server)
             else:
                 print(r.status_code)
                 return None
@@ -386,7 +371,7 @@ class Layer:
             'provider': clone_layer_attr['provider'],
         }
         print(f'Creating clone layer on target dataset')
-        url = f'{self.server}/dataset/{target_dataset_id}/layer'
+        url = f'{clone_server}/dataset/{target_dataset_id}/layer'
         headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
         r = requests.post(url, data=json.dumps(payload), headers=headers)
         if r.status_code == 200:
@@ -394,8 +379,8 @@ class Layer:
         else:
             print(r.status_code)
             return None
-        print(f'{self.server}/v1/dataset/{target_dataset_id}/layer/{clone_layer_id}')
-        self.attributes = Layer(clone_layer_id).attributes
+        print(f'{clone_server}/v1/dataset/{target_dataset_id}/layer/{clone_layer_id}')
+        self.attributes = Layer(id_hash=clone_layer_id, server=clone_server).attributes
         return Layer(clone_layer_id)
 
     def parse_query(self, sql):
