@@ -78,7 +78,16 @@ def test_layer_creation():
     ly = Layer(id_hash='dc6f6dd2-0718-4e41-81d2-109866bb9edd')
     assert ly is not None
 
-### Clone Layer
+### Clone and Delete Layer
+def test_clone_and_delete_layer():
+    hash = random.getrandbits(8)
+    l = Layer(id_hash='0328715e-6c6e-4e11-8177-5f0681794f8d')
+    cloned = l.clone(token=API_TOKEN, update_params={'name': f'Template Layer Clone #{hash}'})
+    assert cloned.attributes['name'] == f'Template Layer Clone #{hash}'
+    assert cloned.id is not '0328715e-6c6e-4e11-8177-5f0681794f8d'
+    deleted = cloned.delete(token=API_TOKEN, force=true)
+    assert deleted = None
+
 ### Update Layer
 def test_update_layer():
     hash = random.getrandbits(8)
@@ -87,8 +96,6 @@ def test_update_layer():
     assert updated.attributes['name'] == f'Template Layer #{hash}'
     updated = l.update(token=API_TOKEN, update_params={'name': f'Template Layer'})
     assert updated.attributes['name'] == 'Template Layer'
-
-### Delete Layer
 
 ### Widget Tests
 
