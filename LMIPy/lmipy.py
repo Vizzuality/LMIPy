@@ -97,7 +97,7 @@ class Vocabulary:
     def __init__(self, attributes=None, server='https://api.resourcewatch.org'):
         if attributes.get('type') != 'vocabulary':
             raise ValueError(f"Non vocabulary attributes passed to Vocabulary class ({attributes.get('type')})")
-        self.server = servver
+        self.server = server
         self.attributes = attributes.get('attributes')
         self.id = self.attributes.get('resource').get('id')
 

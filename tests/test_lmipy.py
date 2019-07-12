@@ -82,11 +82,33 @@ def test_layer_creation():
 def test_clone_and_delete_layer():
     hash = random.getrandbits(8)
     l = Layer(id_hash='0328715e-6c6e-4e11-8177-5f0681794f8d')
-    cloned = l.clone(token=API_TOKEN, update_params={'name': f'Template Layer Clone #{hash}'})
+    cloned = l.clone(token=API_TOKEN, layer_params={'name': f'Template Layer Clone #{hash}'})
     assert cloned.attributes['name'] == f'Template Layer Clone #{hash}'
     assert cloned.id is not '0328715e-6c6e-4e11-8177-5f0681794f8d'
-    deleted = cloned.delete(token=API_TOKEN, force=true)
-    assert deleted = None
+    assert cloned.delete(token=API_TOKEN, force=True) == None
+
+### Create and Delete Layer
+def test_create_and_delete_layer():
+    hash = random.getrandbits(8)
+    ds_id = 'bb1dced4-3ae8-4908-9f36-6514ae69713f'
+    l_payload = {
+        "name": f'Created Layer #{hash}',
+        "description": "",
+        "application": [
+            "gfw"
+        ],
+        "iso": [],
+        "provider": "gee",
+        "default": False,
+        "env": "production",
+        "layerConfig": {},
+        "legendConfig": {},
+        "interactionConfig": {},
+        "applicationConfig": {}
+    }
+    new = l.new_layer(token=API_TOKEN, attributes=l_payload, token=API_TOKEN)
+    assert new.attributes['name'] == f'Created Layer #{hash}'
+    assert new.delete(token=API_TOKEN, force=True) == None
 
 ### Update Layer
 def test_update_layer():
