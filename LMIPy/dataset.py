@@ -278,6 +278,7 @@ class Dataset:
 
             layers =  self.layers 
             if clone_children:
+                # CLONE WIDGETS!?
                 if len(layers) > 0:
                     for i in range(0, len(layers)):
                         layer = layers[i]
@@ -316,7 +317,7 @@ class Dataset:
                         except:
                             raise ValueError('Failed to clone Metadata.')
             self.attributes = Dataset(clone_dataset_id, server=clone_server).attributes
-            return Dataset(clone_dataset_id)
+            return Dataset(id_hash=clone_dataset_id, server=clone_server)
 
 
     def intersect(self, geometry):
@@ -438,7 +439,7 @@ class Dataset:
                 "application": app
             }
             try:
-                url = f'https://api.resourcewatch.org/v1/dataset/{ds_id}/vocabulary/{vocab_type}'
+                url = f'{self.server}/v1/dataset/{ds_id}/vocabulary/{vocab_type}'
                 headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
                 r = requests.post(url, data=json.dumps(payload), headers=headers)
             except:
@@ -475,7 +476,7 @@ class Dataset:
                 "language": meta_params.get('language', 'en')
             }
             try:
-                url = f'https://api.resourcewatch.org/v1/dataset/{ds_id}/metadata'
+                url = f'{self.server}/v1/dataset/{ds_id}/metadata'
                 headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
                 r = requests.post(url, data=json.dumps(payload), headers=headers)
             except:
@@ -515,11 +516,11 @@ class Dataset:
                 "application": app
             }
             try:
-                url = f'https://api.resourcewatch.org/v1/widget/{ds_id}/widget'
+                url = f'{self.server}/v1/dataset/{ds_id}/widget'
                 headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
                 r = requests.post(url, data=json.dumps(payload), headers=headers)
             except:
-                raise ValueError(f'Vocabulary creation failed.')
+                raise ValueError(f'Widget creation failed.')
             if r.status_code == 200:
                 print(f'Widget created.')
                 self.attributes = self.get_dataset()
