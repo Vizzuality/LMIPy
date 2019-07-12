@@ -93,6 +93,7 @@ def test_create_and_delete_layer():
     ds_id = 'bb1dced4-3ae8-4908-9f36-6514ae69713f'
     l_payload = {
         "name": f'Created Layer #{hash}',
+        "dataset": ds_id,
         "description": "",
         "application": [
             "gfw"
@@ -106,7 +107,7 @@ def test_create_and_delete_layer():
         "interactionConfig": {},
         "applicationConfig": {}
     }
-    new = l.new_layer(token=API_TOKEN, attributes=l_payload)
+    new = Layer(token=API_TOKEN, attributes=l_payload)
     assert new.attributes['name'] == f'Created Layer #{hash}'
     assert new.delete(token=API_TOKEN, force=True) == None
 
