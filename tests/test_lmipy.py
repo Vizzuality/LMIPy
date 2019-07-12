@@ -106,7 +106,7 @@ def test_create_and_delete_layer():
         "interactionConfig": {},
         "applicationConfig": {}
     }
-    new = l.new_layer(token=API_TOKEN, attributes=l_payload, token=API_TOKEN)
+    new = l.new_layer(token=API_TOKEN, attributes=l_payload)
     assert new.attributes['name'] == f'Created Layer #{hash}'
     assert new.delete(token=API_TOKEN, force=True) == None
 
