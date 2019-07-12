@@ -82,7 +82,8 @@ def test_layer_creation():
 def test_clone_and_delete_layer():
     hash = random.getrandbits(8)
     l = Layer(id_hash='0328715e-6c6e-4e11-8177-5f0681794f8d')
-    cloned = l.clone(token=API_TOKEN, layer_params={'name': f'Template Layer Clone #{hash}'})
+    ds_id = 'bb1dced4-3ae8-4908-9f36-6514ae69713f'
+    cloned = l.clone(token=API_TOKEN, layer_params={'name': f'Template Layer Clone #{hash}'}, target_dataset_id=ds_id)
     assert cloned.attributes['name'] == f'Template Layer Clone #{hash}'
     assert cloned.id is not '0328715e-6c6e-4e11-8177-5f0681794f8d'
     assert cloned.delete(token=API_TOKEN, force=True) == None
