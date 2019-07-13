@@ -13,10 +13,11 @@ class Metadata:
     attributes: dic
         A dictionary holding the attributes of a metadata (which are attached to a Dataset).
     """
-    def __init__(self, attributes=None):
+    def __init__(self, attributes=None, server='https://api.resourcewatch.org'):
         if attributes.get('type') != 'metadata':
             raise ValueError(f"Non metadata attributes passed to Metadata class ({attributes.get('type')})")
         self.id = attributes.get('id')
+        self.server = server
         self.attributes = attributes.get('attributes')
 
     def __repr__(self):
@@ -48,7 +49,7 @@ class Metadata:
             }
             print('payload',payload)
             try:
-                url = f'https://api.resourcewatch.org/v1/dataset/{ds_id}/metadata'
+                url = f'{self.server}/v1/dataset/{ds_id}/metadata'
                 print('url',url)
                 headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
                 r = requests.patch(url, data=json.dumps(payload), headers=headers)
@@ -56,7 +57,7 @@ class Metadata:
                 raise ValueError(f'Metadata update failed.')
             if r.status_code == 200:
                 print(f'Metadata updated.')
-                return Dataset(ds_id).metadata
+                return Dataset(id_hash=ds_id, server=self.server).metadata
             else:
                 print(f'Failed with error code {r.status_code}')
                 return None
@@ -75,7 +76,7 @@ class Metadata:
         ds_id = self.attributes.get('dataset', None)
         if lang and app:
             try:
-                url = f'http://api.resourcewatch.org/dataset/{ds_id}/metadata?application={app}&language={lang}'
+                url = f'{self.server}/dataset/{ds_id}/metadata?application={app}&language={lang}'
                 headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
                 r = requests.delete(url, headers=headers)
             except:
@@ -93,9 +94,10 @@ class Vocabulary:
     attributes: dic
         A dictionary holding the attributes of a vocabulary (which are attached to a Dataset).
     """
-    def __init__(self, attributes=None):
+    def __init__(self, attributes=None, server='https://api.resourcewatch.org'):
         if attributes.get('type') != 'vocabulary':
             raise ValueError(f"Non vocabulary attributes passed to Vocabulary class ({attributes.get('type')})")
+        self.server = server
         self.attributes = attributes.get('attributes')
         self.id = self.attributes.get('resource').get('id')
 
@@ -117,8 +119,8 @@ class Vocabulary:
         update_params['application'] = self.attributes.get('application', None)
         ds_id = self.id
         self.delete(token=token)
-        Dataset(ds_id).add_vocabulary(vocab_params=update_params, token=token)
-        return Dataset(ds_id).vocabulary
+        Dataset(id_hash=ds_id, server=self.server).add_vocabulary(vocab_params=update_params, token=token)
+        return Dataset(id_hash=ds_id, server=self.server).vocabulary
 
     def delete(self, token=None):
         """
@@ -132,7 +134,7 @@ class Vocabulary:
         ds_id = self.id
         if vocab_type and app:
             try:
-                url = f'http://api.resourcewatch.org/dataset/{ds_id}/vocabulary/{vocab_type}?app={app}'
+                url = f'{self.server}/dataset/{ds_id}/vocabulary/{vocab_type}?app={app}'
                 headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
                 r = requests.delete(url, headers=headers)
             except:
@@ -210,7 +212,7 @@ class Widget:
                 elif k in list(attributes.keys()):
                     payload[k] = v
             try:
-                url = f'https://api.resourcewatch.org/v1/dataset/{ds_id}/widget/{w_id}'
+                url = f'{self.server}/v1/dataset/{ds_id}/widget/{w_id}'
                 print('url',url)
                 headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
                 r = requests.patch(url, data=json.dumps(payload), headers=headers)
@@ -236,7 +238,7 @@ class Widget:
         w_id = self.id
         ds_id = self.attributes.get('dataset', None)
         try:
-            url = f'http://api.resourcewatch.org/dataset/{ds_id}/widget/{w_id}'
+            url = f'{self.server}/dataset/{ds_id}/widget/{w_id}'
             headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
             r = requests.delete(url, headers=headers)
         except:

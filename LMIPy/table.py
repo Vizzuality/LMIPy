@@ -68,7 +68,7 @@ class Table(Dataset):
         except:
             raise ValueError(f'Unable to get table {self.id}')
 
-    def query(self, sql):
+    def query(self, sql=None):
         """
         Return an SQL query as a valid dataframe object.
 
@@ -79,7 +79,8 @@ class Table(Dataset):
         decode_geom: bool
             A flag to decode geometries into geom objects.
         """
-        if not sql or type(sql) != str:
+        if not sql: sql = 'SELECT * FROM data LIMIT 5'
+        if type(sql) != str:
             raise ValueError('SQL query should be passed as a string.')
         response_data = self.fetch_query(sql=sql)
         try:

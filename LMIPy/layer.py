@@ -30,8 +30,8 @@ class Layer:
         if not attributes and id_hash:
             self.id = id_hash
             self.attributes = self.get_layer()
-        elif attributes and token and server == 'https://api.resourcewatch.org':  
-            created_layer = self.new_layer(token=token, attributes=attributes)
+        elif attributes and token: #and server == 'https://api.resourcewatch.org':  
+            created_layer = self.new_layer(token=token, attributes=attributes, server=self.server)
             self.attributes = created_layer.attributes
             self.id = created_layer.id
         elif attributes:
@@ -308,13 +308,17 @@ class Layer:
             print('Deletion aborted')
         return None
 
-    def clone(self, token=None, env='staging', layer_params={}, target_dataset_id=None):
+    def clone(self, token=None, env='staging', clone_server=None, layer_params={}, target_dataset_id=None):
         """
         Create a clone of current Layer (and its parent Dataset) as a new staging or prod Layer.
         A set of attributes can be specified for the clone Layer using layer_params.
         Optionally, you can also select a target Dataset to attach your Layer clone to.
+
+        The argument `clone_server` specifies the server to clone to. Default server = https://api.resourcewatch.org
         """
         from .dataset import Dataset
+        if not clone_server: clone_server = self.server
+
         if not token:
             raise ValueError(f'[token] Resource Watch API token required to clone.')
         # unneccesary?
@@ -328,9 +332,9 @@ class Layer:
             if k in layer_params:
                 clone_layer_attr[k] = layer_params[k]
         if target_dataset_id:
-            target_dataset = Dataset(target_dataset_id)
+            target_dataset = Dataset(id_hash=target_dataset_id, server=self.server)
         else:
-            target_dataset = Dataset(self.attributes['dataset'])
+            target_dataset = Dataset(attributes=self.attributes['dataset'], server=self.server)
             clone_dataset_attr = {**target_dataset.attributes, 'name': name, }
             payload = {"dataset":{
                 'application': clone_dataset_attr['application'],
@@ -343,31 +347,13 @@ class Layer:
                 }
             }
             print(f'Creating clone dataset')
-            url = f'{self.server}/dataset'
+            url = f'{clone_server}/dataset'
             headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
             r = requests.post(url, data=json.dumps(payload), headers=headers)
             print(r.url)
             pprint(payload)
             if r.status_code == 200:
                 target_dataset_id = r.json()['data']['id']
-                clone_dataset = Dataset(target_dataset_id)
-                try:
-                    vocab = target_dataset.vocabulary[0].attributes
-                    vocab_payload = {
-                        'application': vocab['application'],
-                        'name': vocab['name'],
-                        'tags': vocab['tags']
-                    }
-                    clone_dataset.add_vocabulary(vocab_params=vocab_payload, token=token)
-                    meta = target_dataset.metadata[0].attributes
-                    meta_payload = {
-                        'application': meta['application'],
-                        'info': meta['info'],
-                        'language': meta['language']
-                    }
-                    clone_dataset.add_metadata(meta_params=meta_payload, token=token)
-                except:
-                    raise ValueError('Failed to clone Vocabulary and Metadata.')
             else:
                 print(r.status_code)
                 return None
@@ -386,7 +372,7 @@ class Layer:
             'provider': clone_layer_attr['provider'],
         }
         print(f'Creating clone layer on target dataset')
-        url = f'{self.server}/dataset/{target_dataset_id}/layer'
+        url = f'{clone_server}/dataset/{target_dataset_id}/layer'
         headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
         r = requests.post(url, data=json.dumps(payload), headers=headers)
         if r.status_code == 200:
@@ -394,9 +380,9 @@ class Layer:
         else:
             print(r.status_code)
             return None
-        print(f'{self.server}/v1/dataset/{target_dataset_id}/layer/{clone_layer_id}')
-        self.attributes = Layer(clone_layer_id).attributes
-        return Layer(clone_layer_id)
+        print(f'{clone_server}/v1/dataset/{target_dataset_id}/layer/{clone_layer_id}')
+        self.attributes = Layer(id_hash=clone_layer_id, server=clone_server).attributes
+        return Layer(id_hash=clone_layer_id, server=self.server)
 
     def parse_query(self, sql):
         """
@@ -458,7 +444,7 @@ class Layer:
         Returns parent datset
         """
         from .dataset import Dataset
-        return Dataset(self.attributes['dataset'])
+        return Dataset(self.attributes['dataset'], server=self.server)
 
     def intersect(self, geometry):
         """
@@ -504,10 +490,13 @@ class Layer:
             print('Requires a file path to valid backup .json file.')
             return None
         try:
-            with open(f"{path}/{self.id}.json") as f:
+            ds = self.dataset()
+            with open(f"{path}/{ds.id}.json") as f:
                 recovered_dataset = json.load(f)
-            recovered_layer = [l for l in recovered_dataset.layers if l.id == self.id][0]
-
+            layers = recovered_dataset['attributes']['layer']
+            server = recovered_dataset.get('server', 'https://api.resourcewatch.org')
+            if len(layers) > 0: recovered_layer = [l for l in layers if l['id'] == self.id][0]
+            else: raise ValueError(f'No save layers found!')
             if check:
                 blacklist = ['updatedAt']
                 attributes = {f'{k}':v for k,v in recovered_layer['attributes'].items() if k not in blacklist}
@@ -518,10 +507,10 @@ class Layer:
         except:
             raise ValueError(f'Failed to load backup from f{path}')
 
-        return Layer(id_hash=recovered_layer['id'], attributes=recovered_dataset['attributes'])
+        return Layer(attributes={**recovered_layer['attributes'], 'id': recovered_layer['id']}, server=server)
 
 
-    def new_layer(self, token=None, attributes=None):
+    def new_layer(self, token=None, attributes=None, server='https://api.resourcewatch.org'):
         """
         Create a new staging or prod Layer entity from attributes.
         """
@@ -533,7 +522,7 @@ class Layer:
             raise ValueError(f'Attributes must include dataset key.')
         else:
             dataset_id = attributes['dataset']
-            url = f'http://api.resourcewatch.org/v1/dataset/{dataset_id}/layer'
+            url = f'{server}/v1/dataset/{dataset_id}/layer'
             headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
             payload = {**attributes}
 
@@ -543,5 +532,5 @@ class Layer:
             else:
                 print(r.status_code)
                 return None
-            print(f'{self.server}/v1/layer/{new_layer_id}')
-            return Layer(new_layer_id)
+            print(f'{server}/v1/layer/{new_layer_id}')
+            return Layer(id_hash=new_layer_id, server=server)

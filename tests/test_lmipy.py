@@ -1,7 +1,8 @@
 import pytest
 import random
 import os
-from LMIPy import Dataset, Collection, Layer, Metadata, Vocabulary, Widget, Image, ImageCollection, Geometry, utils
+import os.path
+from LMIPy import Dataset, Table, Collection, Layer, Metadata, Vocabulary, Widget, Image, ImageCollection, Geometry, utils
 
 try:
     API_TOKEN = os.environ.get("API_TOKEN", None)
@@ -26,7 +27,17 @@ def test_search_collection_filters():
     col = Collection(search='forest', object_type=['layer'], filters={'provider': 'gee'}, app=['gfw'])
     assert len(col) > 1
 
-### Dataset Tests
+def test_collection_save():
+    col = Collection(search='template', object_type=['dataset'], app=['gfw'])
+    ds = col[0]
+    save_path = './tests/collection'
+    col.save(path=save_path)
+    assert os.path.exists(save_path) == True
+    assert f"{ds.id}.json" in os.listdir(save_path)
+    _ = [os.remove(save_path+f"/{f}") for f in os.listdir(save_path)] 
+    os.rmdir(save_path)  
+
+#----- Dataset Tests -----#
 
 def test_create_dataset():
     ds = Dataset(id_hash='bb1dced4-3ae8-4908-9f36-6514ae69713f')
@@ -36,8 +47,10 @@ def test_create_dataset():
 
 def test_queries_on_datasets():
     ds = Dataset(id_hash='bd5d7924-611e-4302-9185-8054acb0b44b')
+    df = ds.query()
+    assert len(df) > 0
     df = ds.query('SELECT fid, ST_ASGEOJSON(the_geom_webmercator) FROM data LIMIT 5')
-    assert len(df) > 1
+    assert len(df) == 5
 
 def test_access_vocab():
     ds = Dataset(id_hash='bb1dced4-3ae8-4908-9f36-6514ae69713f')
@@ -59,18 +72,29 @@ def test_access_widget():
     assert type(ds.widget) == list
     assert len(ds.widget) > 0
 
-### Clone Dataset
+def test_dataset_save():
+    ds = Dataset(id_hash='bc06c603-9b16-4e51-99e6-228fa576e06b')
+    save_path = './tests'
+    ds.save(path=save_path)
+    assert os.path.exists(save_path+f"/{ds.id}.json") == True
+
+def test_dataset_load():
+    ds = Dataset(id_hash='bc06c603-9b16-4e51-99e6-228fa576e06b')
+    load_path = f'./tests'
+    loaded = ds.load(path=load_path, check=True)
+    assert loaded.id == 'bc06c603-9b16-4e51-99e6-228fa576e06b'
+    os.remove(load_path+f"/{ds.id}.json")
+
 ### Update Dataset
 def test_update_dataset():
-    hash = random.getrandbits(8)
     ds = Dataset(id_hash='bc06c603-9b16-4e51-99e6-228fa576e06b')
-    updated = ds.update(token=API_TOKEN, update_params={'name': f'Template Dataset #{hash}'})
-    assert updated.attributes['name'] == f'Template Dataset #{hash}'
+    updated = ds.update(token=API_TOKEN, update_params={'name': f'Template Dataset UPDATED'})
+    assert updated.attributes['name'] == f'Template Dataset UPDATED'
     updated = ds.update(token=API_TOKEN, update_params={'name': f'Template Dataset'})
     assert updated.attributes['name'] == 'Template Dataset'
 
-
-### Delete Dataset
+### Clone and Delete Dataset
+### Create and Delete Dataset
 
 #----- Layer Tests -----#
 
@@ -78,17 +102,79 @@ def test_layer_creation():
     ly = Layer(id_hash='dc6f6dd2-0718-4e41-81d2-109866bb9edd')
     assert ly is not None
 
-### Clone Layer
+def test_layer_query():
+    ly = Layer(id_hash='2942c28e-e5b4-4003-83ad-93a2566dc6cd')
+    df = ly.query()
+    assert len(df) > 0
+    df = ly.query("SELECT * FROM data LIMIT 10")
+    assert len(df) == 10
+
+def test_get_layer_dataset():
+    l = Layer(id_hash='0328715e-6c6e-4e11-8177-5f0681794f8d')
+    ds = l.dataset()
+    assert ds.id == '98085162-e31f-4e3a-8b30-cd8dfca5684d'
+
+def test_layer_intersect():
+    l = Layer(id_hash='f13f86cb-08b5-4e6c-bb8d-b4782052f9e5')
+    g = Geometry(parameters={'iso': 'BRA', 'adm1': 1, 'adm2': 1})
+    i = l.intersect(g)
+    assert type(i) == dict
+    assert len(i['b1'].keys()) > 0
+
+def test_layer_save():
+    l = Layer(id_hash='0328715e-6c6e-4e11-8177-5f0681794f8d')
+    ds = l.dataset()
+    save_path = './tests'
+    l.save(path=save_path)
+    assert os.path.exists(save_path+f"/{ds.id}.json") == True
+
+def test_layer_load():
+    l = Layer(id_hash='0328715e-6c6e-4e11-8177-5f0681794f8d')
+    ds = l.dataset()
+    load_path = f'./tests'
+    loaded = l.load(path=load_path, check=True)
+    assert loaded.id == '0328715e-6c6e-4e11-8177-5f0681794f8d'
+    os.remove(load_path+f"/{ds.id}.json")
+
+### Clone and Delete Layer
+def test_clone_and_delete_layer():
+    l = Layer(id_hash='0328715e-6c6e-4e11-8177-5f0681794f8d')
+    ds_id = 'bb1dced4-3ae8-4908-9f36-6514ae69713f'
+    cloned = l.clone(token=API_TOKEN, layer_params={'name': f'Template Layer CLONED'}, target_dataset_id=ds_id)
+    assert cloned.attributes['name'] == f'Template Layer CLONED'
+    assert cloned.id is not '0328715e-6c6e-4e11-8177-5f0681794f8d'
+    assert cloned.delete(token=API_TOKEN, force=True) == None
+
+### Create and Delete Layer
+def test_create_and_delete_layer():
+    ds_id = 'bb1dced4-3ae8-4908-9f36-6514ae69713f'
+    l_payload = {
+        "name": f'Created Layer TEST',
+        "dataset": ds_id,
+        "description": "",
+        "application": [
+            "gfw"
+        ],
+        "iso": [],
+        "provider": "gee",
+        "default": False,
+        "env": "production",
+        "layerConfig": {},
+        "legendConfig": {},
+        "interactionConfig": {},
+        "applicationConfig": {}
+    }
+    new = Layer(token=API_TOKEN, attributes=l_payload)
+    assert new.attributes['name'] == f'Created Layer TEST'
+    assert new.delete(token=API_TOKEN, force=True) == None
+
 ### Update Layer
 def test_update_layer():
-    hash = random.getrandbits(8)
     l = Layer(id_hash='0328715e-6c6e-4e11-8177-5f0681794f8d')
-    updated = l.update(token=API_TOKEN, update_params={'name': f'Template Layer #{hash}'})
-    assert updated.attributes['name'] == f'Template Layer #{hash}'
+    updated = l.update(token=API_TOKEN, update_params={'name': f'Template Layer UPDATED'})
+    assert updated.attributes['name'] == f'Template Layer UPDATED'
     updated = l.update(token=API_TOKEN, update_params={'name': f'Template Layer'})
     assert updated.attributes['name'] == 'Template Layer'
-
-### Delete Layer
 
 ### Widget Tests
 
@@ -212,6 +298,27 @@ def test_image_collection_search():
     assert len(ic) > 0
 
 #----- Image Tests -----#
+
+def test_create_image():
+    ic = ImageCollection(lon=28.271979, lat=-16.457814, start='2018-06-01', end='2018-06-20')
+    im = ic[0]
+    assert im.attributes['provider'] is not None
+
+#----- Table Tests -----#
+
+def test_create_table():
+    t = Table(id_hash='97546f05-3dce-4dd0-9abf-80fd1bff9cee')
+    assert t.id == '97546f05-3dce-4dd0-9abf-80fd1bff9cee'
+
+def test_table_head():
+    t = Table(id_hash='97546f05-3dce-4dd0-9abf-80fd1bff9cee')
+    df = t.head()
+    assert len(df) > 0
+
+def test_table_query():
+    t = Table(id_hash='97546f05-3dce-4dd0-9abf-80fd1bff9cee')
+    df = t.query()
+    assert len(df) == 5
 
 #----- Utils Tests -----#
 
