@@ -27,7 +27,17 @@ def test_search_collection_filters():
     col = Collection(search='forest', object_type=['layer'], filters={'provider': 'gee'}, app=['gfw'])
     assert len(col) > 1
 
-### Dataset Tests
+def test_collection_save():
+    col = Collection(search='template', object_type=['dataset'], app=['gfw'])
+    ds = col[0]
+    save_path = './tests/collection'
+    col.save(path=save_path)
+    assert os.path.exists(save_path) == True
+    assert f"{ds.id}.json" in os.listdir(save_path)
+    _ = [os.remove(save_path+f"/{f}") for f in os.listdir(save_path)] 
+    os.rmdir(save_path)  
+
+#----- Dataset Tests -----#
 
 def test_create_dataset():
     ds = Dataset(id_hash='bb1dced4-3ae8-4908-9f36-6514ae69713f')
@@ -75,7 +85,6 @@ def test_dataset_load():
     assert loaded.id == 'bc06c603-9b16-4e51-99e6-228fa576e06b'
     os.remove(load_path+f"/{ds.id}.json")
 
-### Clone Dataset
 ### Update Dataset
 def test_update_dataset():
     ds = Dataset(id_hash='bc06c603-9b16-4e51-99e6-228fa576e06b')
@@ -84,8 +93,8 @@ def test_update_dataset():
     updated = ds.update(token=API_TOKEN, update_params={'name': f'Template Dataset'})
     assert updated.attributes['name'] == 'Template Dataset'
 
-
-### Delete Dataset
+### Clone and Delete Dataset
+### Create and Delete Dataset
 
 #----- Layer Tests -----#
 
