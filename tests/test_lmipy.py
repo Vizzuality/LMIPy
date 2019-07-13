@@ -2,7 +2,7 @@ import pytest
 import random
 import os
 import os.path
-from LMIPy import Dataset, Collection, Layer, Metadata, Vocabulary, Widget, Image, ImageCollection, Geometry, utils
+from LMIPy import Dataset, Table, Collection, Layer, Metadata, Vocabulary, Widget, Image, ImageCollection, Geometry, utils
 
 try:
     API_TOKEN = os.environ.get("API_TOKEN", None)
@@ -303,6 +303,22 @@ def test_create_image():
     ic = ImageCollection(lon=28.271979, lat=-16.457814, start='2018-06-01', end='2018-06-20')
     im = ic[0]
     assert im.attributes['provider'] is not None
+
+#----- Table Tests -----#
+
+def test_create_table():
+    t = Table(id_hash='97546f05-3dce-4dd0-9abf-80fd1bff9cee')
+    assert t.id == '97546f05-3dce-4dd0-9abf-80fd1bff9cee'
+
+def test_table_head():
+    t = Table(id_hash='97546f05-3dce-4dd0-9abf-80fd1bff9cee')
+    df = t.head()
+    assert len(df) > 0
+
+def test_table_query():
+    t = Table(id_hash='97546f05-3dce-4dd0-9abf-80fd1bff9cee')
+    df = t.query()
+    assert len(df) == 5
 
 #----- Utils Tests -----#
 
