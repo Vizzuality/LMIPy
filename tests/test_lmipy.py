@@ -1,6 +1,7 @@
 import pytest
 import random
 import os
+import os.path
 from LMIPy import Dataset, Collection, Layer, Metadata, Vocabulary, Widget, Image, ImageCollection, Geometry, utils
 
 try:
@@ -36,8 +37,10 @@ def test_create_dataset():
 
 def test_queries_on_datasets():
     ds = Dataset(id_hash='bd5d7924-611e-4302-9185-8054acb0b44b')
+    df = ds.query()
+    assert len(df) > 0
     df = ds.query('SELECT fid, ST_ASGEOJSON(the_geom_webmercator) FROM data LIMIT 5')
-    assert len(df) > 1
+    assert len(df) == 5
 
 def test_access_vocab():
     ds = Dataset(id_hash='bb1dced4-3ae8-4908-9f36-6514ae69713f')
@@ -77,6 +80,40 @@ def test_update_dataset():
 def test_layer_creation():
     ly = Layer(id_hash='dc6f6dd2-0718-4e41-81d2-109866bb9edd')
     assert ly is not None
+
+def test_layer_query():
+    ly = Layer(id_hash='2942c28e-e5b4-4003-83ad-93a2566dc6cd')
+    df = ly.query()
+    assert len(df) > 0
+    df = ly.query("SELECT * FROM data LIMIT 10")
+    assert len(df) == 10
+
+def test_get_layer_dataset():
+    l = Layer(id_hash='0328715e-6c6e-4e11-8177-5f0681794f8d')
+    ds = l.dataset()
+    assert ds.id == '98085162-e31f-4e3a-8b30-cd8dfca5684d'
+
+def test_layer_intersect():
+    l = Layer(id_hash='f13f86cb-08b5-4e6c-bb8d-b4782052f9e5')
+    g = Geometry(parameters={'iso': 'BRA', 'adm1': 1, 'adm2': 1})
+    i = l.intersect(g)
+    assert type(i) == dict
+    assert len(i['b1'].keys()) > 0
+
+def test_layer_save():
+    l = Layer(id_hash='0328715e-6c6e-4e11-8177-5f0681794f8d')
+    ds = l.dataset()
+    save_path = './tests'
+    l.save(path=save_path)
+    assert os.path.exists(save_path+f"/{ds.id}.json") == True
+
+def test_layer_load():
+    l = Layer(id_hash='0328715e-6c6e-4e11-8177-5f0681794f8d')
+    ds = l.dataset()
+    load_path = f'./tests'
+    loaded = l.load(path=load_path, check=True)
+    assert loaded.id == '0328715e-6c6e-4e11-8177-5f0681794f8d'
+    os.remove(load_path+f"/{ds.id}.json")
 
 ### Clone and Delete Layer
 def test_clone_and_delete_layer():

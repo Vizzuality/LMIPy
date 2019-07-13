@@ -354,7 +354,6 @@ class Layer:
             pprint(payload)
             if r.status_code == 200:
                 target_dataset_id = r.json()['data']['id']
-                clone_dataset = Dataset(id_hash=target_dataset_id, server=clone_server)
             else:
                 print(r.status_code)
                 return None
@@ -491,10 +490,13 @@ class Layer:
             print('Requires a file path to valid backup .json file.')
             return None
         try:
-            with open(f"{path}/{self.id}.json") as f:
+            ds = self.dataset()
+            with open(f"{path}/{ds.id}.json") as f:
                 recovered_dataset = json.load(f)
-            recovered_layer = [l for l in recovered_dataset['layers'] if l.id == self.id][0]
-            server = recovered_layer.get('server', 'https://api.resourcewatch.org')
+            layers = recovered_dataset['attributes']['layer']
+            server = recovered_dataset.get('server', 'https://api.resourcewatch.org')
+            if len(layers) > 0: recovered_layer = [l for l in layers if l['id'] == self.id][0]
+            else: raise ValueError(f'No save layers found!')
             if check:
                 blacklist = ['updatedAt']
                 attributes = {f'{k}':v for k,v in recovered_layer['attributes'].items() if k not in blacklist}
@@ -505,7 +507,7 @@ class Layer:
         except:
             raise ValueError(f'Failed to load backup from f{path}')
 
-        return Layer(id_hash=recovered_layer['id'], attributes=recovered_dataset['attributes'], server=server)
+        return Layer(attributes={**recovered_layer['attributes'], 'id': recovered_layer['id']}, server=server)
 
 
     def new_layer(self, token=None, attributes=None, server='https://api.resourcewatch.org'):
