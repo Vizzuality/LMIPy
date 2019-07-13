@@ -299,6 +299,11 @@ def test_image_collection_search():
 
 #----- Image Tests -----#
 
+def test_create_image():
+    ic = ImageCollection(lon=28.271979, lat=-16.457814, start='2018-06-01', end='2018-06-20')
+    im = ic[0]
+    assert im.attributes['provider'] is not None
+
 #----- Utils Tests -----#
 
 def test_sld_functions():
