@@ -31,10 +31,13 @@ class Dataset:
         self.server = server
         if not attributes:
             self.attributes = self.get_dataset()
-        elif attributes and token and server == 'https://api.resourcewatch.org' and not id_hash:   
-            created_dataset = self.new_dataset(token=token, attributes=attributes)
+        elif attributes and token:   
+            created_dataset = self.new_dataset(token=token, attributes=attributes, server=server)
             self.attributes = created_dataset.attributes
             self.id = created_dataset.id
+        elif attributes:
+            self.id = attributes.get('id')
+            self.attributes = self.get_dataset()
 
         if len(self.attributes.get('layer', [])) > 0:
             self.layers = [Layer(attributes=l, server=self.server) for l in self.attributes.get('layer')]
@@ -416,6 +419,7 @@ class Dataset:
         try:
             with open(f"{path}/{self.id}.json") as f:
                 recovered_dataset = json.load(f)
+            server = recovered_dataset.get('server', 'https://api.resourcewatch.org')
             if check:
                 blacklist = ['metadata','layer', 'vocabulary', 'updatedAt']
                 attributes = {f'{k}':v for k,v in recovered_dataset['attributes'].items() if k not in blacklist}
@@ -427,7 +431,7 @@ class Dataset:
                     pprint(difs)
         except:
             raise ValueError(f'Failed to load backup from f{path}/{self.id}.json')
-        return Dataset(id_hash=recovered_dataset['id'], attributes=recovered_dataset['attributes'])
+        return Dataset(attributes={**recovered_dataset['attributes'], 'id': recovered_dataset['id']}, server=server)
 
     def add_vocabulary(self, vocab_params=None, token=None):
         """

@@ -62,13 +62,25 @@ def test_access_widget():
     assert type(ds.widget) == list
     assert len(ds.widget) > 0
 
+def test_dataset_save():
+    ds = Dataset(id_hash='bc06c603-9b16-4e51-99e6-228fa576e06b')
+    save_path = './tests'
+    ds.save(path=save_path)
+    assert os.path.exists(save_path+f"/{ds.id}.json") == True
+
+def test_dataset_load():
+    ds = Dataset(id_hash='bc06c603-9b16-4e51-99e6-228fa576e06b')
+    load_path = f'./tests'
+    loaded = ds.load(path=load_path, check=True)
+    assert loaded.id == 'bc06c603-9b16-4e51-99e6-228fa576e06b'
+    os.remove(load_path+f"/{ds.id}.json")
+
 ### Clone Dataset
 ### Update Dataset
 def test_update_dataset():
-    hash = random.getrandbits(8)
     ds = Dataset(id_hash='bc06c603-9b16-4e51-99e6-228fa576e06b')
-    updated = ds.update(token=API_TOKEN, update_params={'name': f'Template Dataset #{hash}'})
-    assert updated.attributes['name'] == f'Template Dataset #{hash}'
+    updated = ds.update(token=API_TOKEN, update_params={'name': f'Template Dataset UPDATED'})
+    assert updated.attributes['name'] == f'Template Dataset UPDATED'
     updated = ds.update(token=API_TOKEN, update_params={'name': f'Template Dataset'})
     assert updated.attributes['name'] == 'Template Dataset'
 
@@ -117,20 +129,18 @@ def test_layer_load():
 
 ### Clone and Delete Layer
 def test_clone_and_delete_layer():
-    hash = random.getrandbits(8)
     l = Layer(id_hash='0328715e-6c6e-4e11-8177-5f0681794f8d')
     ds_id = 'bb1dced4-3ae8-4908-9f36-6514ae69713f'
-    cloned = l.clone(token=API_TOKEN, layer_params={'name': f'Template Layer Clone #{hash}'}, target_dataset_id=ds_id)
-    assert cloned.attributes['name'] == f'Template Layer Clone #{hash}'
+    cloned = l.clone(token=API_TOKEN, layer_params={'name': f'Template Layer CLONED'}, target_dataset_id=ds_id)
+    assert cloned.attributes['name'] == f'Template Layer CLONED'
     assert cloned.id is not '0328715e-6c6e-4e11-8177-5f0681794f8d'
     assert cloned.delete(token=API_TOKEN, force=True) == None
 
 ### Create and Delete Layer
 def test_create_and_delete_layer():
-    hash = random.getrandbits(8)
     ds_id = 'bb1dced4-3ae8-4908-9f36-6514ae69713f'
     l_payload = {
-        "name": f'Created Layer #{hash}',
+        "name": f'Created Layer TEST',
         "dataset": ds_id,
         "description": "",
         "application": [
@@ -146,15 +156,14 @@ def test_create_and_delete_layer():
         "applicationConfig": {}
     }
     new = Layer(token=API_TOKEN, attributes=l_payload)
-    assert new.attributes['name'] == f'Created Layer #{hash}'
+    assert new.attributes['name'] == f'Created Layer TEST'
     assert new.delete(token=API_TOKEN, force=True) == None
 
 ### Update Layer
 def test_update_layer():
-    hash = random.getrandbits(8)
     l = Layer(id_hash='0328715e-6c6e-4e11-8177-5f0681794f8d')
-    updated = l.update(token=API_TOKEN, update_params={'name': f'Template Layer #{hash}'})
-    assert updated.attributes['name'] == f'Template Layer #{hash}'
+    updated = l.update(token=API_TOKEN, update_params={'name': f'Template Layer UPDATED'})
+    assert updated.attributes['name'] == f'Template Layer UPDATED'
     updated = l.update(token=API_TOKEN, update_params={'name': f'Template Layer'})
     assert updated.attributes['name'] == 'Template Layer'
 
