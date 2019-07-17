@@ -256,7 +256,7 @@ class Dataset:
             clone_dataset_attr = {**self.attributes, 'name': name}
             for k,v in clone_dataset_attr.items():
                 if k in dataset_params:
-                    clone_dataset_attr[k] = dataset_params[k]
+                    clone_dataset_attr[k] = dataset_params.get(k, '')
             payload = {
                 'dataset': {
                     'application': clone_dataset_attr['application'],
@@ -270,7 +270,7 @@ class Dataset:
             }
             print(f'Creating clone dataset')
             url = f'{clone_server}/dataset'
-            headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
+            headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}            headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
             r = requests.post(url, data=json.dumps(payload), headers=headers)
             if r.status_code == 200:
                 clone_dataset_id = r.json()['data']['id'] 

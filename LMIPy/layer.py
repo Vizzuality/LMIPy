@@ -334,7 +334,7 @@ class Layer:
         if target_dataset_id:
             target_dataset = Dataset(id_hash=target_dataset_id, server=self.server)
         else:
-            target_dataset = Dataset(attributes=self.attributes['dataset'], server=self.server)
+            target_dataset = self.dataset()
             clone_dataset_attr = {**target_dataset.attributes, 'name': name, }
             payload = {"dataset":{
                 'application': clone_dataset_attr['application'],
