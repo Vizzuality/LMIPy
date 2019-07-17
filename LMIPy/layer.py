@@ -5,10 +5,13 @@ import urllib
 import json
 import random
 import re
+import warnings
 from pprint import pprint
+from .validators import initialize_validator_warn, layer_validator
 from .utils import html_box, get_geojson_string, nested_set
 from colored import fg, bg, attr
 
+initialize_validator_warn()
 
 class Layer:
     """
@@ -39,6 +42,7 @@ class Layer:
             self.attributes = self.get_layer()
 
     def __repr__(self):
+        if self.attributes: layer_validator(id_hash=self.id, warn_type='layerConfig', params=self.attributes)
         return self.__str__()
 
     def __str__(self):
@@ -59,7 +63,9 @@ class Layer:
             raise ValueError(f'Unable to get Layer {self.id} from {r.url}')
 
         if r.status_code == 200:
-            return r.json().get('data').get('attributes')
+            attributes = r.json().get('data').get('attributes', {})
+            if attributes: layer_validator(id_hash=self.id, warn_type='layerConfig', params=attributes)
+            return attributes
         else:
             raise ValueError(f'Layer with id={self.id} does not exist.')
 
@@ -334,7 +340,7 @@ class Layer:
         if target_dataset_id:
             target_dataset = Dataset(id_hash=target_dataset_id, server=self.server)
         else:
-            target_dataset = Dataset(attributes=self.attributes['dataset'], server=self.server)
+            target_dataset = self.dataset()
             clone_dataset_attr = {**target_dataset.attributes, 'name': name, }
             payload = {"dataset":{
                 'application': clone_dataset_attr['application'],

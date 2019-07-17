@@ -268,6 +268,7 @@ class Dataset:
                     'name': clone_dataset_attr['name']
                 }
             }
+            print(payload)
             print(f'Creating clone dataset')
             url = f'{clone_server}/dataset'
             headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
