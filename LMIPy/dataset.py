@@ -256,7 +256,7 @@ class Dataset:
             clone_dataset_attr = {**self.attributes, 'name': name}
             for k,v in clone_dataset_attr.items():
                 if k in dataset_params:
-                    clone_dataset_attr[k] = dataset_params[k]
+                    clone_dataset_attr[k] = dataset_params.get(k, '')
             payload = {
                 'dataset': {
                     'application': clone_dataset_attr['application'],
