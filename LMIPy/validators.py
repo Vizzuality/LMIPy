@@ -27,17 +27,29 @@ def validate_layer_config(id_hash, config):
     # and https://github.com/resource-watch/notebooks/blob/develop/ResourceWatch/Api_definition/layer_definition.ipynb
 
 
-    schema = {
+    carto_schema = {
         "type": "object",
-        "key1": {
-            "type": "object",
-            "required": ["subKey1", "subKey2", "subKey2"]},
-        "key2": {
-            "type": "array",
-            "required": ["subKey1", "subKey2", "subKey2"]},
-        "required": ["key1", "key2"]
+        "properties": {
+            "account": {"type": "string"},
+            "body": {
+                "type": "object",
+                "properties": {
+                    "maxzoom": {"type": "number"},
+                    "minzoom": {"type": "number"},
+                    "layers": {
+                        "type": "array",
+                        "properties": {
+                            "type": {"type": "options"},
+                            "options": {"type": "object"}
+                        }
+                    },
+                    "vectorLayers": {"type": "array"}
+                }
+            }
+        }
     }   
 
+    # jsonschema.validate(config, carto_schema)
 
     msg = f"WARN: Bad schema detected in Layer {id_hash}.\n\nConsider updating using `Layer.makeValid`."
     return [False, msg]
