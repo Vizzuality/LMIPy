@@ -381,7 +381,6 @@ class Layer:
             print(r.status_code)
             return None
         print(f'{clone_server}/v1/dataset/{target_dataset_id}/layer/{clone_layer_id}')
-        self.attributes = Layer(id_hash=clone_layer_id, server=clone_server).attributes
         return Layer(id_hash=clone_layer_id, server=self.server)
 
     def parse_query(self, sql):
