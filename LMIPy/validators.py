@@ -26,7 +26,6 @@ def validate_layer_config(id_hash, config):
     # also https://python-jsonschema.readthedocs.io/en/stable/
     # and https://github.com/resource-watch/notebooks/blob/develop/ResourceWatch/Api_definition/layer_definition.ipynb
 
-
     carto_schema = {
         "type": "object",
         "properties": {
@@ -36,20 +35,21 @@ def validate_layer_config(id_hash, config):
                 "properties": {
                     "maxzoom": {"type": "number"},
                     "minzoom": {"type": "number"},
-                    "layers": {
-                        "type": "array",
-                        "properties": {
-                            "type": {"type": "options"},
-                            "options": {"type": "object"}
-                        }
-                    },
+                    "layers": {"type": "array"},
                     "vectorLayers": {"type": "array"}
                 }
             }
         }
     }   
 
-    # jsonschema.validate(config, carto_schema)
-
-    msg = f"WARN: Bad schema detected in Layer {id_hash}.\n\nConsider updating using `Layer.makeValid`."
-    return [False, msg]
+    try:
+        jsonschema.validate(config, carto_schema)
+        valid = True
+        msg = 'Validation passed!'
+    except jsonschema.exceptions.ValidationError as e:
+        valid = False
+        msg = f"WARN: Bad schema detected in Layer {id_hash}.\n\nConsider updating using `Layer.makeValid`.\n{e}"
+    except json.decoder.JSONDecodeError as e:
+        valid = True
+        msg = f"WARN: Schema validation passed but contains poorly-formed text, not JSON:\n{e}"
+    return [valid, msg]
