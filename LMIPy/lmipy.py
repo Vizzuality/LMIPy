@@ -246,3 +246,12 @@ class Widget:
         if r.status_code == 200:
             print(f'Widget deleted.')
         return None
+    
+    def save(self, path=None):
+        """
+        Construct dataset json and save to local path in a date-referenced folder
+        """
+        from .dataset import Dataset
+        ds_id = self.attributes['dataset']
+        ds = Dataset(id_hash=ds_id, server=self.server)
+        ds.save(path=path)
