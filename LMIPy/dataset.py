@@ -376,33 +376,18 @@ class Dataset:
            if not os.path.isdir(path):
                 os.mkdir(path)
 
+        try:
+            url = f'{self.server}/v1/dataset/{self.id}?includes=vocabulary,metadata,layer,widget'
+            r = requests.get(url)
+            dataset_config = r.json()['data']
+        except:
+            raise ValueError(f'Could not retrieve config.')
+        
         save_json = {
             "id": self.id,
             "type": "dataset",
             "server": self.server,
-            "attributes": {
-                **self.attributes,
-                'layer': [{
-                    "id": layer.id,
-                    "type": "layer",
-                    "attributes": layer.attributes
-                    } for layer in self.layers],
-                'metadata': [{
-                    "id": m.id,
-                    "type": "metadata",
-                    "attributes": m.attributes
-                    } for m in self.metadata],
-                'vocabulary': [{
-                    "id": v.id,
-                    "type": "vocabulary",
-                    "attributes": v.attributes
-                    } for v in self.vocabulary],
-                'widget': [{
-                    "id": w.id,
-                    "type": "widget",
-                    "attributes": w.attributes
-                    } for w in self.widget]
-                },
+            "attributes": dataset_config['attributes']
         }
         if not os.path.isdir(path):
             os.mkdir(path)
