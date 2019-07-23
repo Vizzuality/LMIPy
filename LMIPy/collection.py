@@ -204,7 +204,7 @@ class Collection:
                     r = requests.get(url)
                     dataset_config = r.json()['data']
                 except:
-                    raise ValueError(f'Could not retrieve config.')
+                    raise ValueError(f'Could not retrieve config for {ds_id}.')
                 
                 save_json = {
                     "id": ds_id,
