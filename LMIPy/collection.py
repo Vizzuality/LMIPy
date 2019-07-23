@@ -192,6 +192,7 @@ class Collection:
                 os.mkdir(path)
         print(f'Saving to path: {path}')
         saved = []
+        failed = []
         for item in tqdm(self):
             if item['id'] not in saved:
                 entity_type = item.get('type')
@@ -204,7 +205,7 @@ class Collection:
                     r = requests.get(url)
                     dataset_config = r.json()['data']
                 except:
-                    raise ValueError(f'Could not retrieve config for {ds_id}.')
+                    failed.append(item)
                 
                 save_json = {
                     "id": ds_id,
@@ -214,3 +215,8 @@ class Collection:
                 }
                 with open(f"{path}/{ds_id}.json", 'w') as fp:
                     json.dump(save_json, fp)
+
+        if len(failed) > 0:
+            print(f'Some entities failed to save: {failed}')
+            return failed
+        print('Save complete!')

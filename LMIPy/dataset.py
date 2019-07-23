@@ -393,6 +393,8 @@ class Dataset:
             os.mkdir(path)
         with open(f"{path}/{self.id}.json", 'w') as fp:
             json.dump(save_json, fp)
+        print('Save complete!')
+        
 
     def load(self, path=None, check=True):
         """
