@@ -1,6 +1,7 @@
 import requests
 import random
 import os
+import json
 import datetime
 from tqdm import tqdm
 from .dataset import Dataset
@@ -191,14 +192,31 @@ class Collection:
                 os.mkdir(path)
         print(f'Saving to path: {path}')
         saved = []
+        failed = []
         for item in tqdm(self):
             if item['id'] not in saved:
-                item = create_class(item)
-                if type(item) == Layer:
-                    item = item.dataset()
-                elif type(item) == Dataset or type(item) == Table:
-                    for layer in item.layers:
-                        saved.append(layer.id)
+                entity_type = item.get('type')
+                if entity_type == 'Dataset':
+                    ds_id = item['id']
+                else:
+                    ds_id = item['attributes']['dataset']
+                try:
+                    url = f'{self.server}/v1/dataset/{ds_id}?includes=vocabulary,metadata,layer,widget'
+                    r = requests.get(url)
+                    dataset_config = r.json()['data']
+                except:
+                    failed.append(item)
+                
+                save_json = {
+                    "id": ds_id,
+                    "type": "dataset",
+                    "server": self.server,
+                    "attributes": dataset_config['attributes']
+                }
+                with open(f"{path}/{ds_id}.json", 'w') as fp:
+                    json.dump(save_json, fp)
 
-                item.save(path)
-                saved.append(item.id)
+        if len(failed) > 0:
+            print(f'Some entities failed to save: {failed}')
+            return failed
+        print('Save complete!')
