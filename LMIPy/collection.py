@@ -196,7 +196,7 @@ class Collection:
         for item in tqdm(self):
             if item['id'] not in saved:
                 entity_type = item.get('type')
-                if entity_type == 'Dataset':
+                if entity_type in ['Dataset', 'Table']:
                     ds_id = item['id']
                 else:
                     ds_id = item['attributes']['dataset']
