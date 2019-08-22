@@ -235,6 +235,8 @@ class Dataset:
                 print(r.url)
                 print('Deletion successful!')
                 self = None
+            else:
+                raise ValueError(f'Layer deletion unsuccessful.')
         else:
             print('Deletion aborted.')
         return self

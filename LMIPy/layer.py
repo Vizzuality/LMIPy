@@ -53,7 +53,7 @@ class Layer:
         """
         try:
             hash = random.getrandbits(16)
-            url = (f'{self.server}/v1/layer/{self.id}?includes=vocabulary,metadata&hash={hash}')
+            url = f'{self.server}/v1/layer/{self.id}?includes=vocabulary,metadata&hash={hash}'
             r = requests.get(url)
         except:
             raise ValueError(f'Unable to get Layer {self.id} from {r.url}')
@@ -332,7 +332,7 @@ class Layer:
             if k in layer_params:
                 clone_layer_attr[k] = layer_params[k]
         if target_dataset_id:
-            target_dataset = Dataset(id_hash=target_dataset_id, server=self.server)
+            target_dataset = Dataset(id_hash=target_dataset_id, server=clone_server)
         else:
             target_dataset = self.dataset()
             clone_dataset_attr = {**target_dataset.attributes, 'name': name, }
@@ -381,7 +381,7 @@ class Layer:
             print(r.status_code)
             return None
         print(f'{clone_server}/v1/dataset/{target_dataset_id}/layer/{clone_layer_id}')
-        return Layer(id_hash=clone_layer_id, server=self.server)
+        return Layer(id_hash=clone_layer_id, server=clone_server)
 
     def parse_query(self, sql):
         """
