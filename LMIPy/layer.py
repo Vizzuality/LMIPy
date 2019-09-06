@@ -30,7 +30,7 @@ class Layer:
         if not attributes and id_hash:
             self.id = id_hash
             self.attributes = self.get_layer()
-        elif attributes and token: #and server == 'https://api.resourcewatch.org':  
+        elif attributes and token:
             created_layer = self.new_layer(token=token, attributes=attributes, server=self.server)
             self.attributes = created_layer.attributes
             self.id = created_layer.id
@@ -61,7 +61,7 @@ class Layer:
         if r.status_code == 200:
             return r.json().get('data').get('attributes')
         else:
-            raise ValueError(f'Layer with id={self.id} does not exist.')
+            raise ValueError(f'Layer with id={self.id} does not exist for server={self.server}.')
 
     def parse_map_url(self):
         """
@@ -321,14 +321,10 @@ class Layer:
 
         if not token:
             raise ValueError(f'[token] Resource Watch API token required to clone.')
-        # unneccesary?
-        # if not all(x not in layer_params.keys() for x in ['name', 'app']):
-        #     print('The keys "name" and "app" must be defined in layer_params.')
-        #     return None
         target_layer_name  = self.attributes['name']
         name = layer_params.get('name', f'{target_layer_name} CLONE')
         clone_layer_attr = {**self.attributes, 'name': name}
-        for k, _ in clone_layer_attr.items():
+        for k in clone_layer_attr.keys():
             if k in layer_params:
                 clone_layer_attr[k] = layer_params[k]
         if target_dataset_id:
@@ -385,7 +381,7 @@ class Layer:
 
     def parse_query(self, sql):
         """
-        Distriibuter to decide interect method
+        Distributer to decide interect method
         """
         if self.attributes.get('layerConfig') == None:
             raise ValueError("No layerConfig present in layer from which to create a query.")
