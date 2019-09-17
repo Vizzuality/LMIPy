@@ -529,3 +529,33 @@ class Layer:
                 return None
             print(f'{server}/v1/layer/{new_layer_id}')
             return Layer(id_hash=new_layer_id, server=server)
+
+    def merge(self, token=None, target_layer_id=None, targer_server='https://api.resourcewatch.org'):
+        """
+        'Merge' one Layer entity into another
+        """
+        # get other layer
+        target_layer = Layer(target_layer_id, server=targer_server)
+        # create payload
+        atts = self.attributes
+        payload = {
+            'layerConfig': atts.get('layerConfig', None),
+            'legendConfig': atts.get('legendConfig', None),
+            'applicationConfig': atts.get('applicationConfig', None),
+            'interactionConfig': atts.get('interactionConfig', None),
+            'name': atts.get('name', None),
+            'description': atts.get('description', None),
+            'iso': atts.get('iso', None),
+            'application': atts.get('application', None),
+            'provider': atts.get('provider', None)
+        }
+
+        # if None, remove from update
+        # add 'prod_id'?
+        filtered_payload = {k:v for k,v in payload if v}
+
+        # confirm update
+
+        # update other layer
+        target_layer.update(update_params=payload, token=token)
+
