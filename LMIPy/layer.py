@@ -557,5 +557,5 @@ class Layer:
         # confirm update
 
         # update other layer
-        target_layer.update(update_params=payload, token=token)
+        target_layer.update(update_params=filtered_payload, token=token)
 
