@@ -530,12 +530,13 @@ class Layer:
             print(f'{server}/v1/layer/{new_layer_id}')
             return Layer(id_hash=new_layer_id, server=server)
 
-    def merge(self, token=None, target_layer_id=None, targer_server='https://api.resourcewatch.org'):
+    def merge(self, token=None, target_layer_id=None, target_server='https://api.resourcewatch.org', key_whitelist=[]):
         """
         'Merge' one Layer entity into another
         """
+
         # get other layer
-        target_layer = Layer(target_layer_id, server=targer_server)
+        target_layer = Layer(target_layer_id, server=target_server)
         # create payload
         atts = self.attributes
         payload = {
@@ -549,13 +550,23 @@ class Layer:
             'application': atts.get('application', None),
             'provider': atts.get('provider', None)
         }
+        if not key_whitelist: key_whitelist = [k for k in payload.keys()]
 
         # if None, remove from update
         # add 'prod_id'?
-        filtered_payload = {k:v for k,v in payload if v}
+        filtered_payload = {k:v for k,v in payload if v and k in key_whitelist}
 
         # confirm update
-
-        # update other layer
-        target_layer.update(update_params=filtered_payload, token=token)
+        print(f'Merging {self.id} from {self.server} into {target_layer_id} on {target_server}.\nAre you sure you sure you want to coontinue?')
+        conf = input()
+        if conf.lower() == 'y':
+            target_layer.update(update_params=filtered_payload, token=token)
+        elif conf.lower() == 'n':
+            print('Aborting...')
+            return False
+        else:
+            print('Requires y/n input!')
+            return False
+        
+        
 
