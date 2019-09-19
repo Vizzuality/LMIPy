@@ -192,7 +192,8 @@ def test_merge_layer():
         target_layer=None,
         target_layer_id='626e08ed-15b5-499a-8a46-9a5cb52d0a30',
         target_server='https://staging-api.globalforestwatch.org',
-        key_whitelist=[])
+        key_whitelist=[],
+        force=True)
     whitelist = [
             'layerConfig',
             'legendConfig',

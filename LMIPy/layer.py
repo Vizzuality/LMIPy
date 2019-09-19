@@ -530,7 +530,7 @@ class Layer:
             print(f'{server}/v1/layer/{new_layer_id}')
             return Layer(id_hash=new_layer_id, server=server)
 
-    def merge(self, token=None, target_layer=None, target_layer_id=None, target_server='https://api.resourcewatch.org', key_whitelist=[]):
+    def merge(self, token=None, target_layer=None, target_layer_id=None, target_server='https://api.resourcewatch.org', key_whitelist=[], force=False):
         """
         'Merge' one Layer entity into another target Layer.
         The argument `key_whitelist` can be used to specify which properties you wish to merge (if not all)
@@ -557,7 +557,10 @@ class Layer:
         if not key_whitelist: key_whitelist = [k for k in payload.keys()]
         filtered_payload = {k:v for k,v in payload.items() if v and k in key_whitelist}
         print(f'Merging {self.id} from {self.server} into {target_layer_id} on {target_server}.\nAre you sure you sure you want to continue?')
-        conf = input()
+        if not force:
+            conf = input()
+        else:
+            conf = 'y'
         if conf.lower() == 'y':
             try:
                 merged_layer = target_layer.update(update_params=filtered_payload, token=token)
