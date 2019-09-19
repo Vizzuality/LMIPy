@@ -178,7 +178,7 @@ def test_update_layer():
 
 ### Merge Layer
 def test_create_and_delete_layer():
-    staging_layer = lmi.Layer('626e08ed-15b5-499a-8a46-9a5cb52d0a30', server=STAGING_SERVER)
+    staging_layer = Layer('626e08ed-15b5-499a-8a46-9a5cb52d0a30', server='https://staging-api.globalforestwatch.org')
     staging_layer.update(token=API_TOKEN, update_params={
         'name': 'Template Layer Staging',
         'iso': [],
@@ -187,11 +187,11 @@ def test_create_and_delete_layer():
         'applicationConfig': {},
         'interactionConfig': {}
     })
-    production_layer = lmi.Layer('0328715e-6c6e-4e11-8177-5f0681794f8d')
+    production_layer = Layer('0328715e-6c6e-4e11-8177-5f0681794f8d')
     merged_layer = production_layer.merge(token=API_TOKEN,
         target_layer=None,
         target_layer_id='626e08ed-15b5-499a-8a46-9a5cb52d0a30',
-        target_server=STAGING_SERVER,
+        target_server='https://staging-api.globalforestwatch.org',
         key_whitelist=[])
     whitelist = [
             'layerConfig',
