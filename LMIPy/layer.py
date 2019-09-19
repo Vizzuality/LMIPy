@@ -529,3 +529,45 @@ class Layer:
                 return None
             print(f'{server}/v1/layer/{new_layer_id}')
             return Layer(id_hash=new_layer_id, server=server)
+
+    def document(self):
+        """
+        Create a new document.
+        """
+        attributes = self.attributes 
+
+        asset_id = attributes['layerConfig']['assetId']
+        image = ee.Image(asset_id)
+        metadata = image.getInfo()
+        
+
+        sld_value = attributes['layerConfig']['body']['sldValue']
+        sld_parse = utils.sldParse(sld_value)
+        sld_metadata = sld_parse['items']
+        #visualisation = json.loads(son.dumps(sld_metadata))
+
+        palette = []
+        quantity = []
+        for r in visualisation:
+            palette.append(r['color'])
+            quantity.append(r['quantity'])
+
+        url = E_image.getThumbURL({
+            'min': min(quantity),
+            'max': max(quantity)
+            'palette': palette,
+            'dimensions': 1000})
+
+        info = {
+        'name':name,
+        'crs':metadata['bands'][0]['crs'],
+        'crs_transform':metadata['bands'][0]['crs_transform'],
+        'data_type':metadata['bands'][0]['data_type'],
+        'band':metadata['bands'][0]['id'],
+        'sld_value':sld_metadata
+        'image_url':url}
+        asset_info = json.loads(json.dumps(info))
+        
+        #Image(url=url, embed=True, format='png')
+
+        return asset_info
