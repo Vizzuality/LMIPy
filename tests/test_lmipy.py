@@ -177,7 +177,7 @@ def test_update_layer():
     assert updated.attributes['name'] == 'Template Layer'
 
 ### Merge Layer
-def test_create_and_delete_layer():
+def test_merge_layer():
     staging_layer = Layer('626e08ed-15b5-499a-8a46-9a5cb52d0a30', server='https://staging-api.globalforestwatch.org')
     staging_layer.update(token=API_TOKEN, update_params={
         'name': 'Template Layer Staging',
