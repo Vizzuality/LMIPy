@@ -530,14 +530,18 @@ class Layer:
             print(f'{server}/v1/layer/{new_layer_id}')
             return Layer(id_hash=new_layer_id, server=server)
 
-    def merge(self, token=None, target_layer_id=None, target_server='https://api.resourcewatch.org', key_whitelist=[]):
+    def merge(self, token=None, target_layer=None, target_layer_id=None, target_server='https://api.resourcewatch.org', key_whitelist=[]):
         """
-        'Merge' one Layer entity into another
+        'Merge' one Layer entity into another target Layer.
+        The argument `key_whitelist` can be used to specify which properties you wish to merge (if not all)
+        Note: requires API token.
         """
-
-        # get other layer
-        target_layer = Layer(target_layer_id, server=target_server)
-        # create payload
+        if not token:
+            raise ValueError(f'[token] Resource Watch API token required to create a new dataset.')
+        if not target_layer and target_layer_id and target_server:
+            target_layer = Layer(target_layer_id, server=target_server)
+        else:
+            raise ValueError(f'Requires either target Layer or Layer id plus server.')
         atts = self.attributes
         payload = {
             'layerConfig': atts.get('layerConfig', None),
@@ -551,22 +555,20 @@ class Layer:
             'provider': atts.get('provider', None)
         }
         if not key_whitelist: key_whitelist = [k for k in payload.keys()]
-
-        # if None, remove from update
-        # add 'prod_id'?
-        filtered_payload = {k:v for k,v in payload if v and k in key_whitelist}
-
-        # confirm update
-        print(f'Merging {self.id} from {self.server} into {target_layer_id} on {target_server}.\nAre you sure you sure you want to coontinue?')
+        filtered_payload = {k:v for k,v in payload.items() if v and k in key_whitelist}
+        print(f'Merging {self.id} from {self.server} into {target_layer_id} on {target_server}.\nAre you sure you sure you want to continue?')
         conf = input()
         if conf.lower() == 'y':
-            target_layer.update(update_params=filtered_payload, token=token)
+            try:
+                merged_layer = target_layer.update(update_params=filtered_payload, token=token)
+            except:
+                print('Aborting...')
+            print('Completed!')
+            return merged_layer
+
         elif conf.lower() == 'n':
             print('Aborting...')
             return False
         else:
             print('Requires y/n input!')
             return False
-        
-        
-
