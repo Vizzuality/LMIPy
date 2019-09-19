@@ -176,6 +176,39 @@ def test_update_layer():
     updated = l.update(token=API_TOKEN, update_params={'name': f'Template Layer'})
     assert updated.attributes['name'] == 'Template Layer'
 
+### Merge Layer
+def test_merge_layer():
+    staging_layer = Layer('626e08ed-15b5-499a-8a46-9a5cb52d0a30', server='https://staging-api.globalforestwatch.org')
+    staging_layer.update(token=API_TOKEN, update_params={
+        'name': 'Template Layer Staging',
+        'iso': [],
+        'layerConfig': {},
+        'legendConfig': {},
+        'applicationConfig': {},
+        'interactionConfig': {}
+    })
+    production_layer = Layer('0328715e-6c6e-4e11-8177-5f0681794f8d')
+    merged_layer = production_layer.merge(token=API_TOKEN,
+        target_layer=None,
+        target_layer_id='626e08ed-15b5-499a-8a46-9a5cb52d0a30',
+        target_server='https://staging-api.globalforestwatch.org',
+        key_whitelist=[],
+        force=True)
+    whitelist = [
+            'layerConfig',
+            'legendConfig',
+            'applicationConfig',
+            'interactionConfig',
+            'name',
+            'description',
+            'iso',
+            'application',
+            'provider'
+            ]
+    merged_atts = {k:v for k,v in merged_layer.attributes.items() if k in whitelist}
+    production_atts =  {k:v for k,v in production_layer.attributes.items() if k in whitelist}
+    assert merged_atts ==  production_atts
+
 ### Widget Tests
 
 def test_create_widget():
