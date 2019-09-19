@@ -169,8 +169,8 @@ class Geometry:
 
     @staticmethod
     def get_image_url(centroid, band_viz, start, end):
-        params = {"lat": centroid[1],
-                  "lon": centroid[0],
+        params = {"lon": centroid[1],
+                  "lat": centroid[0],
                   "start": start,
                   "end": end,
                   "band_viz": json.dumps(band_viz)
