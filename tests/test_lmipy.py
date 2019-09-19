@@ -205,8 +205,8 @@ def test_merge_layer():
             'application',
             'provider'
             ]
-    merged_atts = {k:v for k,v in merged_layer.attributes.items if k in whitelist}
-    production_atts =  {k:v for k,v in production_layer.attributes.items if k in whitelist}
+    merged_atts = {k:v for k,v in merged_layer.attributes.items() if k in whitelist}
+    production_atts =  {k:v for k,v in production_layer.attributes.items() if k in whitelist}
     assert merged_atts ==  production_atts
 
 ### Widget Tests
