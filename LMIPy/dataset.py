@@ -36,11 +36,11 @@ class Dataset:
             self.attributes = created_dataset.attributes
             self.id = created_dataset.id
         elif attributes:
-            self.id = attributes.get('id', None)
+            self.id = attributes.get('id')
             self.attributes = self.get_dataset()
 
         if len(self.attributes.get('layer', [])) > 0:
-            self.layers = [Layer(id_hash=l.get('id', None), attributes=l.get('attributes',None), server=self.server) for l in self.attributes.get('layer')]
+            self.layers = [Layer(id_hash=l.get('id', None), server=self.server) for l in self.attributes.get('layer')]
             _ = self.attributes.pop('layer')
         if len(self.attributes.get('metadata', [])) > 0:
             self.metadata = [Metadata(attributes=m, server=self.server) for m in self.attributes.get('metadata')]
