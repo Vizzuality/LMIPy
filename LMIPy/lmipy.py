@@ -155,10 +155,13 @@ class Widget:
     def __init__(self, id_hash=None, attributes=None, server='https://api.resourcewatch.org'):
         self.id = id_hash
         self.server = server
-        if attributes:
+        if id_hash and attributes:
             self.attributes = attributes
-        else:
+        elif id_hash:
             self.attributes = self.get_widget()
+        else:
+            raise ValueError(f'Unable to initialise Widget without id_hash.')
+
 
     def __repr__(self):
         return self.__str__()
@@ -167,7 +170,7 @@ class Widget:
         return html_box(item=self)
 
     def __str__(self):
-        return f"Widget {self.id} {self.attributes['name']}"
+        return f"Widget {self.id} {self.attributes.get('name','')}"
 
     def get_widget(self):
         """

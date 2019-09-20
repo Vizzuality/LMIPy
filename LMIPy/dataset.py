@@ -53,7 +53,7 @@ class Dataset:
         else:
             self.vocabulary = []
         if len(self.attributes.get('widget', [])) > 0:
-            self.widget =[Widget(attributes=w, server=self.server) for w in self.attributes.get('widget')]
+            self.widget =[Widget(w.get('id'), server=self.server) for w in self.attributes.get('widget')]
             _ = self.attributes.pop('widget')
         else:
             self.widget = []
@@ -248,7 +248,7 @@ class Dataset:
 
         The argument `clone_server` specifies the server to clone to. Default server = https://api.resourcewatch.org
 
-        Set clone_children=True to clone all child layers.
+        Set clone_children=True to clone all child layers, and widgets.
         """
         if not clone_server: clone_server = self.server
         if not token:
@@ -276,34 +276,40 @@ class Dataset:
             r = requests.post(url, data=json.dumps(payload), headers=headers)
             if r.status_code == 200:
                 clone_dataset_id = r.json()['data']['id'] 
+                clone_dataset = Dataset(id_hash=clone_dataset_id, server=clone_server)
             else:
                 print(r.status_code)
                 return None
             print(f'{clone_server}/v1/dataset/{clone_dataset_id}')
             if clone_children:
-                layers =  self.layers 
+                layers =  self.layers
                 if len(layers) > 0:
-                    for i in range(0, len(layers)):
-                        layer = layers[i]
+                    for l in layers:
                         try:
-                            layer_name = layer.attributes['name']
-                            layer.clone(token=token, env=env, layer_params={'name': layer_name}, clone_server=clone_server, target_dataset_id=clone_dataset_id)
+                            layer_name = l.attributes['name']
+                            
+                            l.clone(token=token, env=env, layer_params={'name': layer_name}, clone_server=clone_server, target_dataset_id=clone_dataset_id)
                         except:
-                            raise ValueError(f'Layer cloning failed for {layer.id}')
+                            raise ValueError(f'Layer cloning failed for {l.id}')
                 else:
-                    print("No children to clone!")
-                # widgets =  self.widget 
-                # if len(layers) > 0:
-                #     for i in range(0, len(layers)):
-                #         layer = layers[i]
-                #         try:
-                #             layer_name = layer.attributes['name']
-                #             layer.clone(token=token, env=env, layer_params={'name': layer_name}, clone_server=clone_server, target_dataset_id=clone_dataset_id)
-                #         except:
-                #             raise ValueError(f'Layer cloning failed for {layer.id}')
-                # else:
-                #     print("No children to clone!")
-                clone_dataset = Dataset(id_hash=clone_dataset_id, server=clone_server)
+                    print("No child layers to clone!")
+                widgets =  self.widget 
+                if len(widgets) > 0:
+                    for w in widgets:
+                        widget = w.attributes
+                        widget_payload = {
+                            "name": widget['name'],
+                            "description": widget['description'],
+                            "env": payload['dataset']['env'],
+                            "widgetConfig": widget['widgetConfig'],
+                            "application": payload['dataset']['application']
+                        }
+                        try:
+                            clone_dataset.add_widget(token=token, widget_params=widget_payload)
+                        except:
+                            raise ValueError(f'Widget cloning failed for {widget.id}')
+                else:
+                    print("No child widgets to clone!")
                 vocabs = self.vocabulary
                 if len(vocabs) > 0:
                     for v in vocabs:
