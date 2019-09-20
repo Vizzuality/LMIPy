@@ -162,7 +162,6 @@ class Widget:
         else:
             raise ValueError(f'Unable to initialise Widget without id_hash.')
 
-
     def __repr__(self):
         return self.__str__()
     
