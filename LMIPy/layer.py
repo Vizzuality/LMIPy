@@ -6,10 +6,10 @@ import json
 import random
 import re
 from pprint import pprint
-from .utils import html_box, get_geojson_string, nested_set
+from .utils import html_box, get_geojson_string, nested_set, sldParse
 from colored import fg, bg, attr
 import ee
-from LMIPy import utils
+
 ee.Initialize()
 
 
@@ -538,17 +538,58 @@ class Layer:
         Create a new document.
         """
         attributes = self.attributes 
+        server = self.server
 
         if attributes['provider']=='gee':
 
-            try:
+            #try:
+            if attributes['layerConfig']['type']=='group':
+                layer_group = attributes['layerConfig']['layers']
+
+                for layerID in layer_group:
+                    layer=Layer(layerID,server=server)
+                    asset_id=layer.attributes['layerConfig']['assetId']
+                    image=ee.Image(asset_id)
+                    metadata=image.getInfo()
+                    
+                    sld_value = layer.attributes['layerConfig']['body']['sldValue']
+                    sld_parse = sldParse(sld_value)
+                    sld_metadata = sld_parse['items']
+                    visualisation = json.loads(json.dumps(sld_metadata))
+                    
+                    palette = []
+                    quantity = []
+                    for r in visualisation:
+                        palette.append(r['color'])
+                        quantity.append(r['quantity'])
+                        
+
+                    url = image.getThumbURL({
+                        'min': min(quantity),
+                        'max': max(quantity),
+                        'palette': palette,
+                        'dimensions': 1000})
+
+                    asset_info=[]
+                    info = {
+                    'name':layer.attributes['name'],
+                    'crs':metadata['bands'][0]['crs'],
+                    'crs_transform':metadata['bands'][0]['crs_transform'],
+                    'data_type':metadata['bands'][0]['data_type'],
+                    'band':metadata['bands'][0]['id'],
+                    'sld_value':sld_metadata,
+                    'image_url':url}
+                    asset_info.append(info)
+                    #asset_info = json.loads(json.dumps(asset_info))
+
+            else:
                 asset_id = attributes['layerConfig']['assetId']
                 image = ee.Image(asset_id)
                 metadata = image.getInfo()
         
 
                 sld_value = attributes['layerConfig']['body']['sldValue']
-                sld_parse = utils.sldParse(sld_value)
+                sld_parse = sldParse(sld_value)
                 sld_metadata = sld_parse['items']
                 visualisation = json.loads(json.dumps(sld_metadata))
 
@@ -573,8 +614,8 @@ class Layer:
                 'sld_value':sld_metadata,
                 'image_url':url}
                 asset_info = json.loads(json.dumps(info))
-            except:
-                print('Asset id cannot be reached')
+            #except:
+             #   print('Asset id cannot be reached')
 
         else:
             print('Layer is not a gee asset')
@@ -582,6 +623,7 @@ class Layer:
             #Image(url=url, embed=True, format='png')
 
         return asset_info
+
     def merge(self, token=None, target_layer=None, target_layer_id=None, target_server='https://api.resourcewatch.org', key_whitelist=[], force=False):
         """
         'Merge' one Layer entity into another target Layer.
