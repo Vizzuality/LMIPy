@@ -155,10 +155,12 @@ class Widget:
     def __init__(self, id_hash=None, attributes=None, server='https://api.resourcewatch.org'):
         self.id = id_hash
         self.server = server
-        if id_hash and attributes:
-            self.attributes = attributes
-        elif id_hash:
+        if id_hash:
             self.attributes = self.get_widget()
+        elif attributes:
+            self.id = attributes.get('id')
+            self.attributes = self.get_widget()
+
         else:
             raise ValueError(f'Unable to initialise Widget without id_hash.')
 

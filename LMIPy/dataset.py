@@ -40,7 +40,7 @@ class Dataset:
             self.attributes = self.get_dataset()
 
         if len(self.attributes.get('layer', [])) > 0:
-            self.layers = [Layer(id_hash=l.get('id', None), server=self.server) for l in self.attributes.get('layer')]
+            self.layers = [Layer(id_hash=l.get('id', None), attributes=l, server=self.server) for l in self.attributes.get('layer')]
             _ = self.attributes.pop('layer')
         if len(self.attributes.get('metadata', [])) > 0:
             self.metadata = [Metadata(attributes=m, server=self.server) for m in self.attributes.get('metadata')]
@@ -53,7 +53,7 @@ class Dataset:
         else:
             self.vocabulary = []
         if len(self.attributes.get('widget', [])) > 0:
-            self.widget =[Widget(w.get('id'), server=self.server) for w in self.attributes.get('widget')]
+            self.widget =[Widget(w.get('id'), attributes=1, server=self.server) for w in self.attributes.get('widget')]
             _ = self.attributes.pop('widget')
         else:
             self.widget = []
