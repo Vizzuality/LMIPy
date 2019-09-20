@@ -542,27 +542,63 @@ class Layer:
 
         if attributes['provider']=='gee':
 
-            #try:
-            if attributes['layerConfig']['type']=='group':
-                layer_group = attributes['layerConfig']['layers']
+            try:
+                if attributes['layerConfig']['type']=='group':
+                    layer_group = attributes['layerConfig']['layers']
 
-                for layerID in layer_group:
-                    layer=Layer(layerID,server=server)
-                    asset_id=layer.attributes['layerConfig']['assetId']
-                    image=ee.Image(asset_id)
-                    metadata=image.getInfo()
-                    
-                    sld_value = layer.attributes['layerConfig']['body']['sldValue']
+                    asset_info=[]
+                    for layerID in layer_group:
+                        layer=Layer(layerID,server=server)
+                        asset_id=layer.attributes['layerConfig']['assetId']
+                        image=ee.Image(asset_id)
+                        metadata=image.getInfo()
+                        
+                        sld_value = layer.attributes['layerConfig']['body']['sldValue']
+                        sld_parse = sldParse(sld_value)
+                        sld_metadata = sld_parse['items']
+                        visualisation = json.loads(json.dumps(sld_metadata))
+                        
+                        palette = []
+                        quantity = []
+                        for r in visualisation:
+                            palette.append(r['color'])
+                            quantity.append(r['quantity'])
+                            
+
+                        url = image.getThumbURL({
+                            'min': min(quantity),
+                            'max': max(quantity),
+                            'palette': palette,
+                            'dimensions': 1000})
+
+                        
+                        info = {
+                        'name':layer.attributes['name'],
+                        'crs':metadata['bands'][0]['crs'],
+                        'crs_transform':metadata['bands'][0]['crs_transform'],
+                        'data_type':metadata['bands'][0]['data_type'],
+                        'band':metadata['bands'][0]['id'],
+                        'sld_value':sld_metadata,
+                        'image_url':url}
+                        asset_info.append(info)
+                        #asset_info = json.loads(json.dumps(asset_info))
+
+                else:
+                    asset_id = attributes['layerConfig']['assetId']
+                    image = ee.Image(asset_id)
+                    metadata = image.getInfo()
+            
+
+                    sld_value = attributes['layerConfig']['body']['sldValue']
                     sld_parse = sldParse(sld_value)
                     sld_metadata = sld_parse['items']
                     visualisation = json.loads(json.dumps(sld_metadata))
-                    
+
                     palette = []
                     quantity = []
                     for r in visualisation:
                         palette.append(r['color'])
                         quantity.append(r['quantity'])
-                        
 
                     url = image.getThumbURL({
                         'min': min(quantity),
@@ -570,52 +606,17 @@ class Layer:
                         'palette': palette,
                         'dimensions': 1000})
 
-                    asset_info=[]
                     info = {
-                    'name':layer.attributes['name'],
+                    'name':attributes['name'],
                     'crs':metadata['bands'][0]['crs'],
                     'crs_transform':metadata['bands'][0]['crs_transform'],
                     'data_type':metadata['bands'][0]['data_type'],
                     'band':metadata['bands'][0]['id'],
                     'sld_value':sld_metadata,
                     'image_url':url}
-                    asset_info.append(info)
-                    #asset_info = json.loads(json.dumps(asset_info))
-
-            else:
-                asset_id = attributes['layerConfig']['assetId']
-                image = ee.Image(asset_id)
-                metadata = image.getInfo()
-        
-
-                sld_value = attributes['layerConfig']['body']['sldValue']
-                sld_parse = sldParse(sld_value)
-                sld_metadata = sld_parse['items']
-                visualisation = json.loads(json.dumps(sld_metadata))
-
-                palette = []
-                quantity = []
-                for r in visualisation:
-                    palette.append(r['color'])
-                    quantity.append(r['quantity'])
-
-                url = image.getThumbURL({
-                    'min': min(quantity),
-                    'max': max(quantity),
-                    'palette': palette,
-                    'dimensions': 1000})
-
-                info = {
-                'name':attributes['name'],
-                'crs':metadata['bands'][0]['crs'],
-                'crs_transform':metadata['bands'][0]['crs_transform'],
-                'data_type':metadata['bands'][0]['data_type'],
-                'band':metadata['bands'][0]['id'],
-                'sld_value':sld_metadata,
-                'image_url':url}
-                asset_info = json.loads(json.dumps(info))
-            #except:
-             #   print('Asset id cannot be reached')
+                    asset_info = json.loads(json.dumps(info))
+            except:
+                print('Asset id cannot be reached')
 
         else:
             print('Layer is not a gee asset')
