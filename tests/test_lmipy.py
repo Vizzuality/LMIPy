@@ -94,6 +94,25 @@ def test_update_dataset():
     assert updated.attributes['name'] == 'Template Dataset'
 
 ### Clone and Delete Dataset
+def test_clone_and_delete_dataset():
+    d = Dataset(id_hash='bc06c603-9b16-4e51-99e6-228fa576e06b')
+    cloned = d.clone(token=API_TOKEN, env='production', dataset_params={'name': 'Template Dataset CLONED'}, clone_children=True)
+    assert cloned.attributes['name'] == f'Template Dataset CLONED'
+    assert cloned.id is not 'bc06c603-9b16-4e51-99e6-228fa576e06b'
+    vocabulary = cloned.vocabulary
+    metadata = cloned.metadata
+    widget = cloned.widget
+    layer = cloned.layers
+    assert len(vocabulary) > 0
+    assert len(metadata) > 0
+    assert len(widget) > 0
+    assert len(layer) > 0
+    assert vocabulary[0].delete(token=API_TOKEN) == None
+    assert metadata[0].delete(token=API_TOKEN) == None
+    assert widget[0].delete(token=API_TOKEN) == None
+    assert layer[0].delete(token=API_TOKEN, force=True) == None
+    assert cloned.delete(token=API_TOKEN, force=True) == None
+
 ### Create and Delete Dataset
 
 #----- Layer Tests -----#

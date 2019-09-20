@@ -36,11 +36,11 @@ class Dataset:
             self.attributes = created_dataset.attributes
             self.id = created_dataset.id
         elif attributes:
-            self.id = attributes.get('id')
+            self.id = attributes.get('id', None)
             self.attributes = self.get_dataset()
 
         if len(self.attributes.get('layer', [])) > 0:
-            self.layers = [Layer(attributes=l, server=self.server) for l in self.attributes.get('layer')]
+            self.layers = [Layer(id_hash=l.get('id', None), attributes=l.get('attributes',None), server=self.server) for l in self.attributes.get('layer')]
             _ = self.attributes.pop('layer')
         if len(self.attributes.get('metadata', [])) > 0:
             self.metadata = [Metadata(attributes=m, server=self.server) for m in self.attributes.get('metadata')]
@@ -209,9 +209,12 @@ class Dataset:
             raise ValueError(f'[token] Resource Watch API token required to delete.')
         layer_count = len(self.layers)
         if layer_count > 0:
-            print(f'WARNING - Dataset has {layer_count} associated Layer(s).')
-            print('[D]elete ALL associated Layers, or\n[A]bort delete process?')
-            conf = input()
+            if not force:
+                print(f'WARNING - Dataset has {layer_count} associated Layer(s).')
+                print('[D]elete ALL associated Layers, or\n[A]bort delete process?')
+                conf = input()
+            else:
+                conf = 'd'
             if conf.lower() == 'd':
                 for l in self.layers:
                     l.delete(token, force=True)
@@ -299,7 +302,7 @@ class Dataset:
                         widget = w.attributes
                         widget_payload = {
                             "name": widget['name'],
-                            "description": widget['description'],
+                            "description": widget.get('description', None),
                             "env": payload['dataset']['env'],
                             "widgetConfig": widget['widgetConfig'],
                             "application": payload['dataset']['application']
@@ -416,7 +419,7 @@ class Dataset:
                 recovered_dataset = json.load(f)
             server = recovered_dataset.get('server', 'https://api.resourcewatch.org')
             if check:
-                blacklist = ['metadata','layer', 'vocabulary', 'updatedAt']
+                blacklist = ['metadata','layer','widget','vocabulary', 'updatedAt']
                 attributes = {f'{k}':v for k,v in recovered_dataset['attributes'].items() if k not in blacklist}
                 difs = {f'{k}': [v, self.attributes[k]] for k,v in attributes.items() if k not in blacklist and self.attributes[k] != attributes[k]}
                 if check and self.attributes == attributes:
@@ -504,7 +507,7 @@ class Dataset:
         """
         Create a new widget association to the current dataset.
 
-        A single application string, name and widgetConfig must be specified within the
+        A application list, name and widgetConfig must be specified within the
         `widget_params` dictionary.
         The widgetConfig key has a free schema.
 
@@ -526,8 +529,10 @@ class Dataset:
             }
             try:
                 url = f'{self.server}/v1/dataset/{ds_id}/widget'
+                print(url, payload)
                 headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
                 r = requests.post(url, data=json.dumps(payload), headers=headers)
+                print(r.json())
             except:
                 raise ValueError(f'Widget creation failed.')
             if r.status_code == 200:

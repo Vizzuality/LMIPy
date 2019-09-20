@@ -35,7 +35,7 @@ class Layer:
             self.attributes = created_layer.attributes
             self.id = created_layer.id
         elif attributes:
-            self.id = attributes.get('id')
+            self.id = attributes.get('id',None)
             self.attributes = self.get_layer()
 
     def __repr__(self):
