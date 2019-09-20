@@ -40,7 +40,7 @@ class Dataset:
             self.attributes = self.get_dataset()
 
         if len(self.attributes.get('layer', [])) > 0:
-            self.layers = [Layer(attributes=l, server=self.server) for l in self.attributes.get('layer')]
+            self.layers = [Layer(id_hash=l.get('id', None), attributes=l, server=self.server) for l in self.attributes.get('layer')]
             _ = self.attributes.pop('layer')
         if len(self.attributes.get('metadata', [])) > 0:
             self.metadata = [Metadata(attributes=m, server=self.server) for m in self.attributes.get('metadata')]
@@ -53,7 +53,7 @@ class Dataset:
         else:
             self.vocabulary = []
         if len(self.attributes.get('widget', [])) > 0:
-            self.widget =[Widget(attributes=w, server=self.server) for w in self.attributes.get('widget')]
+            self.widget =[Widget(w.get('id'), attributes=1, server=self.server) for w in self.attributes.get('widget')]
             _ = self.attributes.pop('widget')
         else:
             self.widget = []
@@ -209,9 +209,12 @@ class Dataset:
             raise ValueError(f'[token] Resource Watch API token required to delete.')
         layer_count = len(self.layers)
         if layer_count > 0:
-            print(f'WARNING - Dataset has {layer_count} associated Layer(s).')
-            print('[D]elete ALL associated Layers, or\n[A]bort delete process?')
-            conf = input()
+            if not force:
+                print(f'WARNING - Dataset has {layer_count} associated Layer(s).')
+                print('[D]elete ALL associated Layers, or\n[A]bort delete process?')
+                conf = input()
+            else:
+                conf = 'd'
             if conf.lower() == 'd':
                 for l in self.layers:
                     l.delete(token, force=True)
@@ -248,7 +251,7 @@ class Dataset:
 
         The argument `clone_server` specifies the server to clone to. Default server = https://api.resourcewatch.org
 
-        Set clone_children=True to clone all child layers.
+        Set clone_children=True to clone all child layers, and widgets.
         """
         if not clone_server: clone_server = self.server
         if not token:
@@ -276,34 +279,40 @@ class Dataset:
             r = requests.post(url, data=json.dumps(payload), headers=headers)
             if r.status_code == 200:
                 clone_dataset_id = r.json()['data']['id'] 
+                clone_dataset = Dataset(id_hash=clone_dataset_id, server=clone_server)
             else:
                 print(r.status_code)
                 return None
             print(f'{clone_server}/v1/dataset/{clone_dataset_id}')
             if clone_children:
-                layers =  self.layers 
+                layers =  self.layers
                 if len(layers) > 0:
-                    for i in range(0, len(layers)):
-                        layer = layers[i]
+                    for l in layers:
                         try:
-                            layer_name = layer.attributes['name']
-                            layer.clone(token=token, env=env, layer_params={'name': layer_name}, clone_server=clone_server, target_dataset_id=clone_dataset_id)
+                            layer_name = l.attributes['name']
+                            
+                            l.clone(token=token, env=env, layer_params={'name': layer_name}, clone_server=clone_server, target_dataset_id=clone_dataset_id)
                         except:
-                            raise ValueError(f'Layer cloning failed for {layer.id}')
+                            raise ValueError(f'Layer cloning failed for {l.id}')
                 else:
-                    print("No children to clone!")
-                # widgets =  self.widget 
-                # if len(layers) > 0:
-                #     for i in range(0, len(layers)):
-                #         layer = layers[i]
-                #         try:
-                #             layer_name = layer.attributes['name']
-                #             layer.clone(token=token, env=env, layer_params={'name': layer_name}, clone_server=clone_server, target_dataset_id=clone_dataset_id)
-                #         except:
-                #             raise ValueError(f'Layer cloning failed for {layer.id}')
-                # else:
-                #     print("No children to clone!")
-                clone_dataset = Dataset(id_hash=clone_dataset_id, server=clone_server)
+                    print("No child layers to clone!")
+                widgets =  self.widget 
+                if len(widgets) > 0:
+                    for w in widgets:
+                        widget = w.attributes
+                        widget_payload = {
+                            "name": widget['name'],
+                            "description": widget.get('description', None),
+                            "env": payload['dataset']['env'],
+                            "widgetConfig": widget['widgetConfig'],
+                            "application": payload['dataset']['application']
+                        }
+                        try:
+                            clone_dataset.add_widget(token=token, widget_params=widget_payload)
+                        except:
+                            raise ValueError(f'Widget cloning failed for {widget.id}')
+                else:
+                    print("No child widgets to clone!")
                 vocabs = self.vocabulary
                 if len(vocabs) > 0:
                     for v in vocabs:
@@ -410,7 +419,7 @@ class Dataset:
                 recovered_dataset = json.load(f)
             server = recovered_dataset.get('server', 'https://api.resourcewatch.org')
             if check:
-                blacklist = ['metadata','layer', 'vocabulary', 'updatedAt']
+                blacklist = ['metadata','layer','widget','vocabulary', 'updatedAt']
                 attributes = {f'{k}':v for k,v in recovered_dataset['attributes'].items() if k not in blacklist}
                 difs = {f'{k}': [v, self.attributes[k]] for k,v in attributes.items() if k not in blacklist and self.attributes[k] != attributes[k]}
                 if check and self.attributes == attributes:
@@ -498,7 +507,7 @@ class Dataset:
         """
         Create a new widget association to the current dataset.
 
-        A single application string, name and widgetConfig must be specified within the
+        A application list, name and widgetConfig must be specified within the
         `widget_params` dictionary.
         The widgetConfig key has a free schema.
 
@@ -520,8 +529,10 @@ class Dataset:
             }
             try:
                 url = f'{self.server}/v1/dataset/{ds_id}/widget'
+                print(url, payload)
                 headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
                 r = requests.post(url, data=json.dumps(payload), headers=headers)
+                print(r.json())
             except:
                 raise ValueError(f'Widget creation failed.')
             if r.status_code == 200:
