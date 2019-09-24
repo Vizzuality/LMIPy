@@ -365,7 +365,7 @@ class Dataset:
         r = requests.get(url, params=params)
         if r.status_code == 200:
             try:
-                return r.json().get('data', None)[0].get('st_summarystats')
+                return r.json().get('data', [{}])[0].get('st_summarystats', None)
             except:
                 raise ValueError(f'Unable to retrieve values from response {r.json()}')
         else:
@@ -515,7 +515,7 @@ class Dataset:
         A RW-API token is required.
         """
         if not token:
-            raise ValueError(f'[token] Resource Watch API token required to create new vocabulary.')
+            raise ValueError(f'[token] Resource Watch API token required to create new widget.')
         name = widget_params.get('name', None)
         description = widget_params.get('description', None)
         widget_config = widget_params.get('widgetConfig', None)
@@ -530,7 +530,7 @@ class Dataset:
             }
             try:
                 url = f'{self.server}/v1/dataset/{ds_id}/widget'
-                print(url, payload)
+                print(url)
                 headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
                 r = requests.post(url, data=json.dumps(payload), headers=headers)
                 print(r.json())
@@ -544,7 +544,7 @@ class Dataset:
                 print(f'Failed with error code {r.status_code}')
                 return None
         else:
-            raise ValueError(f'Widget creation requires name string, application string and a widgetConfig object.')
+            raise ValueError(f'Widget creation requires name string, application list and a widgetConfig object.')
 
     def new_dataset(self, token=None, attributes=None, server='https://api.resourcewatch.org'):
         """
