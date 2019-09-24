@@ -232,7 +232,6 @@ class Dataset:
                 url = f'{self.server}/dataset/{self.id}'
                 headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
                 r = requests.delete(url, headers=headers)
-                print(r)
             except:
                 raise ValueError(f'Dataset deletion failed.')
             if r.status_code == 200:
