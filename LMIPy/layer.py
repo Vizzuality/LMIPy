@@ -538,7 +538,7 @@ class Layer:
         Note: requires API token.
         """
         if not token:
-            raise ValueError(f'[token] Resource Watch API token required to create a new dataset.')
+            raise ValueError(f'[token] Resource Watch API token required update Layer.')
         if not target_layer and target_layer_id and target_server:
             target_layer = Layer(target_layer_id, server=target_server)
         else:

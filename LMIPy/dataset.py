@@ -568,3 +568,46 @@ class Dataset:
             print(f'{self.server}/v1/dataset/{new_dataset_id}')
             return Dataset(id_hash=new_dataset_id, server=server)
             
+    def merge(self, token=None, target_dataset=None, target_dataset_id=None, target_server='https://api.resourcewatch.org', key_whitelist=[], force=False):
+        """
+        'Merge' one Dataset entity into another target Layer.
+        The argument `key_whitelist` can be used to specify which properties you wish to merge (if not all)
+        Note: requires API token.
+        """
+        if not token:
+            raise ValueError(f'[token] Resource Watch API token required to update Dataset.')
+        if not target_dataset and target_dataset_id and target_server:
+            target_dataset = Layer(target_dataset_id, server=target_server)
+        else:
+            raise ValueError(f'Requires either target Dataset or Dataset id plus server.')
+        atts = self.attributes
+        payload = {
+            'connectorType': atts.get('connectorType', None),
+            'connectorUrl': atts.get('connectorUrl', None),
+            'tableName': atts.get('tableName', None),
+            'name': atts.get('name', None),
+            'description': atts.get('description', None),
+            'application': atts.get('application', None),
+            'provider': atts.get('provider', None)
+        }
+        if not key_whitelist: key_whitelist = [k for k in payload.keys()]
+        filtered_payload = {k:v for k,v in payload.items() if v and k in key_whitelist}
+        print(f'Merging {self.id} from {self.server} into {target_data_id} on {target_server}.\nAre you sure you sure you want to continue?')
+        if not force:
+            conf = input()
+        else:
+            conf = 'y'
+        if conf.lower() == 'y':
+            try:
+                merged_dataset = target_dataset.update(update_params=filtered_payload, token=token)
+            except:
+                print('Aborting...')
+            print('Completed!')
+            return merged_dataset
+
+        elif conf.lower() == 'n':
+            print('Aborting...')
+            return False
+        else:
+            print('Requires y/n input!')
+            return False
