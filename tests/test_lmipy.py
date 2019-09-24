@@ -28,7 +28,7 @@ def test_search_collection_filters():
     assert len(col) > 1
 
 def test_collection_save():
-    col = Collection(search='template', object_type=['dataset'], app=['gfw'])
+    col = Collection(search='template', object_type=['dataset'], app=['gfw'], env='staging')
     ds = col[0]
     save_path = './tests/collection'
     col.save(path=save_path)
@@ -63,7 +63,7 @@ def test_access_meta():
     assert len(ds.metadata) > 0
 
 def test_access_meta_attributes():
-    ds = Dataset('044f4af8-be72-4999-b7dd-13434fc4a394')
+    ds = Dataset('7cf3fab2-3fbe-4980-b572-712207b2c8c7')
     meta = ds.metadata[0].attributes
     assert type(meta) is dict
 
@@ -73,16 +73,16 @@ def test_access_widget():
     assert len(ds.widget) > 0
 
 def test_dataset_save():
-    ds = Dataset(id_hash='bc06c603-9b16-4e51-99e6-228fa576e06b')
+    ds = Dataset(id_hash='897ecc76-2308-4c51-aeb3-495de0bdca79')
     save_path = './tests'
     ds.save(path=save_path)
     assert os.path.exists(save_path+f"/{ds.id}.json") == True
 
 def test_dataset_load():
-    ds = Dataset(id_hash='bc06c603-9b16-4e51-99e6-228fa576e06b')
+    ds = Dataset(id_hash='897ecc76-2308-4c51-aeb3-495de0bdca79')
     load_path = f'./tests'
     loaded = ds.load(path=load_path, check=True)
-    assert loaded.id == 'bc06c603-9b16-4e51-99e6-228fa576e06b'
+    assert loaded.id == '897ecc76-2308-4c51-aeb3-495de0bdca79'
     os.remove(load_path+f"/{ds.id}.json")
 
 ### Update Dataset
@@ -132,9 +132,9 @@ def test_layer_query():
     assert len(df) == 10
 
 def test_get_layer_dataset():
-    l = Layer(id_hash='0328715e-6c6e-4e11-8177-5f0681794f8d')
+    l = Layer(id_hash='25dcb710-6b85-4bfa-b09b-e4c70c33f381')
     ds = l.dataset()
-    assert ds.id == '98085162-e31f-4e3a-8b30-cd8dfca5684d'
+    assert ds.id == '7cf3fab2-3fbe-4980-b572-712207b2c8c7'
 
 def test_layer_intersect():
     l = Layer(id_hash='f13f86cb-08b5-4e6c-bb8d-b4782052f9e5')
@@ -144,18 +144,18 @@ def test_layer_intersect():
     assert len(i['b1'].keys()) > 0
 
 def test_layer_save():
-    l = Layer(id_hash='0328715e-6c6e-4e11-8177-5f0681794f8d')
+    l = Layer(id_hash='25dcb710-6b85-4bfa-b09b-e4c70c33f381')
     ds = l.dataset()
     save_path = './tests'
     l.save(path=save_path)
     assert os.path.exists(save_path+f"/{ds.id}.json") == True
 
 def test_layer_load():
-    l = Layer(id_hash='0328715e-6c6e-4e11-8177-5f0681794f8d')
+    l = Layer(id_hash='25dcb710-6b85-4bfa-b09b-e4c70c33f381')
     ds = l.dataset()
     load_path = f'./tests'
     loaded = l.load(path=load_path, check=True)
-    assert loaded.id == '0328715e-6c6e-4e11-8177-5f0681794f8d'
+    assert loaded.id == '25dcb710-6b85-4bfa-b09b-e4c70c33f381'
     os.remove(load_path+f"/{ds.id}.json")
 
 ### Clone and Delete Layer
@@ -214,12 +214,6 @@ def test_merge_layer():
         'interactionConfig': {}
     })
     production_layer = Layer('25dcb710-6b85-4bfa-b09b-e4c70c33f381')
-    merged_layer = production_layer.merge(token=API_TOKEN,
-        target_layer=None,
-        target_layer_id='626e08ed-15b5-499a-8a46-9a5cb52d0a30',
-        target_server='https://staging-api.globalforestwatch.org',
-        key_whitelist=[],
-        force=True)
     whitelist = [
             'layerConfig',
             'legendConfig',
@@ -231,6 +225,12 @@ def test_merge_layer():
             'provider',
             'published'
             ]
+    merged_layer = production_layer.merge(token=API_TOKEN,
+        target_layer=None,
+        target_layer_id='626e08ed-15b5-499a-8a46-9a5cb52d0a30',
+        target_server='https://staging-api.globalforestwatch.org',
+        key_whitelist=whitelist,
+        force=True)
     merged_atts = {k:v for k,v in merged_layer.attributes.items() if k in whitelist}
     production_atts =  {k:v for k,v in production_layer.attributes.items() if k in whitelist}
     assert merged_atts ==  production_atts
