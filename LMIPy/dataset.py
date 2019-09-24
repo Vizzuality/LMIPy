@@ -232,14 +232,15 @@ class Dataset:
                 url = f'{self.server}/dataset/{self.id}'
                 headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
                 r = requests.delete(url, headers=headers)
+                print(r)
             except:
-                raise ValueError(f'Layer deletion failed.')
+                raise ValueError(f'Dataset deletion failed.')
             if r.status_code == 200:
                 print(r.url)
                 print('Deletion successful!')
                 self = None
             else:
-                raise ValueError(f'Layer deletion unsuccessful.')
+                raise ValueError(f'Dataset deletion unsuccessful. {r.status_code}')
         else:
             print('Deletion aborted.')
         return self
@@ -269,6 +270,7 @@ class Dataset:
                     'connectorUrl': clone_dataset_attr['connectorUrl'],
                     'tableName': clone_dataset_attr['tableName'],
                     'provider': clone_dataset_attr['provider'],
+                    'published': clone_dataset_attr['published'],
                     'env': clone_dataset_attr['env'],
                     'name': clone_dataset_attr['name']
                 }
