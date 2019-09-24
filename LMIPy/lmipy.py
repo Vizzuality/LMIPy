@@ -259,3 +259,45 @@ class Widget:
         ds_id = self.attributes['dataset']
         ds = Dataset(id_hash=ds_id, server=self.server)
         ds.save(path=path)
+
+    def merge(self, token=None, target_widget=None, target_widget_id=None, target_server='https://api.resourcewatch.org', key_whitelist=[], force=False):
+        """
+        'Merge' one Widget entity into another target Widget.
+        The argument `key_whitelist` can be used to specify which properties you wish to merge (if not all)
+        Note: requires API token.
+        """
+        if not token:
+            raise ValueError(f'[token] Resource Watch API token required to update Dataset.')
+        if not target_widget and target_widget_id and target_server:
+            target_widget = Widget(target_widget_id, server=target_server)
+        else:
+            raise ValueError(f'Requires either target Dataset or Dataset id plus server.')
+        atts = self.attributes
+        payload = {
+            'widgetConfig': atts.get('widgetConfig', None),
+            'connectorUrl': atts.get('connectorUrl', None),
+            'name': atts.get('name', None),
+            'description': atts.get('description', None),
+            'application': atts.get('application', None),
+        }
+        if not key_whitelist: key_whitelist = [k for k in payload.keys()]
+        filtered_payload = {k:v for k,v in payload.items() if v and k in key_whitelist}
+        print(f'Merging {self.id} from {self.server} into {target_widget_id} on {target_server}.\nAre you sure you sure you want to continue?')
+        if not force:
+            conf = input()
+        else:
+            conf = 'y'
+        if conf.lower() == 'y':
+            try:
+                merged_widget = target_widget.update(update_params=filtered_payload, token=token)
+            except:
+                print('Aborting...')
+            print('Completed!')
+            return merged_widget
+
+        elif conf.lower() == 'n':
+            print('Aborting...')
+            return False
+        else:
+            print('Requires y/n input!')
+            return False

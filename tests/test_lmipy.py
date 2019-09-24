@@ -117,6 +117,28 @@ def test_clone_and_delete_dataset():
     assert cloned.delete(token=API_TOKEN, force=True) == None
 
 ### Create and Delete Dataset
+def test_create_new_dataset():
+    atts = {
+        "name": "NEW Template Dataset",
+        "application": ["gfw"],
+        "connectorType": "rest",
+        "provider": "cartodb",
+        "connectorUrl": "https://wri-01.carto.com/tables/gfw_land_rights/public_map",
+        "tableName": "gfw_land_rights",
+        "published": False,
+        "env": "staging",
+    }
+    new = Dataset(attributes=atts, token=API_TOKEN)
+    assert new.attributes['name'] == 'NEW Template Dataset'
+    assert new.delete(token=API_TOKEN, force=True) == None
+
+### Intersect dataset
+
+def test_dataset_intersect():
+    ds = Dataset(id_hash='fee5fc38-7a62-49b8-8874-dfa31cbb1ef6')
+    g = Geometry(parameters={'iso': 'BRA', 'adm1': 1, 'adm2': 1})
+    i = ds.intersect(g)
+    assert i == None
 
 #----- Layer Tests -----#
 
@@ -141,7 +163,6 @@ def test_layer_intersect():
     g = Geometry(parameters={'iso': 'BRA', 'adm1': 1, 'adm2': 1})
     i = l.intersect(g)
     assert type(i) == dict
-    assert len(i['b1'].keys()) > 0
 
 def test_layer_save():
     l = Layer(id_hash='25dcb710-6b85-4bfa-b09b-e4c70c33f381')
@@ -243,9 +264,61 @@ def test_create_widget():
     assert type(w.attributes) == dict
     assert len(w.attributes) > 0
 
+### Delete Widget
+
+def test_delete_widget():
+    ds = Dataset(id_hash='7cf3fab2-3fbe-4980-b572-712207b2c8c7')
+    w = ds.widget[0]
+    assert type(w.id) == str
+    deleted_widget= w.delete(token=API_TOKEN)
+    assert deleted_widget == None
+
 ### Add Widget
-### Update Layer
-### Delete Layer
+
+def test_add_widget():
+    d = Dataset(id_hash='7cf3fab2-3fbe-4980-b572-712207b2c8c7')
+    w = d.add_widget(widget_params={
+        'name': 'Template Widget',
+        'widgetConfig': {'key': 'val'},
+        'application': ['gfw']
+    }, token=API_TOKEN)
+    assert type(w.id) == str
+    assert type(w.attributes) == dict
+    assert len(w.attributes) > 0
+
+### Update Widget
+
+def test_update_widget():
+    ds = Dataset(id_hash='7cf3fab2-3fbe-4980-b572-712207b2c8c7')
+    w = ds.widget[0]
+    assert type(w.id) == str
+    payload = {
+        'name': 'Widget UPDATED',
+        'widgetConfig': {'updated': True}
+    }
+    updated_w = w.update(update_params=payload, token=API_TOKEN)
+    assert updated_w.attributes['name'] == 'Widget UPDATED'
+    assert updated_w.attributes['widgetConfig'].get('updated', None) == True
+
+### Merge Widget
+
+def test_merge_widget():
+    staging_widget = Widget(id_hash='66de77eb-dee3-4c56-9ad4-cf68d8b107fd', server='https://staging-api.globalforestwatch.org')
+    staging_widget.update(update_params={
+        'name': 'Template Widget Staging',
+        'widgetConfig': {}
+    }, token=API_TOKEN)
+    production_widget = Dataset(id_hash='7cf3fab2-3fbe-4980-b572-712207b2c8c7').widget[0]
+    whitelist = ['name', 'widgetConfig']
+    merged_widget = production_widget.merge(token=API_TOKEN,
+        target_widget=None,
+        target_widget_id=staging_widget.id,
+        target_server='https://staging-api.globalforestwatch.org',
+        key_whitelist=whitelist,
+        force=True)
+    merged_atts = {k:v for k,v in merged_widget.attributes.items() if k in whitelist}
+    production_atts =  {k:v for k,v in production_widget.attributes.items() if k in whitelist}
+    assert merged_atts ==  production_atts
 
 
 #----- Vocab Tests -----#
@@ -327,6 +400,8 @@ def test_update_meta():
     updated_m = ds.metadata[0]
     assert updated_m.attributes['info']['description'] == 'TEST'
     assert updated_m.attributes['info']['isLossLayer'] == False
+
+### Merge Meta
 
 #----- Geometry Tests -----#
 
