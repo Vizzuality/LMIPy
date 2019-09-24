@@ -6,8 +6,11 @@ import json
 import random
 import re
 from pprint import pprint
-from .utils import html_box, get_geojson_string, nested_set
+from .utils import html_box, get_geojson_string, nested_set, sldParse
 from colored import fg, bg, attr
+import ee
+
+ee.Initialize()
 
 
 class Layer:
@@ -530,6 +533,68 @@ class Layer:
                 return None
             print(f'{server}/v1/layer/{new_layer_id}')
             return Layer(id_hash=new_layer_id, server=server)
+
+    def document(self):
+        """
+        Document layer specific attribute values
+
+        """
+        attr = self.attributes 
+        server = self.server
+        layer_id=self.id
+
+        if attr['provider']=='gee':
+            try:
+                if attr['layerConfig'].get('type',"") == 'group':
+                    layer_group = attr['layerConfig']['layers']
+                else:
+                    layer_group=[layer_id]
+            except:
+                raise ValueError(f"{layer_group} cannot be reached")
+            asset_info=[]
+            for layerID in layer_group:
+                layer=Layer(layerID,server=server)
+                try:
+                    asset_id=layer.attributes['layerConfig'].get('assetId',None)
+                    image=ee.Image(asset_id)
+                    metadata=image.getInfo()
+                except:
+                    raise ValueError(f"Asset id for the layer {layerID} cannot be reached")
+                try:    
+                    sld_value = layer.attributes['layerConfig']['body'].get('sldValue',None)
+                    
+                except:
+                    raise ValueError(f"sld value for the layer {layerID} cannot be reached")
+                sld_parse = sldParse(sld_value)
+                sld_metadata = sld_parse.get('items',[])
+                visualisation = json.loads(json.dumps(sld_metadata)) 
+                palette = []
+                quantity = []
+                for r in visualisation:
+                    palette.append(r.get('color',""))
+                    quantity.append(r.get('quantity',"")) 
+                try:
+                    url = image.getThumbURL({
+                        'min': min(quantity),
+                        'max': max(quantity),
+                        'palette': palette,
+                        'dimensions': 1000})
+                except:
+                    url=None
+                    raise ValueError(f"Image thumbnail cannot be generated")                   
+                info = {
+                'name':layer.attributes.get('name',None),
+                'crs':metadata['bands'][0].get('crs',None),
+                'crs_transform':metadata['bands'][0].get('crs_transform',None),
+                'data_type':metadata['bands'][0].get('data_type',None),
+                'band':metadata['bands'][0].get('id',None),
+                'sld_value':sld_metadata,
+                'image_url':url}
+                asset_info.append(info)
+        else:
+            raise ValueError(f"{layer_id} is not a gee asset")
+            #Image(url=url, embed=True, format='png')
+        return asset_info
 
     def merge(self, token=None, target_layer=None, target_layer_id=None, target_server='https://api.resourcewatch.org', key_whitelist=[], force=False):
         """
