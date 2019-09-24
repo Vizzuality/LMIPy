@@ -535,64 +535,64 @@ class Layer:
 
     def document(self):
         """
-        Create a new document.
+        Document layer specific attribute values
+
         """
-        attributes = self.attributes 
+        attr = self.attributes 
         server = self.server
         layer_id=self.id
 
-        if attributes['provider']=='gee':
-
+        if attr['provider']=='gee':
             try:
-                if attributes['layerConfig']['type']=='group':
-                    layer_group = attributes['layerConfig']['layers']
+                if attr['layerConfig'].get('type',"") == 'group':
+                    layer_group = attr['layerConfig']['layers']
                 else:
                     layer_group=[layer_id]
-
-                asset_info=[]
-                for layerID in layer_group:
-                    layer=Layer(layerID,server=server)
-                    asset_id=layer.attributes['layerConfig']['assetId']
+            except:
+                raise ValueError(f"{layer_group} cannot be reached")
+            asset_info=[]
+            for layerID in layer_group:
+                layer=Layer(layerID,server=server)
+                try:
+                    asset_id=layer.attributes['layerConfig'].get('assetId',None)
                     image=ee.Image(asset_id)
                     metadata=image.getInfo()
+                except:
+                    raise ValueError(f"Asset id for the layer {layerID} cannot be reached")
+                try:    
+                    sld_value = layer.attributes['layerConfig']['body'].get('sldValue',None)
                     
-                    sld_value = layer.attributes['layerConfig']['body']['sldValue']
-                    sld_parse = sldParse(sld_value)
-                    sld_metadata = sld_parse['items']
-                    visualisation = json.loads(json.dumps(sld_metadata))
-                    
-                    palette = []
-                    quantity = []
-                    for r in visualisation:
-                        palette.append(r['color'])
-                        quantity.append(r['quantity'])
-                        
-
+                except:
+                    raise ValueError(f"sld value for the layer {layerID} cannot be reached")
+                sld_parse = sldParse(sld_value)
+                sld_metadata = sld_parse.get('items',[])
+                visualisation = json.loads(json.dumps(sld_metadata)) 
+                palette = []
+                quantity = []
+                for r in visualisation:
+                    palette.append(r.get('color',""))
+                    quantity.append(r.get('quantity',"")) 
+                try:
                     url = image.getThumbURL({
                         'min': min(quantity),
                         'max': max(quantity),
                         'palette': palette,
                         'dimensions': 1000})
-
-                    
-                    info = {
-                    'name':layer.attributes['name'],
-                    'crs':metadata['bands'][0]['crs'],
-                    'crs_transform':metadata['bands'][0]['crs_transform'],
-                    'data_type':metadata['bands'][0]['data_type'],
-                    'band':metadata['bands'][0]['id'],
-                    'sld_value':sld_metadata,
-                    'image_url':url}
-                    asset_info.append(info)
-                    
-            except:
-                raise ValueError(f"{layer_group} cannot be reached")
-
+                except:
+                    url=None
+                    raise ValueError(f"Image thumbnail cannot be generated")                   
+                info = {
+                'name':layer.attributes.get('name',None),
+                'crs':metadata['bands'][0].get('crs',None),
+                'crs_transform':metadata['bands'][0].get('crs_transform',None),
+                'data_type':metadata['bands'][0].get('data_type',None),
+                'band':metadata['bands'][0].get('id',None),
+                'sld_value':sld_metadata,
+                'image_url':url}
+                asset_info.append(info)
         else:
             raise ValueError(f"{layer_id} is not a gee asset")
-        
             #Image(url=url, embed=True, format='png')
-
         return asset_info
 
     def merge(self, token=None, target_layer=None, target_layer_id=None, target_server='https://api.resourcewatch.org', key_whitelist=[], force=False):
