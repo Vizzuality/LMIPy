@@ -314,7 +314,7 @@ class Layer:
         A set of attributes can be specified for the clone Layer using layer_params.
         Optionally, you can also select a target Dataset to attach your Layer clone to.
 
-        The argument `clone_server` specifies the server to clone to. Default server = https://api.resourcewatch.org
+        The argument `clone_server` specifies the server to clone to. Default server is the layers own server.
         """
         from .dataset import Dataset
         if not clone_server: clone_server = self.server
@@ -336,6 +336,7 @@ class Layer:
                 'application': clone_dataset_attr['application'],
                 'connectorType': clone_dataset_attr['connectorType'],
                 'connectorUrl': clone_dataset_attr['connectorUrl'],
+                'published': clone_dataset_attr['published'],
                 'tableName': clone_dataset_attr['tableName'],
                 'provider': clone_dataset_attr['provider'],
                 'env': env,
@@ -354,7 +355,6 @@ class Layer:
                 print(r.status_code)
                 return None
             
-
         payload = {
             'application': clone_layer_attr['application'],
             'applicationConfig': clone_layer_attr['applicationConfig'],
@@ -366,6 +366,7 @@ class Layer:
             'legendConfig':clone_layer_attr['legendConfig'] ,
             'name': name,
             'provider': clone_layer_attr['provider'],
+            'published': clone_layer_attr['published']
         }
         print(f'Creating clone layer on target dataset')
         url = f'{clone_server}/dataset/{target_dataset_id}/layer'

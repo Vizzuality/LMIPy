@@ -28,7 +28,7 @@ def test_search_collection_filters():
     assert len(col) > 1
 
 def test_collection_save():
-    col = Collection(search='template', object_type=['dataset'], app=['gfw'])
+    col = Collection(search='template', object_type=['dataset'], app=['gfw'], env='staging')
     ds = col[0]
     save_path = './tests/collection'
     col.save(path=save_path)
@@ -63,7 +63,7 @@ def test_access_meta():
     assert len(ds.metadata) > 0
 
 def test_access_meta_attributes():
-    ds = Dataset('044f4af8-be72-4999-b7dd-13434fc4a394')
+    ds = Dataset('7cf3fab2-3fbe-4980-b572-712207b2c8c7')
     meta = ds.metadata[0].attributes
     assert type(meta) is dict
 
@@ -73,21 +73,21 @@ def test_access_widget():
     assert len(ds.widget) > 0
 
 def test_dataset_save():
-    ds = Dataset(id_hash='bc06c603-9b16-4e51-99e6-228fa576e06b')
+    ds = Dataset(id_hash='897ecc76-2308-4c51-aeb3-495de0bdca79')
     save_path = './tests'
     ds.save(path=save_path)
     assert os.path.exists(save_path+f"/{ds.id}.json") == True
 
 def test_dataset_load():
-    ds = Dataset(id_hash='bc06c603-9b16-4e51-99e6-228fa576e06b')
+    ds = Dataset(id_hash='897ecc76-2308-4c51-aeb3-495de0bdca79')
     load_path = f'./tests'
     loaded = ds.load(path=load_path, check=True)
-    assert loaded.id == 'bc06c603-9b16-4e51-99e6-228fa576e06b'
+    assert loaded.id == '897ecc76-2308-4c51-aeb3-495de0bdca79'
     os.remove(load_path+f"/{ds.id}.json")
 
 ### Update Dataset
 def test_update_dataset():
-    ds = Dataset(id_hash='bc06c603-9b16-4e51-99e6-228fa576e06b')
+    ds = Dataset(id_hash='7cf3fab2-3fbe-4980-b572-712207b2c8c7')
     updated = ds.update(token=API_TOKEN, update_params={'name': f'Template Dataset UPDATED'})
     assert updated.attributes['name'] == f'Template Dataset UPDATED'
     updated = ds.update(token=API_TOKEN, update_params={'name': f'Template Dataset'})
@@ -95,10 +95,13 @@ def test_update_dataset():
 
 ### Clone and Delete Dataset
 def test_clone_and_delete_dataset():
-    d = Dataset(id_hash='bc06c603-9b16-4e51-99e6-228fa576e06b')
-    cloned = d.clone(token=API_TOKEN, env='production', dataset_params={'name': 'Template Dataset CLONED'}, clone_children=True)
+    d = Dataset(id_hash='7cf3fab2-3fbe-4980-b572-712207b2c8c7')
+    cloned = d.clone(token=API_TOKEN, env='production', dataset_params={
+        'name': 'Template Dataset CLONED',
+        'published': False
+        }, clone_children=True)
     assert cloned.attributes['name'] == f'Template Dataset CLONED'
-    assert cloned.id is not 'bc06c603-9b16-4e51-99e6-228fa576e06b'
+    assert cloned.id is not '7cf3fab2-3fbe-4980-b572-712207b2c8c7'
     vocabulary = cloned.vocabulary
     metadata = cloned.metadata
     widget = cloned.widget
@@ -129,9 +132,9 @@ def test_layer_query():
     assert len(df) == 10
 
 def test_get_layer_dataset():
-    l = Layer(id_hash='0328715e-6c6e-4e11-8177-5f0681794f8d')
+    l = Layer(id_hash='25dcb710-6b85-4bfa-b09b-e4c70c33f381')
     ds = l.dataset()
-    assert ds.id == '98085162-e31f-4e3a-8b30-cd8dfca5684d'
+    assert ds.id == '7cf3fab2-3fbe-4980-b572-712207b2c8c7'
 
 def test_layer_intersect():
     l = Layer(id_hash='f13f86cb-08b5-4e6c-bb8d-b4782052f9e5')
@@ -141,32 +144,35 @@ def test_layer_intersect():
     assert len(i['b1'].keys()) > 0
 
 def test_layer_save():
-    l = Layer(id_hash='0328715e-6c6e-4e11-8177-5f0681794f8d')
+    l = Layer(id_hash='25dcb710-6b85-4bfa-b09b-e4c70c33f381')
     ds = l.dataset()
     save_path = './tests'
     l.save(path=save_path)
     assert os.path.exists(save_path+f"/{ds.id}.json") == True
 
 def test_layer_load():
-    l = Layer(id_hash='0328715e-6c6e-4e11-8177-5f0681794f8d')
+    l = Layer(id_hash='25dcb710-6b85-4bfa-b09b-e4c70c33f381')
     ds = l.dataset()
     load_path = f'./tests'
     loaded = l.load(path=load_path, check=True)
-    assert loaded.id == '0328715e-6c6e-4e11-8177-5f0681794f8d'
+    assert loaded.id == '25dcb710-6b85-4bfa-b09b-e4c70c33f381'
     os.remove(load_path+f"/{ds.id}.json")
 
 ### Clone and Delete Layer
 def test_clone_and_delete_layer():
-    l = Layer(id_hash='0328715e-6c6e-4e11-8177-5f0681794f8d')
-    ds_id = 'bb1dced4-3ae8-4908-9f36-6514ae69713f'
-    cloned = l.clone(token=API_TOKEN, layer_params={'name': f'Template Layer CLONED'}, target_dataset_id=ds_id)
+    l = Layer(id_hash='25dcb710-6b85-4bfa-b09b-e4c70c33f381')
+    ds_id = '7cf3fab2-3fbe-4980-b572-712207b2c8c7'
+    cloned = l.clone(token=API_TOKEN, layer_params={
+        'name': f'Template Layer CLONED',
+        'published': False
+        }, target_dataset_id=ds_id)
     assert cloned.attributes['name'] == f'Template Layer CLONED'
-    assert cloned.id is not '0328715e-6c6e-4e11-8177-5f0681794f8d'
+    assert cloned.id is not '25dcb710-6b85-4bfa-b09b-e4c70c33f381'
     assert cloned.delete(token=API_TOKEN, force=True) == None
 
 ### Create and Delete Layer
 def test_create_and_delete_layer():
-    ds_id = 'bb1dced4-3ae8-4908-9f36-6514ae69713f'
+    ds_id = '7cf3fab2-3fbe-4980-b572-712207b2c8c7'
     l_payload = {
         "name": f'Created Layer TEST',
         "dataset": ds_id,
@@ -176,6 +182,7 @@ def test_create_and_delete_layer():
         ],
         "iso": [],
         "provider": "gee",
+        "published": False,
         "default": False,
         "env": "production",
         "layerConfig": {},
@@ -189,7 +196,7 @@ def test_create_and_delete_layer():
 
 ### Update Layer
 def test_update_layer():
-    l = Layer(id_hash='0328715e-6c6e-4e11-8177-5f0681794f8d')
+    l = Layer(id_hash='25dcb710-6b85-4bfa-b09b-e4c70c33f381')
     updated = l.update(token=API_TOKEN, update_params={'name': f'Template Layer UPDATED'})
     assert updated.attributes['name'] == f'Template Layer UPDATED'
     updated = l.update(token=API_TOKEN, update_params={'name': f'Template Layer'})
@@ -206,24 +213,24 @@ def test_merge_layer():
         'applicationConfig': {},
         'interactionConfig': {}
     })
-    production_layer = Layer('0328715e-6c6e-4e11-8177-5f0681794f8d')
-    merged_layer = production_layer.merge(token=API_TOKEN,
-        target_layer=None,
-        target_layer_id='626e08ed-15b5-499a-8a46-9a5cb52d0a30',
-        target_server='https://staging-api.globalforestwatch.org',
-        key_whitelist=[],
-        force=True)
+    production_layer = Layer('25dcb710-6b85-4bfa-b09b-e4c70c33f381')
     whitelist = [
             'layerConfig',
             'legendConfig',
             'applicationConfig',
             'interactionConfig',
-            'name',
             'description',
             'iso',
             'application',
-            'provider'
+            'provider',
+            'published'
             ]
+    merged_layer = production_layer.merge(token=API_TOKEN,
+        target_layer=None,
+        target_layer_id='626e08ed-15b5-499a-8a46-9a5cb52d0a30',
+        target_server='https://staging-api.globalforestwatch.org',
+        key_whitelist=whitelist,
+        force=True)
     merged_atts = {k:v for k,v in merged_layer.attributes.items() if k in whitelist}
     production_atts =  {k:v for k,v in production_layer.attributes.items() if k in whitelist}
     assert merged_atts ==  production_atts
@@ -245,7 +252,7 @@ def test_create_widget():
 
 ### Delete Vocab
 def test_delete_vocab():
-    ds = Dataset(id_hash='bc06c603-9b16-4e51-99e6-228fa576e06b')
+    ds = Dataset(id_hash='7cf3fab2-3fbe-4980-b572-712207b2c8c7')
     v = ds.vocabulary[0]
     assert type(v.id) == str
     deleted_vocab = v.delete(token=API_TOKEN)
@@ -253,19 +260,19 @@ def test_delete_vocab():
 
 ### Add Vocab
 def test_add_vocab():
-    ds = Dataset(id_hash='bc06c603-9b16-4e51-99e6-228fa576e06b')
+    ds = Dataset(id_hash='7cf3fab2-3fbe-4980-b572-712207b2c8c7')
     payload = {
         'name': 'categoryTab',
         'tags': ['forestChange', 'treeCoverChange'],
         'application': 'gfw'
     }
     ds.add_vocabulary(vocab_params=payload, token=API_TOKEN)
-    updated_ds = Dataset(id_hash='bc06c603-9b16-4e51-99e6-228fa576e06b')
+    updated_ds = Dataset(id_hash='7cf3fab2-3fbe-4980-b572-712207b2c8c7')
     assert len(updated_ds.vocabulary) > 0
 
 ### Update Vocab
 def test_update_vocab():
-    ds = Dataset(id_hash='bc06c603-9b16-4e51-99e6-228fa576e06b')
+    ds = Dataset(id_hash='7cf3fab2-3fbe-4980-b572-712207b2c8c7')
     v = ds.vocabulary[0]
     assert type(v.id) == str
     payload = {
@@ -280,7 +287,7 @@ def test_update_vocab():
 
 ### Delete Meta
 def test_delete_meta():
-    ds = Dataset(id_hash='bc06c603-9b16-4e51-99e6-228fa576e06b')
+    ds = Dataset(id_hash='7cf3fab2-3fbe-4980-b572-712207b2c8c7')
     m = ds.metadata[0]
     assert type(m.id) == str
     deleted_meta = m.delete(token=API_TOKEN)
@@ -288,7 +295,7 @@ def test_delete_meta():
 
 ### Add Meta
 def test_add_meta():
-    ds = Dataset(id_hash='bc06c603-9b16-4e51-99e6-228fa576e06b')
+    ds = Dataset(id_hash='7cf3fab2-3fbe-4980-b572-712207b2c8c7')
     payload = {
     'application': 'gfw',
     'info': {'citation': 'Example citation',
@@ -299,12 +306,12 @@ def test_add_meta():
         'language': 'en'
     }
     ds.add_metadata(meta_params=payload, token=API_TOKEN)
-    updated_ds = Dataset(id_hash='bc06c603-9b16-4e51-99e6-228fa576e06b')
+    updated_ds = Dataset(id_hash='7cf3fab2-3fbe-4980-b572-712207b2c8c7')
     assert len(updated_ds.metadata) > 0
 
 ### Update Meta
 def test_update_meta():
-    ds = Dataset(id_hash='bc06c603-9b16-4e51-99e6-228fa576e06b')
+    ds = Dataset(id_hash='7cf3fab2-3fbe-4980-b572-712207b2c8c7')
     m = ds.metadata[0]
     assert type(m.id) == str
     payload = {
@@ -316,7 +323,7 @@ def test_update_meta():
         'name': 'Template Layer'},
     'language': 'en'}
     m.update(update_params=payload, token=API_TOKEN)
-    ds = Dataset(id_hash='bc06c603-9b16-4e51-99e6-228fa576e06b')
+    ds = Dataset(id_hash='7cf3fab2-3fbe-4980-b572-712207b2c8c7')
     updated_m = ds.metadata[0]
     assert updated_m.attributes['info']['description'] == 'TEST'
     assert updated_m.attributes['info']['isLossLayer'] == False
