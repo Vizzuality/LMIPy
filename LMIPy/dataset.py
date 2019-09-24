@@ -346,9 +346,12 @@ class Dataset:
 
     def intersect(self, geometry):
         """
+        EXPERIMENTAL FEATURE
+        
         Intersect an EE raster with a geometry
 
-        Given a valid LMIPy.Geometry object, return a dictionary based on reduceRegion
+        Given a valid LMIPy.Geometry object, return a dictionary based on reduceRegion.
+        
         Parameters
         ---------
         geometry: Geometry
