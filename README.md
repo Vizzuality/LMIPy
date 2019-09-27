@@ -60,7 +60,7 @@ Check the docs for more info!
 Ensure you have the test dependencies installed by running the following command:
 
 ```shell
-pip install pytest-cov LMIPy codecov
+pip install -r testRequirements.txt
 ```
 
 To run the tests, use: 
