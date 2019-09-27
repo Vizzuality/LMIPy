@@ -22,7 +22,7 @@ class Dataset:
         An ID hash of the dataset in the API.
     attributes: dic
         A dictionary holding the attributes of a dataset.
-    sever: str
+    server: str
         A URL string of the vizzuality server.
     """
     def __init__(self, id_hash=None, attributes=None, server='https://api.resourcewatch.org', token=None):
