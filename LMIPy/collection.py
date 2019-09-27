@@ -218,5 +218,5 @@ class Collection:
 
         if len(failed) > 0:
             print(f'Some entities failed to save: {failed}')
-            return failed
+            return [f['id'] for f in failed]
         print('Save complete!')
