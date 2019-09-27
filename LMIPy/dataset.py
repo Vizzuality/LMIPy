@@ -275,7 +275,7 @@ class Dataset:
                 }
             }
             print(f'Creating clone dataset')
-            url = f'{clone_server}/dataset'
+            url = f'{clone_server}/dataset/{self.id}/clone'
             headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
             r = requests.post(url, data=json.dumps(payload), headers=headers)
             if r.status_code == 200:

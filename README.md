@@ -66,5 +66,5 @@ pip install -r testRequirements.txt
 To run the tests, use: 
 
 ```shell
-py.test tests
+py.test
 ```
