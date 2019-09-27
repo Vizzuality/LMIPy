@@ -52,3 +52,19 @@ Obtain a collection of objects using a search term.
 [Dataset 70e2549c-d722-44a6-a8d7-4a385d78565e, Dataset 897ecc76-2308-4c51-aeb3-495de0bdca79, Dataset 89755b9f-df05-4e22-a9bc-05217c8eafc8, Dataset 83f8365b-f40b-4b91-87d6-829425093da1, Dataset 044f4af8-be72-4999-b7dd-13434fc4a394]
 ```
 Check the docs for more info!
+
+## Developing
+
+### Running the tests
+
+Ensure you have the test dependencies installed by running the following command:
+
+```shell
+pip install pytest-cov LMIPy codecov
+```
+
+To run the tests, use: 
+
+```shell
+py.test tests
+```
