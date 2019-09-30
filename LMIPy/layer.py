@@ -34,7 +34,7 @@ class Layer:
             created_layer = self.new_layer(token=token, attributes=attributes, server=self.server)
             self.attributes = created_layer.attributes
             self.id = created_layer.id
-        if atts and lid:
+        elif atts and lid:
             self.id = lid
             self.attributes = atts
         elif lid:
@@ -266,8 +266,7 @@ class Layer:
             print(red_color + f'{old_attributes} {res}')
             print(green_color + f'Updated! {res}')
             print({ f'{k}': v for k, v in response['attributes'].items() if k in payload })
-        self.attributes = self.get_layer()
-        return self
+        return Layer(attributes=response)
 
     def confirm_delete(self):
         print(f"Delete Layer {self.attributes['name']} with id={self.id}?\n> y/n")
@@ -368,12 +367,13 @@ class Layer:
         headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
         r = requests.post(url, data=json.dumps(payload), headers=headers)
         if r.status_code == 200:
-                clone_layer_id = r.json()['data']['id']
+                response_attr = r.json()['data']
+                clone_layer_id = response_attr['id']
         else:
             print(r.status_code)
             return None
         print(f'{clone_server}/v1/dataset/{target_dataset_id}/layer/{clone_layer_id}')
-        return Layer(id_hash=clone_layer_id, server=clone_server)
+        return Layer(attributes=response_attr, server=clone_server)
 
     def parse_query(self, sql):
         """
