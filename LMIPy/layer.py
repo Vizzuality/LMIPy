@@ -23,7 +23,7 @@ class Layer:
     server: str
         A string of the server URL.
     """
-    def __init__(self, id_hash=None, attributes=None,
+    def __init__(self, id_hash=None, attributes={},
                     server='https://api.resourcewatch.org', mapbox_token=None, token=None):
         self.server = server
         self.id = id_hash
@@ -97,16 +97,6 @@ class Layer:
         url = self.attributes.get('layerConfig').get('url', None)
         if not url:
             url = self.attributes.get('layerConfig').get('body').get('url')
-        # This below code is an issue. Not working and probably wont fix the problem
-        # as far as I can see. E.g. check Forma case. tmp hack for now is to catch directly.
-        # params_config = self.attributes.get('layerConfig').get('params_config', None)
-        # if params_config:
-        #     for config in params_config:
-        #         key = config['key']
-        #         default = config['default']
-        #         required = config['required']
-        #         if required:
-        #             url = url.replace(f'{{{key}}}', f'{default}')
         if '{thresh}' in url:
             # try to replace thresh with a best-guess valid threshold (say 30%)
             url = url.replace('{thresh}','30')
@@ -334,9 +324,7 @@ class Layer:
         for k in clone_layer_attr.keys():
             if k in layer_params:
                 clone_layer_attr[k] = layer_params[k]
-        if target_dataset_id:
-            target_dataset = Dataset(id_hash=target_dataset_id, server=clone_server)
-        else:
+        if not target_dataset_id:
             target_dataset = self.dataset()
             clone_dataset_attr = {**target_dataset.attributes, 'name': name, }
             payload = {"dataset":{

@@ -275,7 +275,7 @@ class Dataset:
                 }
             }
             print(f'Creating clone dataset')
-            url = f'{clone_server}/dataset/{self.id}'
+            url = f'{clone_server}/dataset/'
             headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
             r = requests.post(url, data=json.dumps(payload), headers=headers)
             if r.status_code == 200:
@@ -291,7 +291,6 @@ class Dataset:
                     for l in layers:
                         try:
                             layer_name = l.attributes['name']
-                            
                             l.clone(token=token, env=env, layer_params={'name': layer_name}, clone_server=clone_server, target_dataset_id=clone_dataset_id)
                         except:
                             raise ValueError(f'Layer cloning failed for {l.id}')
@@ -340,7 +339,6 @@ class Dataset:
                             clone_dataset.add_metadata(meta_params=meta_payload, token=token)
                         except:
                             raise ValueError('Failed to clone Metadata.')
-            # self.attributes = Dataset(clone_dataset_id, server=clone_server).attributes
             return Dataset(id_hash=clone_dataset_id, server=clone_server)
 
 
@@ -531,13 +529,13 @@ class Dataset:
                 "widgetConfig": widget_config,
                 "application": app
             }
-            try:
-                url = f'{self.server}/v1/dataset/{ds_id}/widget'
-                print(url)
-                headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
-                r = requests.post(url, data=json.dumps(payload), headers=headers)
-            except:
-                raise ValueError(f'Widget creation failed.')
+            # try:
+            url = f'{self.server}/v1/dataset/{ds_id}/widget'
+            print(url)
+            headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
+            r = requests.post(url, data=json.dumps(payload), headers=headers)
+            # except:
+            #     raise ValueError(f'Widget creation failed.')
             if r.status_code == 200:
                 print(f'Widget created.')
                 self.attributes = self.get_dataset()

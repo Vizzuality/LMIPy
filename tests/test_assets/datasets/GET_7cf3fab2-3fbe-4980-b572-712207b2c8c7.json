@@ -237,7 +237,23 @@
           }
         }
       ],
-      "vocabulary": [],
+      "vocabulary": [
+        {
+          "type": "vocabulary",
+          "attributes": {
+            "resource": {
+              "id": "897ecc76-2308-4c51-aeb3-495de0bdca79",
+              "type": "dataset"
+            },
+            "tags": [
+              "forestChange",
+              "treeCoverChange"
+            ],
+            "name": "categoryTab",
+            "application": "gfw"
+          }
+        }
+      ],
       "widgetRelevantProps": [],
       "layerRelevantProps": []
     }
