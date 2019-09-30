@@ -13,20 +13,20 @@ except:
     raise ValueError(f"Failed to access keys for test.")
 
 
-### Update Dataset
+# Update Dataset
 @requests_mock.mock(kw='mock')
 def test_update_dataset(**kwargs):
-    matcher = re.compile(
+    dataset_matcher = re.compile(
         'https://api.resourcewatch.org/v1/dataset/7cf3fab2-3fbe-4980-b572-712207b2c8c7\?includes=layer,widget,vocabulary,metadata&hash=(\w*)'
     )
 
     working_directory = os.getcwd()
-    with open(working_directory + "/tests/test_assets/GET_7cf3fab2-3fbe-4980-b572-712207b2c8c7.json") as json_file:
+    with open(working_directory + "/tests/test_assets/datasets/GET_7cf3fab2-3fbe-4980-b572-712207b2c8c7.json") as json_file:
         dataset = json.load(json_file)
         updated_dataset = copy.deepcopy(dataset)
         updated_dataset['data']['attributes']['name'] = "Template Dataset UPDATED"
 
-    kwargs['mock'].get(matcher,
+    kwargs['mock'].get(dataset_matcher,
                        [
                            {
                                'status_code': 200,
@@ -58,29 +58,35 @@ def test_update_dataset(**kwargs):
                          )
 
     ds = Dataset(id_hash='7cf3fab2-3fbe-4980-b572-712207b2c8c7')
-    updated = ds.update(token=API_TOKEN, update_params={'name': f'Template Dataset UPDATED'})
-    assert updated.attributes['name'] == f'Template Dataset UPDATED'
-    updated = ds.update(token=API_TOKEN, update_params={'name': f'Template Dataset'})
-    assert updated.attributes['name'] == 'Template Dataset'
+    updated = ds.update(token=API_TOKEN, update_params={'name': 'Template Dataset UPDATED'})
+    assert updated.attributes['name'] == 'Template Dataset UPDATED'
 
 
-### Clone Dataset
+# Clone Dataset
 @requests_mock.mock(kw='mock')
 def test_clone_dataset(**kwargs):
     working_directory = os.getcwd()
-    with open(working_directory + "/tests/test_assets/GET_7cf3fab2-3fbe-4980-b572-712207b2c8c7.json") as json_file:
+    with open(working_directory + "/tests/test_assets/datasets/GET_7cf3fab2-3fbe-4980-b572-712207b2c8c7.json") as json_file:
         dataset = json.load(json_file)
-        cloned_dataset = copy.deepcopy(dataset)
-        cloned_dataset['data']['attributes']['id'] = "18f3fab2-3fbe-4980-b572-712207b2c8c7"
-        cloned_dataset['data']['attributes']['name'] = "Template Dataset CLONED"
+        
+    cloned_dataset = copy.deepcopy(dataset)
+    cloned_dataset['data']['id'] = "18f3fab2-3fbe-4980-b572-712207b2c8c7"
+    cloned_dataset['data']['attributes']['name'] = "Template Dataset CLONED"
+    cloned_layer = cloned_dataset['data']['attributes']['layer'][0]
+    cloned_layer['id'] = '25dcb710-6b85-4bfa-b09b-e4c70c33f381'
+    cloned_widget = dataset['data']['attributes']['widget'][0]
+    cloned_meta = dataset['data']['attributes']['metadata'][0]
+    cloned_vocab = dataset['data']['attributes']['vocabulary'][0]
 
     dataset_matcher = re.compile(
         'https://api.resourcewatch.org/v1/dataset/{}\?includes=layer,widget,vocabulary,metadata&hash=(\w*)'.format(
             dataset['data']['id']))
-
     cloned_dataset_matcher = re.compile(
         'https://api.resourcewatch.org/v1/dataset/{}\?includes=layer,widget,vocabulary,metadata&hash=(\w*)'.format(
             cloned_dataset['data']['id']))
+    layer_matcher = re.compile(
+        'https://api.resourcewatch.org/v1/layer/25dcb710-6b85-4bfa-b09b-e4c70c33f381\?hash=(\w*)'
+    )
 
     kwargs['mock'].get(dataset_matcher,
                        [
@@ -98,11 +104,74 @@ def test_clone_dataset(**kwargs):
                            }
                        ])
 
-    kwargs['mock'].post('https://api.resourcewatch.org/dataset/7cf3fab2-3fbe-4980-b572-712207b2c8c7/clone',
+    kwargs['mock'].get('https://api.resourcewatch.org/v1/dataset/',
+                       [
+                           {
+                               'status_code': 200,
+                               'json': cloned_dataset
+                           }
+                       ])
+
+    kwargs['mock'].post('https://api.resourcewatch.org/dataset/',
                         [
                             {
                                 'status_code': 200,
                                 'json': cloned_dataset
+                            }
+                        ]
+                        )
+
+    kwargs['mock'].post('https://api.resourcewatch.org/dataset/18f3fab2-3fbe-4980-b572-712207b2c8c7/layer',
+                        [
+                            {
+                                'status_code': 200,
+                                'json': {
+                                    'data': cloned_layer
+                                }
+                            }
+                        ]
+                        )
+
+    kwargs['mock'].get(layer_matcher,
+                        [
+                            {
+                                'status_code': 200,
+                                'json': {
+                                    'data': cloned_layer
+                                }
+                            }
+                        ]
+                        )
+        
+    kwargs['mock'].post('https://api.resourcewatch.org/v1/dataset/18f3fab2-3fbe-4980-b572-712207b2c8c7/widget',
+                        [
+                            {
+                                'status_code': 200,
+                                'json': {
+                                    'data': cloned_widget
+                                }
+                            }
+                        ]
+                        )
+            
+    kwargs['mock'].post('https://api.resourcewatch.org/v1/dataset/18f3fab2-3fbe-4980-b572-712207b2c8c7/metadata',
+                        [
+                            {
+                                'status_code': 200,
+                                'json': {
+                                    'data': cloned_meta
+                                }
+                            }
+                        ]
+                        )
+            
+    kwargs['mock'].post('https://api.resourcewatch.org/v1/dataset/18f3fab2-3fbe-4980-b572-712207b2c8c7/vocabulary/categoryTab',
+                        [
+                            {
+                                'status_code': 200,
+                                'json': {
+                                    'data': cloned_vocab
+                                }
                             }
                         ]
                         )
@@ -143,7 +212,7 @@ def test_create_new_dataset(**kwargs):
     }
 
     working_directory = os.getcwd()
-    with open(working_directory + "/tests/test_assets/GET_7cf3fab2-3fbe-4980-b572-712207b2c8c7.json") as json_file:
+    with open(working_directory + "/tests/test_assets/datasets/GET_7cf3fab2-3fbe-4980-b572-712207b2c8c7.json") as json_file:
         dataset = json.load(json_file)
         dataset['data']['attributes'] = {**dataset['data']['attributes'], **new_dataset_attributes}
 
