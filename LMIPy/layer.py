@@ -26,17 +26,24 @@ class Layer:
     def __init__(self, id_hash=None, attributes=None,
                     server='https://api.resourcewatch.org', mapbox_token=None, token=None):
         self.server = server
+        self.id = id_hash
         self.mapbox_token = mapbox_token
-        if not attributes and id_hash:
-            self.id = id_hash
-            self.attributes = self.get_layer()
-        elif attributes and token:
+        atts = attributes.get('attributes', None)
+        lid = attributes.get('id', None)
+        if token and attributes and not atts:
             created_layer = self.new_layer(token=token, attributes=attributes, server=self.server)
             self.attributes = created_layer.attributes
             self.id = created_layer.id
-        elif attributes:
-            self.id = attributes.get('id')
+        if atts and lid:
+            self.id = lid
+            self.attributes = atts
+        elif lid:
+            self.id = lid
             self.attributes = self.get_layer()
+        elif id_hash:
+            self.attributes = self.get_layer()
+        else:
+            raise ValueError(f'Unable to initialise Layer.')
 
     def __repr__(self):
         return self.__str__()
@@ -53,7 +60,7 @@ class Layer:
         """
         try:
             hash = random.getrandbits(16)
-            url = f'{self.server}/v1/layer/{self.id}?includes=vocabulary,metadata&hash={hash}'
+            url = f'{self.server}/v1/layer/{self.id}?hash={hash}'
             r = requests.get(url)
         except:
             raise ValueError(f'Unable to get Layer {self.id} from {r.url}')

@@ -152,15 +152,19 @@ class Widget:
     attributes: dic
         A dictionary holding the attributes of a widget (which are attached to a Dataset).
     """
-    def __init__(self, id_hash=None, attributes=None, server='https://api.resourcewatch.org'):
-        self.id = id_hash
+    def __init__(self, id_hash=None, attributes={}, server='https://api.resourcewatch.org'):
         self.server = server
-        if id_hash:
+        self.id = id_hash
+        atts = attributes.get('attributes', None)
+        wid = attributes.get('id', None)
+        if atts and wid:
+            self.id = wid
+            self.attributes = atts 
+        elif wid:
+            self.id = wid
             self.attributes = self.get_widget()
-        elif attributes:
-            self.id = attributes.get('id')
+        elif id_hash:
             self.attributes = self.get_widget()
-
         else:
             raise ValueError(f'Unable to initialise Widget without id_hash.')
 
@@ -182,7 +186,7 @@ class Widget:
             url = (f'{self.server}/v1/widget/{self.id}?hash={hash}')
             r = requests.get(url)
         except:
-            raise ValueError(f'Unable to get Widget {self.id} from {r.url}')
+            raise ValueError(f'Unable to get Widget {self.id} from {url}')
 
         if r.status_code == 200:
             return r.json().get('data').get('attributes')

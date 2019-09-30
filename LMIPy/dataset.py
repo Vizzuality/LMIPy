@@ -53,7 +53,7 @@ class Dataset:
         else:
             self.vocabulary = []
         if len(self.attributes.get('widget', [])) > 0:
-            self.widget =[Widget(w.get('id'), attributes=1, server=self.server) for w in self.attributes.get('widget')]
+            self.widget =[Widget(w.get('id'), attributes=w, server=self.server) for w in self.attributes.get('widget')]
             _ = self.attributes.pop('widget')
         else:
             self.widget = []
