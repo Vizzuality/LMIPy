@@ -1,4 +1,9 @@
+import copy
+import json
 import os.path
+import re
+
+import requests_mock
 
 from LMIPy import Dataset, Geometry
 
@@ -9,7 +14,32 @@ except:
 
 
 ### Delete Meta
-def test_delete_meta():
+@requests_mock.mock(kw='mock')
+def test_delete_meta(**kwargs):
+    dataset_matcher = re.compile(
+        'https://api.resourcewatch.org/v1/dataset/7cf3fab2-3fbe-4980-b572-712207b2c8c7\?includes=layer,widget,vocabulary,metadata&hash=(\w*)'
+    )
+
+    working_directory = os.getcwd()
+    with open(working_directory + "/tests/test_assets/datasets/GET_7cf3fab2-3fbe-4980-b572-712207b2c8c7.json") as json_file:
+        dataset = json.load(json_file)
+
+    kwargs['mock'].get(dataset_matcher,
+                       [
+                           {
+                               'status_code': 200,
+                               'json': dataset
+                           }
+                       ])
+
+    kwargs['mock'].delete('https://api.resourcewatch.org/dataset/7cf3fab2-3fbe-4980-b572-712207b2c8c7/metadata?application=gfw&language=en',
+                       [
+                           {
+                               'status_code': 200,
+                               'json': {}
+                           }
+                       ])
+
     ds = Dataset(id_hash='7cf3fab2-3fbe-4980-b572-712207b2c8c7')
     m = ds.metadata[0]
     assert type(m.id) == str
@@ -18,7 +48,48 @@ def test_delete_meta():
 
 
 ### Add Meta
-def test_add_meta():
+@requests_mock.mock(kw='mock')
+def test_add_meta(**kwargs):
+    dataset_matcher = re.compile(
+        'https://api.resourcewatch.org/v1/dataset/7cf3fab2-3fbe-4980-b572-712207b2c8c7\?includes=layer,widget,vocabulary,metadata&hash=(\w*)'
+    )
+
+    working_directory = os.getcwd()
+    with open(working_directory + "/tests/test_assets/datasets/GET_7cf3fab2-3fbe-4980-b572-712207b2c8c7.json") as json_file:
+        dataset = json.load(json_file)
+        updated_dataset = copy.deepcopy(dataset)
+    
+    meta = updated_dataset['data']['attributes']['metadata'][0]
+    dataset['data']['attributes']['metadata'] = []
+
+    meta['attributes']['info'] = {'citation': 'Example citation',
+                 'color': '#fe6598',
+                 'description': 'This is an example dataset.',
+                 'isLossLayer': True,
+                 'name': 'Template Layer'}
+    
+    updated_dataset['data']['attributes']['metadata'][0] = meta
+
+    kwargs['mock'].get(dataset_matcher,
+                       [
+                           {
+                               'status_code': 200,
+                               'json': dataset
+                           },
+                           {
+                               'status_code': 200,
+                               'json': updated_dataset
+                           }
+                       ])
+    
+    kwargs['mock'].post('https://api.resourcewatch.org/v1/dataset/7cf3fab2-3fbe-4980-b572-712207b2c8c7/metadata',
+                       [
+                           {
+                               'status_code': 200,
+                               'json': {}
+                           }
+                       ])
+
     ds = Dataset(id_hash='7cf3fab2-3fbe-4980-b572-712207b2c8c7')
     payload = {
         'application': 'gfw',
@@ -35,7 +106,46 @@ def test_add_meta():
 
 
 ### Update Meta
-def test_update_meta():
+@requests_mock.mock(kw='mock')
+def test_update_meta(**kwargs):
+    dataset_matcher = re.compile(
+        'https://api.resourcewatch.org/v1/dataset/7cf3fab2-3fbe-4980-b572-712207b2c8c7\?includes=layer,widget,vocabulary,metadata&hash=(\w*)'
+    )
+
+    working_directory = os.getcwd()
+    with open(working_directory + "/tests/test_assets/datasets/GET_7cf3fab2-3fbe-4980-b572-712207b2c8c7.json") as json_file:
+        dataset = json.load(json_file)
+        updated_dataset = copy.deepcopy(dataset)
+    
+    meta = updated_dataset['data']['attributes']['metadata'][0]
+    meta['attributes']['info'] = {'citation': 'TEST',
+                 'color': '#fe6598',
+                 'description': 'TEST',
+                 'isLossLayer': False,
+                 'name': 'Template Layer'}
+    
+    updated_dataset['data']['attributes']['metadata'][0] = meta
+
+    kwargs['mock'].get(dataset_matcher,
+                       [
+                           {
+                               'status_code': 200,
+                               'json': dataset
+                           },
+                           {
+                               'status_code': 200,
+                               'json': updated_dataset
+                           }
+                       ])
+    
+    kwargs['mock'].patch('https://api.resourcewatch.org/v1/dataset/7cf3fab2-3fbe-4980-b572-712207b2c8c7/metadata',
+                       [
+                           {
+                               'status_code': 200,
+                               'json': {}
+                           }
+                       ])
+
     ds = Dataset(id_hash='7cf3fab2-3fbe-4980-b572-712207b2c8c7')
     m = ds.metadata[0]
     assert type(m.id) == str

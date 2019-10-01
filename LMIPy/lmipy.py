@@ -221,15 +221,15 @@ class Widget:
                     payload[k] = v
             try:
                 url = f'{self.server}/v1/dataset/{ds_id}/widget/{w_id}'
-                print('url',url)
+                print(url)
                 headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
                 r = requests.patch(url, data=json.dumps(payload), headers=headers)
             except:
                 raise ValueError(f'Widget update failed.')
             if r.status_code == 200:
                 print(f'Widget updated.')
-                self.attributes = self.get_widget()
-                return self
+                response = r.json()['data']
+                return Widget(attributes=response)
             else:
                 print(f'Failed with error code {r.status_code}')
                 return None
@@ -294,10 +294,10 @@ class Widget:
         if conf.lower() == 'y':
             try:
                 merged_widget = target_widget.update(update_params=filtered_payload, token=token)
+                print('Completed!')
+                return merged_widget
             except:
                 print('Aborting...')
-            print('Completed!')
-            return merged_widget
 
         elif conf.lower() == 'n':
             print('Aborting...')

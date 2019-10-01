@@ -494,7 +494,7 @@ class Dataset:
                 headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
                 r = requests.post(url, data=json.dumps(payload), headers=headers)
             except:
-                raise ValueError(f'Vocabulary creation failed.')
+                raise ValueError(f'Metadata creation failed.')
             if r.status_code == 200:
                 print(f'Metadata created.')
                 self.attributes = self.get_dataset()
@@ -529,13 +529,13 @@ class Dataset:
                 "widgetConfig": widget_config,
                 "application": app
             }
-            # try:
-            url = f'{self.server}/v1/dataset/{ds_id}/widget'
-            print(url)
-            headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
-            r = requests.post(url, data=json.dumps(payload), headers=headers)
-            # except:
-            #     raise ValueError(f'Widget creation failed.')
+            try:
+                url = f'{self.server}/v1/dataset/{ds_id}/widget'
+                print(url)
+                headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
+                r = requests.post(url, data=json.dumps(payload), headers=headers)
+            except:
+                raise ValueError(f'Widget creation failed.')
             if r.status_code == 200:
                 print(f'Widget created.')
                 self.attributes = self.get_dataset()
