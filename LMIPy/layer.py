@@ -561,7 +561,8 @@ class Layer:
             try:
                 merged_layer = target_layer.update(update_params=filtered_payload, token=token)
             except:
-                print('Aborting...')
+                print('Merge failed')
+                return None
             print('Completed!')
             return merged_layer
 
