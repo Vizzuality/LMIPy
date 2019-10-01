@@ -243,8 +243,8 @@ def test_create_new_dataset(**kwargs):
 
 ### Intersect dataset
 
-def test_dataset_intersect():
-    ds = Dataset(id_hash='fee5fc38-7a62-49b8-8874-dfa31cbb1ef6')
-    g = Geometry(parameters={'iso': 'BRA', 'adm1': 1, 'adm2': 1})
-    i = ds.intersect(g)
-    assert i == None
+# def test_dataset_intersect():
+#     ds = Dataset(id_hash='fee5fc38-7a62-49b8-8874-dfa31cbb1ef6')
+#     g = Geometry(parameters={'iso': 'BRA', 'adm1': 1, 'adm2': 1})
+#     i = ds.intersect(g)
+#     assert i == None
