@@ -9,7 +9,6 @@ from pprint import pprint
 from .layer import Layer
 from .utils import html_box, nested_set
 from .lmipy import Vocabulary, Metadata, Widget
-from colored import fg, bg, attr
 
 
 class Dataset:
@@ -150,9 +149,6 @@ class Dataset:
         show_difference: bool
             If set to True a verbose description of the updates will be returned to the user.
         """
-        red_color = fg('#FF0000')
-        green_color = fg('#00FF00')
-        res = attr('reset')
         if not token:
             raise ValueError(f'[token=None] Resource Watch API TOKEN required for updates.')
         update_blacklist = ['metadata','layer', 'vocabulary', 'updatedAt', 'userId', 'slug', "clonedHost", "errorMessage", "taskId", "dataLastUpdated"]
@@ -180,12 +176,6 @@ class Dataset:
         else:
             pass
             return None
-        if show_difference:
-            old_attributes = { f'{k}': attributes[k] for k,v in payload.items() }
-            print(f"Attributes to change:")
-            print(red_color + old_attributes + res)
-            print(green_color + 'Updated!'+ res)
-            print({ f'{k}': v for k, v in response['attributes'].items() if k in payload })
         self.attributes = self.get_dataset()
         return self
 
