@@ -7,7 +7,6 @@ import random
 import re
 from pprint import pprint
 from .utils import html_box, get_geojson_string, nested_set
-from colored import fg, bg, attr
 
 
 class Layer:
@@ -217,7 +216,7 @@ class Layer:
         uk = list(updatable_fields.keys())
         return uk
 
-    def update(self, update_params=None, token=None, show_difference=False):
+    def update(self, update_params=None, token=None):
         """
         Update layer specific attribute values
 
@@ -230,12 +229,7 @@ class Layer:
             self.update_keys(silent=False)
         token: str
             A valid Resource Watch Token.
-        show_difference: bool
-            Display the updates.
         """
-        red_color = fg('#FF0000')
-        green_color = fg('#00FF00')
-        res = attr('reset')
         if not token:
             raise ValueError(f'[token=None] Resource Watch API TOKEN required for updates.')
         update_blacklist = ['updatedAt', 'userId', 'dataset', 'slug']
@@ -261,14 +255,8 @@ class Layer:
         if r.status_code == 200:
             response = r.json()['data']
         else:
-            print(red_color + f"PATCH attempt threw a {r.status_code}!" + res)
+            print(f"PATCH attempt threw a {r.status_code}!")
             return None
-        if show_difference:
-            old_attributes = { f'{k}': attributes[k] for k,v in payload.items() }
-            print(f"Attributes to change:")
-            print(red_color + f'{old_attributes} {res}')
-            print(green_color + f'Updated! {res}')
-            print({ f'{k}': v for k, v in response['attributes'].items() if k in payload })
         self.attributes = self.get_layer()
         return self
 
