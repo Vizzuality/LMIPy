@@ -380,7 +380,7 @@ class Dataset:
                 os.mkdir(path)
 
         try:
-            url = f'{self.server}/v1/dataset/{self.id}?includes=vocabulary,metadata,layer,widget'
+            url = f'{self.server}/v1/dataset/{self.id}?includes=layer,widget,vocabulary,metadata&hash={random.getrandbits(16)}'
             r = requests.get(url)
             dataset_config = r.json()['data']
         except:
