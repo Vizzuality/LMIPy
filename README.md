@@ -1,5 +1,5 @@
 # LMIPy
-## The Layer Manager Interface for Python
+## The Vizzuality Ecosystem Python Interface
 
 [![Build Status](https://travis-ci.org/Vizzuality/LMIPy.svg?branch=master)](https://travis-ci.org/Vizzuality/LMIPy) [![codecov](https://codecov.io/gh/Vizzuality/LMIPy/branch/master/graph/badge.svg)](https://codecov.io/gh/Vizzuality/LMIPy) [![PyPI](https://img.shields.io/pypi/v/LMIPy.svg?style=flat)](https://pypi.org/project/LMIPy/) ![](https://img.shields.io/pypi/pyversions/LMIPy.svg?style=flat)  ![](https://img.shields.io/pypi/wheel/LMIPy.svg?style=flat) [![Documentation Status](https://readthedocs.org/projects/lmipy/badge/?version=latest)](https://lmipy.readthedocs.io/en/latest/?badge=latest) [![License](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://github.com/Vizzuality/LMIPy/blob/master/LICENSE)
 
