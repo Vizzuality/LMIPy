@@ -16,7 +16,6 @@ setuptools.setup(
     install_requires=['requests>=2.2.0',
                         'folium==0.8.3',
                         'geopandas>=0.4.1',
-                        'colored>=1.3.93',
                         'geojson>=2.4.0',
                         'pypng==0.0.19',
                         'tqdm>=4.21.0'],
