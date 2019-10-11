@@ -16,15 +16,16 @@ except:
 # Update Dataset
 @requests_mock.mock(kw='mock')
 def test_update_dataset(**kwargs):
+    working_directory = os.getcwd()
+    with open(working_directory + "/tests/test_assets/datasets/GET_7cf3fab2-3fbe-4980-b572-712207b2c8c7.json") as json_file:
+        dataset = json.load(json_file)
+
     dataset_matcher = re.compile(
         'https://api.resourcewatch.org/v1/dataset/7cf3fab2-3fbe-4980-b572-712207b2c8c7\?includes=layer,widget,vocabulary,metadata&hash=(\w*)'
     )
 
-    working_directory = os.getcwd()
-    with open(working_directory + "/tests/test_assets/datasets/GET_7cf3fab2-3fbe-4980-b572-712207b2c8c7.json") as json_file:
-        dataset = json.load(json_file)
-        updated_dataset = copy.deepcopy(dataset)
-        updated_dataset['data']['attributes']['name'] = "Template Dataset UPDATED"
+   updated_dataset = copy.deepcopy(dataset)
+   updated_dataset['data']['attributes']['name'] = "Template Dataset UPDATED" 
 
     kwargs['mock'].get(dataset_matcher,
                        [

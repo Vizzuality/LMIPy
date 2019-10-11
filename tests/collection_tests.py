@@ -13,7 +13,7 @@ except:
 
 def test_search_collection():
     """Search all gfw collection for an object"""
-    col = Collection(search='forest', app=['gfw'])
+    col = Collection(search='forest', app=['gfw'], limit=5)
     assert len(col) > 1
 
 

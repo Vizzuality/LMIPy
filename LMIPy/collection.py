@@ -112,6 +112,7 @@ class Collection:
         filter_string = parse_filters(self.filters)
         url = (f'{self.server}/v1/dataset?app={self.app}&env={self.env}&{filter_string}'
                f'includes=layer,vocabulary,metadata,widget&page[size]=1000&hash={hash}')
+        print(url)
         r = requests.get(url)
         response_list = r.json().get('data', None)
         if len(response_list) < 1:
