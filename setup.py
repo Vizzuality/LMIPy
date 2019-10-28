@@ -17,7 +17,7 @@ setuptools.setup(
                         'folium==0.8.3',
                         'geopandas>=0.4.1',
                         'geojson>=2.4.0',
-                        'pypng==0.0.19',
+                        'pypng>=0.0.19',
                         'tqdm>=4.21.0'],
     packages=['LMIPy'],
     classifiers=[
