@@ -6,7 +6,7 @@ import json
 import random
 import re
 from pprint import pprint
-from .utils import html_box, get_geojson_string, nested_set
+from .utils import html_box, get_geojson_string, nested_set, server_uses_widgets
 
 
 class Layer:
@@ -52,11 +52,13 @@ class Layer:
         """
         try:
             hash = random.getrandbits(16)
-            url = f'{self.server}/v1/layer/{self.id}?includes=vocabulary,metadata&hash={hash}'
+            if server_uses_widgets(self.server):
+                url = f'{self.server}/v1/layer/{self.id}?includes=vocabulary,metadata&hash={hash}'
+            else:
+                url = f'{self.server}/v1/layer/{self.id}?includes=metadata&hash={hash}'
             r = requests.get(url)
         except:
             raise ValueError(f'Unable to get Layer {self.id} from {r.url}')
-
         if r.status_code == 200:
             return r.json().get('data').get('attributes')
         else:
@@ -228,10 +230,10 @@ class Layer:
             A dictionary of update paramters. You can identify the possible keys by calling
             self.update_keys(silent=False)
         token: str
-            A valid Resource Watch Token.
+            A valid API Token.
         """
         if not token:
-            raise ValueError(f'[token=None] Resource Watch API TOKEN required for updates.')
+            raise ValueError(f'[token=None] API TOKEN required for updates.')
         update_blacklist = ['updatedAt', 'userId', 'dataset', 'slug']
         attributes = {f'{k}':v for k,v in self.attributes.items() if k not in update_blacklist}
         if not update_params:
@@ -276,7 +278,7 @@ class Layer:
         Deletes a target layer
         """
         if not token:
-            raise ValueError(f'[token=None] Resource Watch API token required to delete.')
+            raise ValueError(f'[token=None] API token required to delete.')
         if not force:
             conf = self.confirm_delete()
         elif force:
@@ -308,7 +310,7 @@ class Layer:
         if not clone_server: clone_server = self.server
 
         if not token:
-            raise ValueError(f'[token] Resource Watch API token required to clone.')
+            raise ValueError(f'[token] API token required to clone.')
         target_layer_name  = self.attributes['name']
         name = layer_params.get('name', f'{target_layer_name} CLONE')
         clone_layer_attr = {**self.attributes, 'name': name}
@@ -342,7 +344,7 @@ class Layer:
             else:
                 print(r.status_code)
                 return None
-            
+
         payload = {
             'application': clone_layer_attr['application'],
             'applicationConfig': clone_layer_attr['applicationConfig'],
@@ -499,7 +501,7 @@ class Layer:
         Create a new staging or prod Layer entity from attributes.
         """
         if not token:
-            raise ValueError(f'[token] Resource Watch API token required to create a new dataset.')
+            raise ValueError(f'[token] API token required to create a new dataset.')
         elif not attributes:
             raise ValueError(f'Attributes required to create a new dataset.')
         elif not attributes.get('dataset', None):
@@ -526,7 +528,7 @@ class Layer:
         Note: requires API token.
         """
         if not token:
-            raise ValueError(f'[token] Resource Watch API token required update Layer.')
+            raise ValueError(f'[token] API token required update Layer.')
         if not target_layer and target_layer_id and target_server:
             target_layer = Layer(target_layer_id, server=target_server)
         else:

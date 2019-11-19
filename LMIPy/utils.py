@@ -8,15 +8,25 @@ def html_box(item):
     is_widget = str(type(item)) == "<class 'LMIPy.lmipy.Widget'>"
     is_geometry = str(type(item)) == "<class 'LMIPy.geometry.Geometry'>"
     is_image = str(type(item)) == "<class 'LMIPy.image.Image'>"
+    needs_widgets_and_co = server_uses_widgets(item.server)
     if is_layer:
         kind_of_item = 'Layer'
-        url_link = f'{item.server}/v1/layer/{item.id}?includes=vocabulary,metadata'
+        if needs_widgets_and_co:
+            url_link = f'{item.server}/v1/layer/{item.id}?includes=vocabulary,metadata'
+        else:
+            url_link = f'{item.server}/v1/layer/{item.id}?includes=metadata'
     elif is_dataset:
         kind_of_item = 'Dataset'
-        url_link = f'{item.server}/v1/dataset/{item.id}?includes=vocabulary,metadata,layer,widget'
+        if needs_widgets_and_co:
+            url_link = f'{item.server}/v1/dataset/{item.id}?includes=vocabulary,metadata,layer,widget'
+        else:
+            url_link = f'{item.server}/v1/dataset/{item.id}?includes=metadata,layer'
     elif is_table:
         kind_of_item = 'Table'
-        url_link = f'{item.server}/v1/dataset/{item.id}?includes=vocabulary,metadata,layer,widget'
+        if needs_widgets_and_co:
+            url_link = f'{item.server}/v1/dataset/{item.id}?includes=vocabulary,metadata,layer,widget'
+        else:
+            url_link = f'{item.server}/v1/dataset/{item.id}?includes=metadata,layer'
     elif is_image:
         if item.type in ['Classified Image', 'Composite Image']:
             instrument = item.type
@@ -116,15 +126,25 @@ def show(item, i):
     server = item['server']
     item_id = item['id']
     attributes = item['attributes']
+    uses_widgets = server_uses_widgets(server)
     if is_layer:
         kind_of_item = 'Layer'
-        url_link = f'{server}/v1/layer/{item_id}?includes=vocabulary,metadata'
+        if uses_widgets:
+            url_link = f'{server}/v1/layer/{item_id}?includes=vocabulary,metadata'
+        else:
+            url_link = f'{server}/v1/layer/{item_id}?includes=metadata'
     elif is_dataset:
         kind_of_item = 'Dataset'
-        url_link = f'{server}/v1/dataset/{item_id}?includes=vocabulary,metadata,layer,widget'
+        if uses_widgets:
+            url_link = f'{server}/v1/dataset/{item_id}?includes=vocabulary,metadata,layer,widget'
+        else:
+            url_link = f'{server}/v1/dataset/{item_id}?includes=metadata,layer'
     elif is_table:
         kind_of_item = 'Table'
-        url_link = f'{server}/v1/dataset/{item_id}?includes=vocabulary,metadata,layer,widget'
+        if uses_widgets:
+            url_link = f'{server}/v1/dataset/{item_id}?includes=vocabulary,metadata,layer,widget'
+        else:
+            url_link = f'{server}/v1/dataset/{item_id}?includes=metadata,layer'
     elif is_widget:
         kind_of_item = 'Table'
         url_link = f'{server}/v1/widget/{item_id}'
@@ -221,7 +241,7 @@ def sldDump(sldObj):
     extended = str(sldObj.get('extended', 'false')).lower()
     items = sldObj.get('items', None)
     sld_attr = {'color': None, 'label': None, 'quantity': None, 'opacity': None}
-    
+
     if sld_type not in ['linear', 'ramp', 'gradient', 'intervals', 'values']:
         print('Unable to create SldStyle. Type must be in "linear", "ramp", "gradient", "intervals", "values".')
         return None
@@ -266,3 +286,13 @@ def nested_set(dic, keys, value):
     for key in keys[:-1]:
         dic = dic.setdefault(key, {})
     dic[keys[-1]] = value
+
+def server_uses_widgets(server):
+    """
+    Does the server currently set use Widget objects? Response gives True if it does, false if not.
+    """
+    uses_widgets = ['https://api.resourcewatch.org','https://staging-api.globalforestwatch.org']
+    if any(server in s for s in uses_widgets):
+        return True
+    else:
+        return False
