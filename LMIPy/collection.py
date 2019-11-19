@@ -7,7 +7,7 @@ from tqdm import tqdm
 from .dataset import Dataset
 from .table import Table
 from .layer import Layer
-from .utils import create_class, show, flatten_list, parse_filters
+from .utils import create_class, show, flatten_list, parse_filters, server_uses_widgets
 
 class Collection:
     """
@@ -94,8 +94,16 @@ class Collection:
         are the objects in the API. I.e. tables are a dataset type.
         """
         datasets = self.get_entities()
-        layers = flatten_list([d['attributes']['layer'] for d in datasets if len(d['attributes']['layer']) > 0])
-        widgets = flatten_list([d['attributes']['widget'] for d in datasets if len(d['attributes']['widget']) > 0])
+        layers = []
+        for d in datasets:
+            tmp_atts = d.get('attributes', None)
+            layers = tmp_atts.get('layer', None)
+        layers = flatten_list(layers)
+        #layers = flatten_list([d.get('attributes').get('layer') for d in datasets])
+        if server_uses_widgets(server=self.server):
+            widgets = flatten_list([d.get('attributes').get('widget') for d in datasets])
+        else:
+            widgets = None
         response_list = []
         if 'layer' in self.object_type:
             _ = [response_list.append(l) for l in layers]
@@ -110,11 +118,15 @@ class Collection:
     def get_entities(self):
         hash = random.getrandbits(16)
         filter_string = parse_filters(self.filters)
-        url = (f'{self.server}/v1/dataset?app={self.app}&env={self.env}&{filter_string}'
-               f'includes=layer,vocabulary,metadata,widget&page[size]=1000&hash={hash}')
+        if server_uses_widgets(server=self.server):
+            url = (f'{self.server}/v1/dataset?app={self.app}&env={self.env}&{filter_string}'
+                   f'includes=layer,vocabulary,metadata,widget&page[size]=1000&hash={hash}')
+        else:
+            url = (f'{self.server}/v1/dataset?app={self.app}&env={self.env}&{filter_string}'
+                   f'includes=layer,metadata&page[size]=1000&hash={hash}')
         r = requests.get(url)
         response_list = r.json().get('data', None)
-        if len(response_list) < 1:
+        if not response_list:
             raise ValueError('No items found')
         return response_list
 
@@ -127,9 +139,16 @@ class Collection:
             return_datasets = 'dataset' in self.object_type
             return_tables = 'dataset' in self.object_type
             return_widgets = 'widget' in self.object_type
-            name = item.get('attributes').get('name', None)
-            description = item.get('attributes').get('description', None)
-            slug = item.get('attributes').get('slug', None)
+            #print(f"Filter: {type(item)}, {item}")
+            if type(item) == dict:
+                tmp_atts = item.get('attributes')
+                name = tmp_atts.get('name', None)
+                description = tmp_atts.get('description', None)
+                slug = tmp_atts.get('slug', None)
+            else:
+                name = None
+                description = None
+                slug = None
             found = []
             if description:
                 description = description.lower()
@@ -193,6 +212,10 @@ class Collection:
         print(f'Saving to path: {path}')
         saved = []
         failed = []
+        if server_uses_widgets(self.server):
+            url_args = "vocabulary,metadata,layer,widget"
+        else:
+            url_args = "metadata,layer"
         for item in tqdm(self):
             if item['id'] not in saved:
                 entity_type = item.get('type')
@@ -201,12 +224,12 @@ class Collection:
                 else:
                     ds_id = item['attributes']['dataset']
                 try:
-                    url = f'{self.server}/v1/dataset/{ds_id}?includes=vocabulary,metadata,layer,widget'
+                    url = f'{self.server}/v1/dataset/{ds_id}?includes={url_args}'
                     r = requests.get(url)
                     dataset_config = r.json()['data']
                 except:
                     failed.append(item)
-                
+
                 save_json = {
                     "id": ds_id,
                     "type": "dataset",

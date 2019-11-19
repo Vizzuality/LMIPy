@@ -7,7 +7,7 @@ import datetime
 #from shapely.geometry import shape
 from pprint import pprint
 from .layer import Layer
-from .utils import html_box, nested_set
+from .utils import html_box, nested_set, server_uses_widgets
 from .lmipy import Vocabulary, Metadata, Widget
 
 
@@ -30,7 +30,7 @@ class Dataset:
         self.server = server
         if not attributes:
             self.attributes = self.get_dataset()
-        elif attributes and token:   
+        elif attributes and token:
             created_dataset = self.new_dataset(token=token, attributes=attributes, server=server)
             self.attributes = created_dataset.attributes
             self.id = created_dataset.id
@@ -73,7 +73,10 @@ class Dataset:
         """
         try:
             hash = random.getrandbits(16)
-            url = (f'{self.server}/v1/dataset/{self.id}?includes=layer,widget,vocabulary,metadata&hash={hash}')
+            if server_uses_widgets(self.server):
+                url = f'{self.server}/v1/dataset/{self.id}?includes=layer,widget,vocabulary,metadata&hash={hash}'
+            else:
+                url = f'{self.server}/v1/dataset/{self.id}?includes=layer,metadata&hash={hash}'
             r = requests.get(url)
         except:
             raise ValueError(f'Unable to get Dataset {self.id} from {r.url}')
@@ -145,12 +148,12 @@ class Dataset:
         update_params: dic
             A dictionary object containing {key: value} pairs of attributes to update.
         token: str
-            A valid API key from the Resource Watch API. https://resource-watch.github.io/doc-api/index-rw.html
+            A valid API key. https://developer.skydipper.com/
         show_difference: bool
             If set to True a verbose description of the updates will be returned to the user.
         """
         if not token:
-            raise ValueError(f'[token=None] Resource Watch API TOKEN required for updates.')
+            raise ValueError(f'[token=None] API TOKEN required for updates.')
         update_blacklist = ['metadata','layer', 'vocabulary', 'updatedAt', 'userId', 'slug', "clonedHost", "errorMessage", "taskId", "dataLastUpdated"]
         attributes = {f'{k}':v for k,v in self.attributes.items() if k not in update_blacklist}
         if not update_params:
@@ -196,7 +199,7 @@ class Dataset:
         Deletes a target Dataset object.
         """
         if not token:
-            raise ValueError(f'[token] Resource Watch API token required to delete.')
+            raise ValueError(f'[token] API token required to delete.')
         layer_count = len(self.layers)
         if layer_count > 0:
             if not force:
@@ -245,7 +248,7 @@ class Dataset:
         """
         if not clone_server: clone_server = self.server
         if not token:
-            raise ValueError(f'[token] Resource Watch API token required to clone.')
+            raise ValueError(f'[token] API token required to clone.')
         else:
             name = dataset_params.get('name', self.attributes['name'] + 'CLONE')
             clone_dataset_attr = {**self.attributes, 'name': name}
@@ -269,7 +272,7 @@ class Dataset:
             headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
             r = requests.post(url, data=json.dumps(payload), headers=headers)
             if r.status_code == 200:
-                clone_dataset_id = r.json()['data']['id'] 
+                clone_dataset_id = r.json()['data']['id']
                 clone_dataset = Dataset(id_hash=clone_dataset_id, server=clone_server)
             else:
                 print(r.status_code)
@@ -281,13 +284,13 @@ class Dataset:
                     for l in layers:
                         try:
                             layer_name = l.attributes['name']
-                            
+
                             l.clone(token=token, env=env, layer_params={'name': layer_name}, clone_server=clone_server, target_dataset_id=clone_dataset_id)
                         except:
                             raise ValueError(f'Layer cloning failed for {l.id}')
                 else:
                     print("No child layers to clone!")
-                widgets =  self.widget 
+                widgets =  self.widget
                 if len(widgets) > 0:
                     for w in widgets:
                         widget = w.attributes
@@ -337,11 +340,11 @@ class Dataset:
     def intersect(self, geometry):
         """
         EXPERIMENTAL FEATURE
-        
+
         Intersect an EE raster with a geometry
 
         Given a valid LMIPy.Geometry object, return a dictionary based on reduceRegion.
-        
+
         Parameters
         ---------
         geometry: Geometry
@@ -380,14 +383,17 @@ class Dataset:
         else:
            if not os.path.isdir(path):
                 os.mkdir(path)
-
+        if server_uses_widgets(self.server):
+            url_args = "vocabulary,metadata,layer,widget"
+        else:
+            url_args = "metadata,layer"
         try:
-            url = f'{self.server}/v1/dataset/{self.id}?includes=vocabulary,metadata,layer,widget'
+            url = f"{self.server}/v1/dataset/{self.id}?includes={url_args}"
             r = requests.get(url)
             dataset_config = r.json()['data']
         except:
             raise ValueError(f'Could not retrieve config.')
-        
+
         save_json = {
             "id": self.id,
             "type": "dataset",
@@ -399,7 +405,7 @@ class Dataset:
         with open(f"{path}/{self.id}.json", 'w') as fp:
             json.dump(save_json, fp)
         print('Save complete!')
-        
+
 
     def load(self, path=None, check=True):
         """
@@ -434,7 +440,7 @@ class Dataset:
         A RW-API token is required.
         """
         if not token:
-            raise ValueError(f'[token] Resource Watch API token required to create new vocabulary.')
+            raise ValueError(f'[token] API token required to create new vocabulary.')
         vocab_type = vocab_params.get('name', None)
         vocab_tags = vocab_params.get('tags', None)
         app = vocab_params.get('application', None)
@@ -471,7 +477,7 @@ class Dataset:
         A RW-API token is required.
         """
         if not token:
-            raise ValueError(f'[token] Resource Watch API token required to create new vocabulary.')
+            raise ValueError(f'[token] API token required to create new vocabulary.')
         info = meta_params.get('info', None)
         app = meta_params.get('application', None)
         ds_id = self.id
@@ -508,7 +514,7 @@ class Dataset:
         A RW-API token is required.
         """
         if not token:
-            raise ValueError(f'[token] Resource Watch API token required to create new widget.')
+            raise ValueError(f'[token] API token required to create new widget.')
         name = widget_params.get('name', None)
         description = widget_params.get('description', None)
         widget_config = widget_params.get('widgetConfig', None)
@@ -544,7 +550,7 @@ class Dataset:
         Create a new staging or prod Dataset entity from attributes.
         """
         if not token:
-            raise ValueError(f'[token] Resource Watch API token required to create a new dataset.')
+            raise ValueError(f'[token] API token required to create a new dataset.')
         elif not attributes:
             raise ValueError(f'Attributes required to create a new dataset.')
         else:
@@ -560,7 +566,7 @@ class Dataset:
                 return None
             print(f'{self.server}/v1/dataset/{new_dataset_id}')
             return Dataset(id_hash=new_dataset_id, server=server)
-            
+
     def merge(self, token=None, target_dataset=None, target_dataset_id=None, target_server='https://api.resourcewatch.org', key_whitelist=[], force=False):
         """
         'Merge' one Dataset entity into another target Dataset.
@@ -568,7 +574,7 @@ class Dataset:
         Note: requires API token.
         """
         if not token:
-            raise ValueError(f'[token] Resource Watch API token required to update Dataset.')
+            raise ValueError(f'[token] API token required to update Dataset.')
         if not target_dataset and target_dataset_id and target_server:
             target_dataset = Dataset(target_dataset_id, server=target_server)
         else:

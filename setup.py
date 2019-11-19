@@ -5,10 +5,10 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="LMIPy",
-    version="0.3.14",
+    version="0.3.17",
     author="Vizzuality",
     author_email="benjamin.laken@vizzuality.com",
-    description="Interface to data and layers in the Resource Watch API",
+    description="Pythonic interface to various backend ecosystems related geospatial data.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     license='MIT',
