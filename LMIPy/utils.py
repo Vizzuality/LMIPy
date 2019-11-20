@@ -9,6 +9,12 @@ def html_box(item):
     is_geometry = str(type(item)) == "<class 'LMIPy.geometry.Geometry'>"
     is_image = str(type(item)) == "<class 'LMIPy.image.Image'>"
     needs_widgets_and_co = server_uses_widgets(item.server)
+    if needs_widgets_and_co:
+        site_link = "<a href='https://resourcewatch.org/' target='_blank'>"
+        site_logo = "<img class='itemThumbnail' src='https://resourcewatch.org/static/images/logo-embed.png'>"
+    else:
+        site_link = "<a href='https://skydipper.com/' target='_blank'>"
+        site_logo = "<img class='itemThumbnail' src='https://skydipper.com/images/logo.png'>"
     if is_layer:
         kind_of_item = 'Layer'
         if needs_widgets_and_co:
@@ -32,12 +38,12 @@ def html_box(item):
             instrument = item.type
         else:
             instrument = item.instrument
-        html_string = ("<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #80ceb9;"
-                    "border-radius: 2px; background: #f2fffb; line-height: 1.21429em; padding: 10px;''>"
+        html_string = ("<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #2BA4A0;"
+                    "border-radius: 2px; background: #2BA4A0; line-height: 1.21429em; padding: 10px;''>"
                     "<div class='item_left' style='width: 100px; height: 100px; float: left; padding-right:10px''>"
                     f"<a href='{item.thumb_url}' target='_blank'>"
                     f"<img class='itemThumbnail' src='{item.thumb_url}'>"
-                    "</a></div><div class='item_right' style='float: none; width: auto; overflow: hidden;''>"
+                    "</a></div><div class='item_right' style='float: none; width: auto; hidden;padding-left: 10px; overflow: hidden;''>"
                     f"<b>Image Source</b>: {instrument} </br>"
                     f"<b>Datetime</b>: {item.date_time} </br>"
                     f"<b>Cloud score </b>: {item.cloud_score} </br>"
@@ -49,21 +55,18 @@ def html_box(item):
     elif is_geometry:
         kind_of_item = 'Geometry'
         url_link = f'{item.server}/v1/geostore/{item.id}'
-        html_string = ("<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #80ceb9;"
-            "border-radius: 2px; background: #f2fffb; line-height: 1.21429em; padding: 10px;''>"
+        html_string = ("<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #2bA4A0;"
+            "border-radius: 2px; background: #2bA4A0; line-height: 1.21429em; padding: 10px;''>"
             "<div class='item_left' style='width: 210px; float: left;''>"
-            "<a href='https://resourcewatch.org/' target='_blank'>"
-            "<img class='itemThumbnail' src='https://resourcewatch.org/static/images/logo-embed.png'>"
-            "</a></div><div class='item_right' style='float: none; width: auto; overflow: hidden;''>"
+            f"{site_link}"
+            f"{site_logo}"
+            "</a></div><div class='item_right' style='float: none; width: auto; hidden;padding-left: 10px; overflow: hidden;''>"
             f"<b>Geometry id</b>: <a href={url_link} target='_blank'>{item.id}</a></br>")
-
         for k,v in item.attributes.get('info').items():
             if v and k != 'simplifyThresh':
                 html_string += f"<br><i>{k}: {v}</i>"
-
         html_string += (""
             " </div> </div>")
-
         return html_string
     else:
         kind_of_item = 'Unknown'
@@ -87,30 +90,30 @@ def html_box(item):
                            f"{item.attributes.get('tableName')}"
                            "</a>"
                           )
-
-    html = ("<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #80ceb9;"
-            "border-radius: 2px; background: #f2fffb; line-height: 1.21429em; padding: 10px;''>"
+    html = ("<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #2BA4A0;"
+            "border-radius: 2px; background: #2BA4A0; line-height: 1.21429em; padding: 10px;''>"
             "<div class='item_left' style='width: 210px; float: left;''>"
-            "<a href='https://resourcewatch.org/' target='_blank'>"
-            "<img class='itemThumbnail' src='https://resourcewatch.org/static/images/logo-embed.png'>"
-            "</a></div><div class='item_right' style='float: none; width: auto; overflow: hidden;''>"
+            f"{site_link}"
+            f"{site_logo}"
+            "</a></div><div class='item_right' style='float: none; width: auto; hidden;padding-left: 10px; overflow: hidden;''>"
             f"<a href={url_link} target='_blank'>"
             f"<b>{item.attributes.get('name')}</b>"
             "</a>"
-            f"<br> {table_statement} 🗺{kind_of_item} in {', '.join(item.attributes.get('application')).upper()}."
+            f"<br> {table_statement} | {kind_of_item} in {', '.join(item.attributes.get('application')).upper()}."
             f"<br>Last Modified: {item.attributes.get('updatedAt')}"
-            f"<br>Connector: {item.attributes.get('provider')}"
+            f"<br><a href='{item.server}/v1/fields/{item.id}' target='_blank'>Fields</a>"
+            f" Connector: {item.attributes.get('provider')}"
             f" | Published: {item.attributes.get('published')}"
             " </div> </div>")
     return html
 
 def show_image_collection(item, i):
-    html_string = ("<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #80ceb9;"
-                "border-radius: 2px; background: #f2fffb; line-height: 1.21429em; padding: 10px;''>"
-                "<div class='item_left' style='width: 100px; height: 100px; float: left; padding-right:10px''>"
+    html_string = ("<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #2BA4A0;"
+                "border-radius: 2px; background: #2BA4A0; line-height: 1.21429em; padding: 10px;''>"
+                "<div class='item_left' style='width: 100px; height: 100px; hidden;padding-left: 10px; float: left; padding-right:10px''>"
                 f"<a href='{item.get('thumb_url')}' target='_blank'>"
                 f"<img class='itemThumbnail' src='{item.get('thumb_url')}'>"
-                "</a></div><div class='item_right' style='float: none; width: auto; overflow: hidden;''>"
+                "</a></div><div class='item_right' style='float: none; hidden;padding-left: 10px; width: auto; overflow: hidden;''>"
                 f"<b>Image Source</b>: {item.get('instrument')} </br>"
                 f"<b>Datetime</b>: {item.get('date_time')} </br>"
                 f"<b>Cloud score </b>: {item.get('cloud_score')} </br>"
@@ -170,20 +173,26 @@ def show(item, i):
                            f"{attributes.get('tableName')}"
                            "</a>"
                           )
-
-    html = ("<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #80ceb9;"
-            "border-radius: 2px; background: #f2fffb; line-height: 1.21429em; padding: 10px;''>"
-            "<div class='item_left' style='width: 210px; float: left;''>"
-            "<a href='https://resourcewatch.org/' target='_blank'>"
-            "<img class='itemThumbnail' src='https://resourcewatch.org/static/images/logo-embed.png'>"
-            "</a></div><div class='item_right' style='float: none; width: auto; overflow: hidden;''>"
+    if uses_widgets:
+        site_link = "<a href='https://resourcewatch.org/' target='_blank'>"
+        site_logo = "<img class='itemThumbnail' src='https://resourcewatch.org/static/images/logo-embed.png'>"
+    else:
+        site_link = "<a href='https://skydipper.com/' target='_blank'>"
+        site_logo = "<img class='itemThumbnail' src='https://skydipper.com/images/logo.png'>"
+    html = ("<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #2BA4A0;"
+            "border-radius: 2px; background: #2BA4A0; line-height: 1.21429em; padding: 10px;''>"
+            "<div class='item_left' style='width: 210px;  float: left;''>"
+            f"{site_link}"
+            f"{site_logo}"
+            "</a></div><div class='item_right' style='float: none; width: auto; hidden;padding-left: 10px; overflow: hidden;''>"
             f"<b>{i}. </b>"
             f"<a href={url_link} target='_blank'>"
             f"<b>{attributes.get('name')}</b>"
             "</a>"
-            f"<br> {table_statement} 🗺{kind_of_item} in {', '.join(attributes.get('application')).upper()}."
+            f"<br> {table_statement} | {kind_of_item} in {', '.join(attributes.get('application')).upper()}."
             f"<br>Last Modified: {attributes.get('updatedAt')}"
-            f"<br>Connector: {attributes.get('provider')}"
+            f"<br><a href='{server}/v1/fields/{item_id}' target='_blank'>Fields</a>"
+            f" | Connector: {attributes.get('provider')}"
             f" | Published: {attributes.get('published')}"
             " </div> </div>")
     return html
