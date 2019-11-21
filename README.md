@@ -22,14 +22,14 @@ $ python
 >>> import LMIPy
 ```
 
-Create a Dataset object based on an existing ID on default (RW) server.
+Create a Dataset object based on an existing ID on default server.
 ```
 >>> ds = Dataset('044f4af8-be72-4999-b7dd-13434fc4a394')
 >>> print(ds)
 Dataset 044f4af8-be72-4999-b7dd-13434fc4a394
 ```
 
-Create a Layer object based on an existing ID on default (RW) server.
+Create a Layer object based on an existing ID on default server.
 ```
 >>> ly = Layer(id_hash='dc6f6dd2-0718-4e41-81d2-109866bb9edd')
 >>> print(ly)
