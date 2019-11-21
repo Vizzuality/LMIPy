@@ -1,12 +1,13 @@
 import requests
 import random
 import os
+import json
 import datetime
 from tqdm import tqdm
 from .dataset import Dataset
 from .table import Table
 from .layer import Layer
-from .utils import create_class, show, flatten_list
+from .utils import create_class, show, flatten_list, parse_filters, server_uses_widgets
 
 class Collection:
     """
@@ -29,10 +30,13 @@ class Collection:
         String to search records by, e.g. ’Forest loss’
     object_type: list
         A list of strings of object types to search, e.g. [‘dataset’, ‘layer’]
+    filters: dict
+        A dictionary of filter key, value pairs e.g. {'provider', 'gee'}
+        Possible search keys: 'connectorType', 'provider', 'status', 'published', 'protected', 'geoInfo'.
     """
     def __init__(self, search='', app=['gfw','rw'], env='production', limit=1000, order='name', sort='desc',
                  object_type=['dataset', 'layer','table', 'widget'], server='https://api.resourcewatch.org',
-                 mapbox_token=None):
+                 filters=None, mapbox_token=None):
         self.search = [search.lower()] + search.lower().strip().split(' ')
         self.server = server
         self.app = ",".join(app)
@@ -40,6 +44,7 @@ class Collection:
         self.limit = limit
         self.order = order
         self.sort = sort
+        self.filters = filters
         self.mapbox_token = mapbox_token
         self.object_type = object_type
         self.collection = self.get_collection()
@@ -89,8 +94,16 @@ class Collection:
         are the objects in the API. I.e. tables are a dataset type.
         """
         datasets = self.get_entities()
-        layers = flatten_list([d['attributes']['layer'] for d in datasets if len(d['attributes']['layer']) > 0])
-        widgets = flatten_list([d['attributes']['widget'] for d in datasets if len(d['attributes']['widget']) > 0])
+        layers = []
+        for d in datasets:
+            tmp_atts = d.get('attributes', None)
+            layers = tmp_atts.get('layer', None)
+        layers = flatten_list(layers)
+        #layers = flatten_list([d.get('attributes').get('layer') for d in datasets])
+        if server_uses_widgets(server=self.server):
+            widgets = flatten_list([d.get('attributes').get('widget') for d in datasets])
+        else:
+            widgets = None
         response_list = []
         if 'layer' in self.object_type:
             _ = [response_list.append(l) for l in layers]
@@ -104,11 +117,16 @@ class Collection:
 
     def get_entities(self):
         hash = random.getrandbits(16)
-        url = (f'{self.server}/v1/dataset?app={self.app}&env={self.env}&'
-               f'includes=layer,vocabulary,metadata,widget&page[size]=1000&hash={hash}')
+        filter_string = parse_filters(self.filters)
+        if server_uses_widgets(server=self.server):
+            url = (f'{self.server}/v1/dataset?app={self.app}&env={self.env}&{filter_string}'
+                   f'includes=layer,vocabulary,metadata,widget&page[size]=1000&hash={hash}')
+        else:
+            url = (f'{self.server}/v1/dataset?app={self.app}&env={self.env}&{filter_string}'
+                   f'includes=layer,metadata&page[size]=1000&hash={hash}')
         r = requests.get(url)
         response_list = r.json().get('data', None)
-        if len(response_list) < 1:
+        if not response_list:
             raise ValueError('No items found')
         return response_list
 
@@ -121,9 +139,16 @@ class Collection:
             return_datasets = 'dataset' in self.object_type
             return_tables = 'dataset' in self.object_type
             return_widgets = 'widget' in self.object_type
-            name = item.get('attributes').get('name', None)
-            description = item.get('attributes').get('description', None)
-            slug = item.get('attributes').get('slug', None)
+            #print(f"Filter: {type(item)}, {item}")
+            if type(item) == dict:
+                tmp_atts = item.get('attributes')
+                name = tmp_atts.get('name', None)
+                description = tmp_atts.get('description', None)
+                slug = tmp_atts.get('slug', None)
+            else:
+                name = None
+                description = None
+                slug = None
             found = []
             if description:
                 description = description.lower()
@@ -152,8 +177,14 @@ class Collection:
         tmp_sorted = []
         try:
             d = {}
+            duplicate = {}
             for n, z in enumerate([c['attributes'].get(self.order.lower()) for c in collection_list]):
-                d[z] = collection_list[n]
+                if duplicate.get(z, None):
+                    d[f'{z} {duplicate[z]}'] = collection_list[n]
+                    duplicate[z] += 1
+                else:
+                    d[z] = collection_list[n]
+                    duplicate[z] = 1
             keys = sorted(d, reverse=self.sort.lower() == 'asc')
             for key in keys:
                 tmp_sorted.append(d[key])
@@ -164,6 +195,9 @@ class Collection:
         return tmp_sorted
 
     def save(self, path=None):
+        """
+        Save all entities in the collection to a local path.
+        """
         if not path:
             path = './LMI-BACKUP'
             if not os.path.isdir(path):
@@ -177,14 +211,35 @@ class Collection:
                 os.mkdir(path)
         print(f'Saving to path: {path}')
         saved = []
+        failed = []
+        if server_uses_widgets(self.server):
+            url_args = "vocabulary,metadata,layer,widget"
+        else:
+            url_args = "metadata,layer"
         for item in tqdm(self):
             if item['id'] not in saved:
-                item = create_class(item)
-                if type(item) == Layer:
-                    item = item.dataset()
-                elif type(item) == Dataset or type(item) == Table:
-                    for layer in item.layers:
-                        saved.append(layer.id)
+                entity_type = item.get('type')
+                if entity_type in ['Dataset', 'Table']:
+                    ds_id = item['id']
+                else:
+                    ds_id = item['attributes']['dataset']
+                try:
+                    url = f'{self.server}/v1/dataset/{ds_id}?includes={url_args}'
+                    r = requests.get(url)
+                    dataset_config = r.json()['data']
+                except:
+                    failed.append(item)
 
-                item.save(path)
-                saved.append(item.id)
+                save_json = {
+                    "id": ds_id,
+                    "type": "dataset",
+                    "server": self.server,
+                    "attributes": dataset_config['attributes']
+                }
+                with open(f"{path}/{ds_id}.json", 'w') as fp:
+                    json.dump(save_json, fp)
+
+        if len(failed) > 0:
+            print(f'Some entities failed to save: {failed}')
+            return failed
+        print('Save complete!')

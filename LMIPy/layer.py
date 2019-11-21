@@ -5,8 +5,8 @@ import urllib
 import json
 import random
 import re
-from .utils import html_box, get_geojson_string
-from colored import fg, bg, attr
+from pprint import pprint
+from .utils import html_box, get_geojson_string, nested_set, server_uses_widgets
 
 
 class Layer:
@@ -23,18 +23,18 @@ class Layer:
         A string of the server URL.
     """
     def __init__(self, id_hash=None, attributes=None,
-                    server='https://api.resourcewatch.org', mapbox_token=None):
+                    server='https://api.resourcewatch.org', mapbox_token=None, token=None):
         self.server = server
         self.mapbox_token = mapbox_token
-        if not id_hash:
-            if attributes:
-                self.id = attributes.get('id', None)
-                self.attributes = attributes.get('attributes', None)
-            else:
-                self.id = None
-                self.attributes = None
-        else:
+        if not attributes and id_hash:
             self.id = id_hash
+            self.attributes = self.get_layer()
+        elif attributes and token:
+            created_layer = self.new_layer(token=token, attributes=attributes, server=self.server)
+            self.attributes = created_layer.attributes
+            self.id = created_layer.id
+        elif attributes:
+            self.id = attributes.get('id')
             self.attributes = self.get_layer()
 
     def __repr__(self):
@@ -52,15 +52,17 @@ class Layer:
         """
         try:
             hash = random.getrandbits(16)
-            url = (f'{self.server}/v1/layer/{self.id}?includes=vocabulary,metadata&hash={hash}')
+            if server_uses_widgets(self.server):
+                url = f'{self.server}/v1/layer/{self.id}?includes=vocabulary,metadata&hash={hash}'
+            else:
+                url = f'{self.server}/v1/layer/{self.id}?includes=metadata&hash={hash}'
             r = requests.get(url)
         except:
             raise ValueError(f'Unable to get Layer {self.id} from {r.url}')
-
         if r.status_code == 200:
             return r.json().get('data').get('attributes')
         else:
-            raise ValueError(f'Layer with id={self.id} does not exist.')
+            raise ValueError(f'Layer with id={self.id} does not exist for server={self.server}.')
 
     def parse_map_url(self):
         """
@@ -216,7 +218,7 @@ class Layer:
         uk = list(updatable_fields.keys())
         return uk
 
-    def update(self, update_params=None, token=None, show_difference=False):
+    def update(self, update_params=None, token=None):
         """
         Update layer specific attribute values
 
@@ -228,21 +230,24 @@ class Layer:
             A dictionary of update paramters. You can identify the possible keys by calling
             self.update_keys(silent=False)
         token: str
-            A valid Resource Watch Token.
-        show_difference: bool
-            Display the updates.
+            A valid API Token.
         """
-        red_color = fg('#FF0000')
-        green_color = fg('#00FF00')
-        res = attr('reset')
         if not token:
-            raise ValueError(f'[token=None] Resource Watch API TOKEN required for updates.')
+            raise ValueError(f'[token=None] API TOKEN required for updates.')
         update_blacklist = ['updatedAt', 'userId', 'dataset', 'slug']
         attributes = {f'{k}':v for k,v in self.attributes.items() if k not in update_blacklist}
         if not update_params:
-            payload = { **attributes }
+            raise ValueError(f'[update_params=None] Must specify update parameters.')
         else:
-            payload = { f'{key}': update_params[key] for key in update_params if key in list(attributes.keys()) }
+            payload = {}
+            for k, v in update_params.items():
+                if '.' in k:
+                    nested_keys = k.split('.')
+                    if len(nested_keys) > 1 and nested_keys[0] in list(attributes.keys()):
+                        payload[nested_keys[0]] = attributes.get(nested_keys[0])
+                        nested_set(payload, nested_keys, v)
+                elif k in list(attributes.keys()):
+                    payload[k] = v
         try:
             url = f"{self.server}/dataset/{self.attributes['dataset']}/layer/{self.id}"
             headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
@@ -252,14 +257,8 @@ class Layer:
         if r.status_code == 200:
             response = r.json()['data']
         else:
-            print(red_color + f"PATCH attempt threw a {r.status_code}!" + res)
+            print(f"PATCH attempt threw a {r.status_code}!")
             return None
-        if show_difference:
-            old_attributes = { f'{k}': attributes[k] for k,v in payload.items() }
-            print(f"Attributes to change:")
-            print(red_color + f'{old_attributes} {res}')
-            print(green_color + f'Updated! {res}')
-            print({ f'{k}': v for k, v in response['attributes'].items() if k in payload })
         self.attributes = self.get_layer()
         return self
 
@@ -279,7 +278,7 @@ class Layer:
         Deletes a target layer
         """
         if not token:
-            raise ValueError(f'[token=None] Resource Watch API token required to delete.')
+            raise ValueError(f'[token=None] API token required to delete.')
         if not force:
             conf = self.confirm_delete()
         elif force:
@@ -299,67 +298,52 @@ class Layer:
             print('Deletion aborted')
         return None
 
-    def clone(self, token=None, env='staging', layer_params={}, target_dataset_id=None):
+    def clone(self, token=None, env='staging', clone_server=None, layer_params={}, target_dataset_id=None):
         """
         Create a clone of current Layer (and its parent Dataset) as a new staging or prod Layer.
         A set of attributes can be specified for the clone Layer using layer_params.
         Optionally, you can also select a target Dataset to attach your Layer clone to.
+
+        The argument `clone_server` specifies the server to clone to. Default server is the layers own server.
         """
         from .dataset import Dataset
+        if not clone_server: clone_server = self.server
+
         if not token:
-            raise ValueError(f'[token] Resource Watch API token required to clone.')
-        # unneccesary?
-        # if not all(x not in layer_params.keys() for x in ['name', 'app']):
-        #     print('The keys "name" and "app" must be defined in layer_params.')
-        #     return None
+            raise ValueError(f'[token] API token required to clone.')
         target_layer_name  = self.attributes['name']
         name = layer_params.get('name', f'{target_layer_name} CLONE')
         clone_layer_attr = {**self.attributes, 'name': name}
-        for k, _ in clone_layer_attr.items():
+        for k in clone_layer_attr.keys():
             if k in layer_params:
                 clone_layer_attr[k] = layer_params[k]
         if target_dataset_id:
-            target_dataset = Dataset(target_dataset_id)
+            target_dataset = Dataset(id_hash=target_dataset_id, server=clone_server)
         else:
-            target_dataset = Dataset(self.attributes['dataset'])
-            clone_dataset_attr = {**target_dataset.attributes, 'name': name}
-            payload = {
+            target_dataset = self.dataset()
+            clone_dataset_attr = {**target_dataset.attributes, 'name': name, }
+            payload = {"dataset":{
                 'application': clone_dataset_attr['application'],
                 'connectorType': clone_dataset_attr['connectorType'],
                 'connectorUrl': clone_dataset_attr['connectorUrl'],
+                'published': clone_dataset_attr['published'],
                 'tableName': clone_dataset_attr['tableName'],
                 'provider': clone_dataset_attr['provider'],
                 'env': env,
                 'name': clone_dataset_attr['name']
+                }
             }
             print(f'Creating clone dataset')
-            url = f'{self.server}/dataset'
+            url = f'{clone_server}/dataset'
             headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
             r = requests.post(url, data=json.dumps(payload), headers=headers)
+            print(r.url)
+            pprint(payload)
             if r.status_code == 200:
                 target_dataset_id = r.json()['data']['id']
-                clone_dataset = Dataset(target_dataset_id)
-                try:
-                    vocab = target_dataset.vocabulary[0].attributes
-                    vocab_payload = {
-                        'application': vocab['application'],
-                        'name': vocab['name'],
-                        'tags': vocab['tags']
-                    }
-                    clone_dataset.add_vocabulary(vocab_params=vocab_payload, token=token)
-                    meta = target_dataset.metadata[0].attributes
-                    meta_payload = {
-                        'application': meta['application'],
-                        'info': meta['info'],
-                        'language': meta['language']
-                    }
-                    clone_dataset.add_metadata(meta_params=meta_payload, token=token)
-                except:
-                    raise ValueError('Failed to clone Vocabulary and Metadata.')
             else:
                 print(r.status_code)
                 return None
-            
 
         payload = {
             'application': clone_layer_attr['application'],
@@ -372,9 +356,10 @@ class Layer:
             'legendConfig':clone_layer_attr['legendConfig'] ,
             'name': name,
             'provider': clone_layer_attr['provider'],
+            'published': clone_layer_attr['published']
         }
         print(f'Creating clone layer on target dataset')
-        url = f'{self.server}/dataset/{target_dataset_id}/layer'
+        url = f'{clone_server}/dataset/{target_dataset_id}/layer'
         headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
         r = requests.post(url, data=json.dumps(payload), headers=headers)
         if r.status_code == 200:
@@ -382,13 +367,12 @@ class Layer:
         else:
             print(r.status_code)
             return None
-        print(f'{self.server}/v1/dataset/{target_dataset_id}/layer/{clone_layer_id}')
-        self.attributes = Layer(clone_layer_id).attributes
-        return Layer(clone_layer_id)
+        print(f'{clone_server}/v1/dataset/{target_dataset_id}/layer/{clone_layer_id}')
+        return Layer(id_hash=clone_layer_id, server=clone_server)
 
     def parse_query(self, sql):
         """
-        Distriibuter to decide interect method
+        Distributer to decide interect method
         """
         if self.attributes.get('layerConfig') == None:
             raise ValueError("No layerConfig present in layer from which to create a query.")
@@ -446,7 +430,7 @@ class Layer:
         Returns parent datset
         """
         from .dataset import Dataset
-        return Dataset(self.attributes['dataset'])
+        return Dataset(self.attributes['dataset'], server=self.server)
 
     def intersect(self, geometry):
         """
@@ -492,10 +476,13 @@ class Layer:
             print('Requires a file path to valid backup .json file.')
             return None
         try:
-            with open(f"{path}/{self.id}.json") as f:
+            ds = self.dataset()
+            with open(f"{path}/{ds.id}.json") as f:
                 recovered_dataset = json.load(f)
-            recovered_layer = [l for l in recovered_dataset.layers if l.id == self.id][0]
-
+            layers = recovered_dataset['attributes']['layer']
+            server = recovered_dataset.get('server', 'https://api.resourcewatch.org')
+            if len(layers) > 0: recovered_layer = [l for l in layers if l['id'] == self.id][0]
+            else: raise ValueError(f'No save layers found!')
             if check:
                 blacklist = ['updatedAt']
                 attributes = {f'{k}':v for k,v in recovered_layer['attributes'].items() if k not in blacklist}
@@ -506,6 +493,76 @@ class Layer:
         except:
             raise ValueError(f'Failed to load backup from f{path}')
 
-        return Layer(id_hash=recovered_layer['id'], attributes=recovered_dataset['attributes'])
+        return Layer(attributes={**recovered_layer['attributes'], 'id': recovered_layer['id']}, server=server)
 
 
+    def new_layer(self, token=None, attributes=None, server='https://api.resourcewatch.org'):
+        """
+        Create a new staging or prod Layer entity from attributes.
+        """
+        if not token:
+            raise ValueError(f'[token] API token required to create a new dataset.')
+        elif not attributes:
+            raise ValueError(f'Attributes required to create a new dataset.')
+        elif not attributes.get('dataset', None):
+            raise ValueError(f'Attributes must include dataset key.')
+        else:
+            dataset_id = attributes['dataset']
+            url = f'{server}/v1/dataset/{dataset_id}/layer'
+            headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
+            payload = {**attributes}
+
+            r = requests.post(url, data=json.dumps(payload), headers=headers)
+            if r.status_code == 200:
+                new_layer_id = r.json()['data']['id']
+            else:
+                print(r.status_code)
+                return None
+            print(f'{server}/v1/layer/{new_layer_id}')
+            return Layer(id_hash=new_layer_id, server=server)
+
+    def merge(self, token=None, target_layer=None, target_layer_id=None, target_server='https://api.resourcewatch.org', key_whitelist=[], force=False):
+        """
+        'Merge' one Layer entity into another target Layer.
+        The argument `key_whitelist` can be used to specify which properties you wish to merge (if not all)
+        Note: requires API token.
+        """
+        if not token:
+            raise ValueError(f'[token] API token required update Layer.')
+        if not target_layer and target_layer_id and target_server:
+            target_layer = Layer(target_layer_id, server=target_server)
+        else:
+            raise ValueError(f'Requires either target Layer or Layer id plus server.')
+        atts = self.attributes
+        payload = {
+            'layerConfig': atts.get('layerConfig', None),
+            'legendConfig': atts.get('legendConfig', None),
+            'applicationConfig': atts.get('applicationConfig', None),
+            'interactionConfig': atts.get('interactionConfig', None),
+            'name': atts.get('name', None),
+            'description': atts.get('description', None),
+            'iso': atts.get('iso', None),
+            'application': atts.get('application', None),
+            'provider': atts.get('provider', None)
+        }
+        if not key_whitelist: key_whitelist = [k for k in payload.keys()]
+        filtered_payload = {k:v for k,v in payload.items() if v and k in key_whitelist}
+        print(f'Merging {self.id} from {self.server} into {target_layer_id} on {target_server}.\nAre you sure you sure you want to continue?')
+        if not force:
+            conf = input()
+        else:
+            conf = 'y'
+        if conf.lower() == 'y':
+            try:
+                merged_layer = target_layer.update(update_params=filtered_payload, token=token)
+            except:
+                print('Aborting...')
+            print('Completed!')
+            return merged_layer
+
+        elif conf.lower() == 'n':
+            print('Aborting...')
+            return False
+        else:
+            print('Requires y/n input!')
+            return False
