@@ -8,7 +8,7 @@ import datetime
 from pprint import pprint
 from .layer import Layer
 from .utils import html_box, nested_set, server_uses_widgets
-from .skydipper import Vocabulary, Metadata, Widget
+from .Skydipper import Vocabulary, Metadata, Widget
 
 
 class Dataset:

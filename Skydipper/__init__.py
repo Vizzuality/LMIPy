@@ -1,4 +1,4 @@
-from .skydipper import Vocabulary, Metadata, Widget
+from .Skydipper import Vocabulary, Metadata, Widget
 from .layer import Layer
 from .image import Image
 from .imageCollection import ImageCollection

@@ -5,7 +5,7 @@ def html_box(item):
     is_layer = str(type(item)) == "<class 'Skydipper.layer.Layer'>"
     is_dataset = str(type(item)) == "<class 'Skydipper.dataset.Dataset'>"
     is_table = str(type(item)) == "<class 'Skydipper.table.Table'>"
-    is_widget = str(type(item)) == "<class 'Skydipper.skydipper.Widget'>"
+    is_widget = str(type(item)) == "<class 'Skydipper.Skydipper.Widget'>"
     is_geometry = str(type(item)) == "<class 'Skydipper.geometry.Geometry'>"
     is_image = str(type(item)) == "<class 'Skydipper.image.Image'>"
     needs_widgets_and_co = server_uses_widgets(item.server)
@@ -201,7 +201,7 @@ def create_class(item):
     from .dataset import Dataset
     from .table import Table
     from .layer import Layer
-    from .skydipper import Widget
+    from .Skydipper import Widget
     from .image import Image
     if item['type'] == 'Table':
         return Table(id_hash = item.get('id'), server = item.get('server'))
