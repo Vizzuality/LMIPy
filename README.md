@@ -1,25 +1,25 @@
-# LMIPy
+# Skydipper
 ## The Vizzuality Ecosystem Python Interface
 
-[![Build Status](https://travis-ci.org/Vizzuality/LMIPy.svg?branch=master)](https://travis-ci.org/Vizzuality/LMIPy) [![codecov](https://codecov.io/gh/Vizzuality/LMIPy/branch/master/graph/badge.svg)](https://codecov.io/gh/Vizzuality/LMIPy) [![PyPI](https://img.shields.io/pypi/v/LMIPy.svg?style=flat)](https://pypi.org/project/LMIPy/) ![](https://img.shields.io/pypi/pyversions/LMIPy.svg?style=flat)  ![](https://img.shields.io/pypi/wheel/LMIPy.svg?style=flat) [![Documentation Status](https://readthedocs.org/projects/lmipy/badge/?version=latest)](https://lmipy.readthedocs.io/en/latest/?badge=latest) [![License](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://github.com/Vizzuality/LMIPy/blob/master/LICENSE)
+[![Build Status](https://travis-ci.org/Skydipper/Skydipper.svg?branch=master)](https://travis-ci.org/Skydipper/Skydipper) [![codecov](https://codecov.io/gh/Vizzuality/Skydipper/branch/master/graph/badge.svg)](https://codecov.io/gh/Vizzuality/Skydipper) [![PyPI](https://img.shields.io/pypi/v/Skydipper.svg?style=flat)](https://pypi.org/project/Skydipper/) ![](https://img.shields.io/pypi/pyversions/Skydipper.svg?style=flat)  ![](https://img.shields.io/pypi/wheel/Skydipper.svg?style=flat) [![Documentation Status](https://readthedocs.org/projects/skydipper/badge/?version=latest)](https://skydipper.readthedocs.io/en/latest/?badge=latest) [![License](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://github.com/Vizzuality/Skydipper/blob/master/LICENSE)
 
-LMIPy is a Python library with hooks to Jupyter, backed by the [Skydipper API](https://github.com/Skydipper).
+Skydipper is a Python library with hooks to Jupyter, backed by the [Skydipper API](https://github.com/Skydipper).
 It provides many functions related to adding, analysing and working with open geospatial datasets.
 
 ## Read the Docs
 
-[Read the docs pages](https://lmipy.readthedocs.io/en/latest/).
+[Read the docs pages](https://skydipper.readthedocs.io/en/latest/).
 
 ## Installation
 
-`pip install LMIPy`
+`pip install Skydipper`
 
 ## Use
 
 
 ```
 $ python
->>> import LMIPy
+>>> import Skydipper
 ```
 
 Create a Dataset object based on an existing ID on default server.

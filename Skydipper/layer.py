@@ -171,7 +171,7 @@ class Layer:
             A longitude to focus the map on.
         zoom: int
             A z-level for the map.
-        geometry: LMIPy.Geometry()
+        geometry: Skydipper.Geometry()
             A geometry object.
         weight: int
             Weight of geom outline. Default = 4.
@@ -436,11 +436,11 @@ class Layer:
         """
         Intersect an EE raster with a geometry
 
-        Given a valid LMIPy.Geometry object, return a dictionary based on reduceRegion
+        Given a valid Skydipper.Geometry object, return a dictionary based on reduceRegion
         Parameters
         ---------
         geometry: Geometry
-            An LMIPy.Geometry object
+            An Skydipper.Geometry object
         server: str
             A string of a server to call to.
         """

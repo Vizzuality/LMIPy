@@ -4,22 +4,22 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="LMIPy",
-    version="0.3.19",
+    name="Skydipper",
+    version="0.1.0",
     author="Vizzuality",
     author_email="benjamin.laken@vizzuality.com",
-    description="Pythonic interface to various backend ecosystems related geospatial data.",
+    description="Pythonic interface to the Skydipper API.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     license='MIT',
-    url="https://github.com/Vizzuality/LMIPy",
+    url="https://github.com/Skydipper/Skydipper",
     install_requires=['requests>=2.2.0',
                         'folium==0.8.3',
                         'geopandas>=0.4.1',
                         'geojson>=2.4.0',
                         'pypng>=0.0.19',
                         'tqdm>=4.21.0'],
-    packages=['LMIPy'],
+    packages=['Skydipper'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",

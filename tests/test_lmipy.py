@@ -2,7 +2,7 @@ import pytest
 import random
 import os
 import os.path
-from LMIPy import Dataset, Table, Collection, Layer, Metadata, Vocabulary, Widget, Image, ImageCollection, Geometry, utils
+from Skydipper import Dataset, Table, Collection, Layer, Metadata, Vocabulary, Widget, Image, ImageCollection, Geometry, utils
 
 try:
     API_TOKEN = os.environ.get("API_TOKEN", None)
@@ -34,8 +34,8 @@ def test_collection_save():
     col.save(path=save_path)
     assert os.path.exists(save_path) == True
     assert f"{ds.id}.json" in os.listdir(save_path)
-    _ = [os.remove(save_path+f"/{f}") for f in os.listdir(save_path)] 
-    os.rmdir(save_path)  
+    _ = [os.remove(save_path+f"/{f}") for f in os.listdir(save_path)]
+    os.rmdir(save_path)
 
 #----- Dataset Tests -----#
 

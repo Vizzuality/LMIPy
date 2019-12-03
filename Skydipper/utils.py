@@ -2,12 +2,12 @@ import json
 
 def html_box(item):
     """Returns an HTML block with template strings filled-in based on item attributes."""
-    is_layer = str(type(item)) == "<class 'LMIPy.layer.Layer'>"
-    is_dataset = str(type(item)) == "<class 'LMIPy.dataset.Dataset'>"
-    is_table = str(type(item)) == "<class 'LMIPy.table.Table'>"
-    is_widget = str(type(item)) == "<class 'LMIPy.lmipy.Widget'>"
-    is_geometry = str(type(item)) == "<class 'LMIPy.geometry.Geometry'>"
-    is_image = str(type(item)) == "<class 'LMIPy.image.Image'>"
+    is_layer = str(type(item)) == "<class 'Skydipper.layer.Layer'>"
+    is_dataset = str(type(item)) == "<class 'Skydipper.dataset.Dataset'>"
+    is_table = str(type(item)) == "<class 'Skydipper.table.Table'>"
+    is_widget = str(type(item)) == "<class 'Skydipper.skydipper.Widget'>"
+    is_geometry = str(type(item)) == "<class 'Skydipper.geometry.Geometry'>"
+    is_image = str(type(item)) == "<class 'Skydipper.image.Image'>"
     needs_widgets_and_co = server_uses_widgets(item.server)
     if needs_widgets_and_co:
         site_link = "<a href='https://resourcewatch.org/' target='_blank'>"
@@ -201,7 +201,7 @@ def create_class(item):
     from .dataset import Dataset
     from .table import Table
     from .layer import Layer
-    from .lmipy import Widget
+    from .skydipper import Widget
     from .image import Image
     if item['type'] == 'Table':
         return Table(id_hash = item.get('id'), server = item.get('server'))

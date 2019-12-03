@@ -1,4 +1,4 @@
-LMIPy.egg-info/
+Skydipper.egg-info/
 build/
 dist/
 docs/_build
@@ -10,7 +10,7 @@ test_nbk.ipynb
 .ipynb_checkpoints/
 .DS_Store
 LMI-dev-nbk.ipynb
-LMIPy/__pycache__/
+Skydipper/__pycache__/
 Untitled.ipynb
 
 sample.geojson

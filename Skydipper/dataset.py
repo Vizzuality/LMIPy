@@ -8,7 +8,7 @@ import datetime
 from pprint import pprint
 from .layer import Layer
 from .utils import html_box, nested_set, server_uses_widgets
-from .lmipy import Vocabulary, Metadata, Widget
+from .skydipper import Vocabulary, Metadata, Widget
 
 
 class Dataset:
@@ -343,12 +343,12 @@ class Dataset:
 
         Intersect an EE raster with a geometry
 
-        Given a valid LMIPy.Geometry object, return a dictionary based on reduceRegion.
+        Given a valid Skydipper.Geometry object, return a dictionary based on reduceRegion.
 
         Parameters
         ---------
         geometry: Geometry
-            An LMIPy.Geometry object
+            An Skydipper.Geometry object
         server: str
             A string of a server to call to.
         """
