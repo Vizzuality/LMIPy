@@ -13,7 +13,7 @@ class Metadata:
     attributes: dic
         A dictionary holding the attributes of a metadata (which are attached to a Dataset).
     """
-    def __init__(self, attributes=None, server='https://api.resourcewatch.org'):
+    def __init__(self, attributes=None, server="https://api.skydipper.com"):
         if attributes.get('type') != 'metadata':
             raise ValueError(f"Non metadata attributes passed to Metadata class ({attributes.get('type')})")
         self.id = attributes.get('id')
@@ -94,7 +94,7 @@ class Vocabulary:
     attributes: dic
         A dictionary holding the attributes of a vocabulary (which are attached to a Dataset).
     """
-    def __init__(self, attributes=None, server='https://api.resourcewatch.org'):
+    def __init__(self, attributes=None, server="https://api.skydipper.com"):
         if attributes.get('type') != 'vocabulary':
             raise ValueError(f"Non vocabulary attributes passed to Vocabulary class ({attributes.get('type')})")
         self.server = server
@@ -152,7 +152,7 @@ class Widget:
     attributes: dic
         A dictionary holding the attributes of a widget (which are attached to a Dataset).
     """
-    def __init__(self, id_hash=None, attributes=None, server='https://api.resourcewatch.org'):
+    def __init__(self, id_hash=None, attributes=None, server="https://api.skydipper.com"):
         self.id = id_hash
         self.server = server
         if id_hash:
@@ -260,7 +260,7 @@ class Widget:
         ds = Dataset(id_hash=ds_id, server=self.server)
         ds.save(path=path)
 
-    def merge(self, token=None, target_widget=None, target_widget_id=None, target_server='https://api.resourcewatch.org', key_whitelist=[], force=False):
+    def merge(self, token=None, target_widget=None, target_widget_id=None, target_server="https://api.skydipper.com", key_whitelist=[], force=False):
         """
         'Merge' one Widget entity into another target Widget.
         The argument `key_whitelist` can be used to specify which properties you wish to merge (if not all)

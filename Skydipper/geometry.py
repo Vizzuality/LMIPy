@@ -185,7 +185,8 @@ class Geometry:
 
     def get_composite_url(self, centroid, band_viz, instrument, date_range):
         valid_servers = ['https://production-api.globalforestwatch.org',
-                         'https://staging-api.globalforestwatch.org']
+                         'https://staging-api.globalforestwatch.org',
+                         "https://api.skydipper.com"]
         if self.server in valid_servers:
             params = {"geostore": self.id,
                       "instrument": instrument,
@@ -199,8 +200,7 @@ class Geometry:
                 tile_url = r.json().get('attributes').get('tile_url')
                 return tile_url
         else:
-            #url = 'http://localhost:4500/api/v1/composite-service/geom'
-            url = "https://production-api.globalforestwatch.org/v1/composite-service/geom"
+            url = "https://api.skydipper.com/v1/composite-service/geom"
             payload = json.dumps(self.attributes)
             params = {"instrument": instrument,
                       "date_range": date_range,
@@ -285,7 +285,8 @@ class Geometry:
         """
         # If the geostore exists on the right server, send the id, else send the valid geojson attributes
         valid_servers = ['https://production-api.globalforestwatch.org',
-                         'https://staging-api.globalforestwatch.org']
+                         'https://staging-api.globalforestwatch.org',
+                         "https://api.skydipper.com"]
         if self.server in valid_servers:
             params = {"geostore": self.id,
                       "lang": lang,
@@ -305,7 +306,7 @@ class Geometry:
                 print(f"Description attempt failed: response: {r.status_code}, \n {r.json()}")
                 return None
         else:
-            url = "https://production-api.globalforestwatch.org/v1/geodescriber/geom"
+            url = "https://api.skydipper.com/v1/geodescriber/geom"
             payload = json.dumps(self.attributes)
             querystring = {"lang": lang, "app": app}
             headers = {

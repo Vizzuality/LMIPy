@@ -39,8 +39,8 @@ def html_box(item):
         else:
             instrument = item.instrument
         html_string = ("<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #2BA4A0;"
-                    "border-radius: 2px; background: #2BA4A0; line-height: 1.21429em; padding: 10px;''>"
-                    "<div class='item_left' style='width: 100px; height: 100px; float: left; padding-right:10px''>"
+                    "border-radius: 5px; background: #2BA4A0; line-height: 1.21429em; padding: 10px;''>"
+                    "<div class='item_left' style='width: 100px; height: 100px; float: left;''>"
                     f"<a href='{item.thumb_url}' target='_blank'>"
                     f"<img class='itemThumbnail' src='{item.thumb_url}'>"
                     "</a></div><div class='item_right' style='float: none; width: auto; hidden;padding-left: 10px; overflow: hidden;''>"
@@ -56,7 +56,7 @@ def html_box(item):
         kind_of_item = 'Geometry'
         url_link = f'{item.server}/v1/geostore/{item.id}'
         html_string = ("<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #2bA4A0;"
-            "border-radius: 2px; background: #2bA4A0; line-height: 1.21429em; padding: 10px;''>"
+            "border-radius: 5px; background: #2bA4A0; line-height: 1.21429em; padding: 10px;''>"
             "<div class='item_left' style='width: 210px; float: left;''>"
             f"{site_link}"
             f"{site_logo}"
@@ -110,7 +110,7 @@ def html_box(item):
 def show_image_collection(item, i):
     html_string = ("<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #2BA4A0;"
                 "border-radius: 2px; background: #2BA4A0; line-height: 1.21429em; padding: 10px;''>"
-                "<div class='item_left' style='width: 100px; height: 100px; hidden;padding-left: 10px; float: left; padding-right:10px''>"
+                "<div class='item_left' style='width: 100px; height: 100px; hidden;padding-left: 10px; float: left''>"
                 f"<a href='{item.get('thumb_url')}' target='_blank'>"
                 f"<img class='itemThumbnail' src='{item.get('thumb_url')}'>"
                 "</a></div><div class='item_right' style='float: none; hidden;padding-left: 10px; width: auto; overflow: hidden;''>"

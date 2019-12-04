@@ -24,7 +24,7 @@ class Dataset:
     sever: str
         A URL string of the vizzuality server.
     """
-    def __init__(self, id_hash=None, attributes=None, server='https://api.resourcewatch.org', token=None):
+    def __init__(self, id_hash=None, attributes=None, server="https://api.skydipper.com", token=None):
         self.id = id_hash
         self.layers = []
         self.server = server
@@ -242,7 +242,7 @@ class Dataset:
         Create a clone of a target Dataset as a new staging or prod Dataset.
         A set of attributes can be specified for the clone Dataset.
 
-        The argument `clone_server` specifies the server to clone to. Default server = https://api.resourcewatch.org
+        The argument `clone_server` specifies the server to clone to. Default server = https://api.skydipper.com
 
         Set clone_children=True to clone all child layers, and widgets.
         """
@@ -417,7 +417,7 @@ class Dataset:
         try:
             with open(f"{path}/{self.id}.json") as f:
                 recovered_dataset = json.load(f)
-            server = recovered_dataset.get('server', 'https://api.resourcewatch.org')
+            server = recovered_dataset.get('server', "https://api.skydipper.com")
             if check:
                 blacklist = ['metadata','layer','widget','vocabulary', 'updatedAt']
                 attributes = {f'{k}':v for k,v in recovered_dataset['attributes'].items() if k not in blacklist}
@@ -545,7 +545,7 @@ class Dataset:
         else:
             raise ValueError(f'Widget creation requires name string, application list and a widgetConfig object.')
 
-    def new_dataset(self, token=None, attributes=None, server='https://api.resourcewatch.org'):
+    def new_dataset(self, token=None, attributes=None, server="https://api.skydipper.com"):
         """
         Create a new staging or prod Dataset entity from attributes.
         """
@@ -567,7 +567,7 @@ class Dataset:
             print(f'{self.server}/v1/dataset/{new_dataset_id}')
             return Dataset(id_hash=new_dataset_id, server=server)
 
-    def merge(self, token=None, target_dataset=None, target_dataset_id=None, target_server='https://api.resourcewatch.org', key_whitelist=[], force=False):
+    def merge(self, token=None, target_dataset=None, target_dataset_id=None, target_server="https://api.skydipper.com", key_whitelist=[], force=False):
         """
         'Merge' one Dataset entity into another target Dataset.
         The argument `key_whitelist` can be used to specify which properties you wish to merge (if not all)

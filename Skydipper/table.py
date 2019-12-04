@@ -18,7 +18,7 @@ class Table(Dataset):
     server: str
         A string of the server URL.
     """
-    def __init__(self, id_hash=None, attributes=None, server='https://api.resourcewatch.org'):
+    def __init__(self, id_hash=None, attributes=None, server="https://api.skydipper.com"):
         super().__init__(id_hash=id_hash, attributes=attributes, server=server)
 
     def __repr__(self):

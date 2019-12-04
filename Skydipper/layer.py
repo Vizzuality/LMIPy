@@ -23,7 +23,7 @@ class Layer:
         A string of the server URL.
     """
     def __init__(self, id_hash=None, attributes=None,
-                    server='https://api.resourcewatch.org', mapbox_token=None, token=None):
+                    server="https://api.skydipper.com", mapbox_token=None, token=None):
         self.server = server
         self.mapbox_token = mapbox_token
         if not attributes and id_hash:
@@ -480,7 +480,7 @@ class Layer:
             with open(f"{path}/{ds.id}.json") as f:
                 recovered_dataset = json.load(f)
             layers = recovered_dataset['attributes']['layer']
-            server = recovered_dataset.get('server', 'https://api.resourcewatch.org')
+            server = recovered_dataset.get('server', "https://api.skydipper.com")
             if len(layers) > 0: recovered_layer = [l for l in layers if l['id'] == self.id][0]
             else: raise ValueError(f'No save layers found!')
             if check:
@@ -496,7 +496,7 @@ class Layer:
         return Layer(attributes={**recovered_layer['attributes'], 'id': recovered_layer['id']}, server=server)
 
 
-    def new_layer(self, token=None, attributes=None, server='https://api.resourcewatch.org'):
+    def new_layer(self, token=None, attributes=None, server="https://api.skydipper.com"):
         """
         Create a new staging or prod Layer entity from attributes.
         """
@@ -521,7 +521,7 @@ class Layer:
             print(f'{server}/v1/layer/{new_layer_id}')
             return Layer(id_hash=new_layer_id, server=server)
 
-    def merge(self, token=None, target_layer=None, target_layer_id=None, target_server='https://api.resourcewatch.org', key_whitelist=[], force=False):
+    def merge(self, token=None, target_layer=None, target_layer_id=None, target_server="https://api.skydipper.com", key_whitelist=[], force=False):
         """
         'Merge' one Layer entity into another target Layer.
         The argument `key_whitelist` can be used to specify which properties you wish to merge (if not all)

@@ -35,7 +35,7 @@ class Collection:
         Possible search keys: 'connectorType', 'provider', 'status', 'published', 'protected', 'geoInfo'.
     """
     def __init__(self, search='', app=['gfw','rw'], env='production', limit=1000, order='name', sort='desc',
-                 object_type=['dataset', 'layer','table', 'widget'], server='https://api.resourcewatch.org',
+                 object_type=['dataset', 'layer','table', 'widget'], server="https://api.skydipper.com",
                  filters=None, mapbox_token=None):
         self.search = [search.lower()] + search.lower().strip().split(' ')
         self.server = server
