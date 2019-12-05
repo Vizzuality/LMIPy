@@ -111,8 +111,10 @@ class Layer:
 
     def get_ee_tiles(self):
         """Returns tiles from EE assets"""
-        url = f'{self.server}/v1/layer/{self.id}/tile/gee/{{z}}/{{x}}/{{y}}'
-        return url
+        if self.server == 'https://api.skydipper.com':
+            return f'{self.server}/v1/basemaps/layer/{self.id}/{{z}}/{{x}}/{{y}}'
+        else:
+            return f'{self.server}/v1/layer/{self.id}/tile/gee/{{z}}/{{x}}/{{y}}'
 
     def get_carto_tiles(self):
         """Get carto tiles"""

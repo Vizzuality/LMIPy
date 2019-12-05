@@ -25,7 +25,7 @@ class Geometry:
     s: obj
         A shapely object.
     """
-    def __init__(self, id_hash=None, attributes=None, s=None, parameters=None, server='https://production-api.globalforestwatch.org'):
+    def __init__(self, id_hash=None, attributes=None, s=None, parameters=None, server='https://api.skydipper.com'):
         self.server = server
         if s:
             attributes = self.create_attributes_from_shapely(s)
@@ -60,52 +60,9 @@ class Geometry:
 
     def get_id_from_params(self, parameters):
         """
-            If you are using this method, you need to use the GFW production server.
         """
-        server = "https://production-api.globalforestwatch.org"
-        if not parameters:
-            raise ValueError(f'parameters requires!')
-        iso = parameters.get('iso', None)
-        id1 = parameters.get('adm1', None)
-        id2 = parameters.get('adm2', None)
-        gadm = parameters.get('gadm', None)
-        cartodb_id = parameters.get('id', None)
-        table = parameters.get('table', None)
-        gadm_ver = {
-            '2.7': 'v1',
-            '3.6': 'v2'
-        }
-        if not gadm:
-            gadm = '3.6'
-        elif gadm not in ['2.7', '3.6']:
-            raise ValueError(f'GADM must be 2.7 (v1) or 3.6 (v2)')
-        version = gadm_ver[gadm]
-        if iso:
-            if id2 and id1 and iso:
-                url = f'/{version}/geostore/admin/{iso}/{id1}/{id2}'
-            elif id1 and iso:
-                url = f'/{version}/geostore/admin/{iso}/{id1}'
-            elif iso:
-                url = f'/{version}/geostore/admin/{iso}'
-            else:
-                raise ValueError(f'Invalid admin parameters: Requires: iso, adm1, adm2 keys')
-        elif table:
-            if table and cartodb_id:
-                url = f'/{version}/geostore/use/{table}/{int(cartodb_id)}'
-            else:
-                raise ValueError(f'Invalid table parameters. Requires: table and cartodb_id keys')
-        else:
-            raise ValueError(f'Invalid parameters. Valid keys: [iso, adm1, adm2] or [table, cartodb_id]')
-        header= {
-                'Content-Type':'application/json'
-                }
-        url = server + url
-        r = requests.get(url, headers=header)
-        if r.status_code == 200:
-            self.server = server
-            return r.json().get('data').get('id')
-        else:
-            raise ValueError(f'Response of {r.status_code} from {r.url} when calling Geostore.')
+        raise ValueError(f'Params functionality not supported in Skydipper.')
+
 
     def create_geostore_from_geojson(self, attributes):
         """Parse valid geojson into a geostore object and register it to a
@@ -175,7 +132,7 @@ class Geometry:
                   "end": end,
                   "band_viz": json.dumps(band_viz)
                   }
-        url = "https://production-api.globalforestwatch.org/v1/recent-tiles"
+        url = "https://api.skydipper.com/v1/recent-imagery"
         r = requests.get(url, params=params)
         if r.status_code == 200:
             tile_url = r.json().get('data').get('tiles')[0].get('attributes').get('tile_url')
@@ -250,7 +207,7 @@ class Geometry:
         bbox = self.attributes['bbox']
         centroid = list(self.shape()[0].centroid.coords)[0][::-1]
         bounds = [bbox[2:][::-1], bbox[:2][::-1]]
-        result_map = folium.Map(location=centroid, tiles='OpenStreetMap')
+        result_map = folium.Map(location=centroid, tiles='OpenStreetMap', zoom_start=6)
         result_map.fit_bounds(bounds)
         if geometry['type'] == 'Point' or geometry['type'] == 'MultiPoint':
             folium.Marker(centroid).add_to(result_map)
@@ -295,12 +252,15 @@ class Geometry:
             url = self.server + url
             r = requests.get(url, params=params)
             if r.status_code == 200:
-                d = {'title': r.json().get('data').get('title'),
-                     'description': r.json().get('data').get('description'),
-                     'lang': r.json().get('data').get('lang')}
+                if self.server == 'https://api.skydipper.com':
+                    tmp = r.json().get('attributes')
+                else:
+                    tmp = r.json().get('data')
+                d = {'title': tmp.get('title'),
+                    'description': tmp.get('description'),
+                    'lang': tmp.get('lang')}
                 self.description = d
                 print(f"Title: {d.get('title')}")
-                print(f"Description: {d.get('description')}")
                 return
             else:
                 print(f"Description attempt failed: response: {r.status_code}, \n {r.json()}")

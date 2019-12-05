@@ -37,7 +37,6 @@ class Dataset:
         elif attributes:
             self.id = attributes.get('id')
             self.attributes = self.get_dataset()
-
         if len(self.attributes.get('layer', [])) > 0:
             self.layers = [Layer(id_hash=l.get('id', None), attributes=l, server=self.server) for l in self.attributes.get('layer')]
             _ = self.attributes.pop('layer')
