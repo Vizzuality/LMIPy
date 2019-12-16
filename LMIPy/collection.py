@@ -100,7 +100,6 @@ class Collection:
         #     layers = tmp_atts.get('layer', None)
         # layers = flatten_list(layers)
         layers = flatten_list([d.get('attributes').get('layer') for d in datasets])
-        print(layers)
         if server_uses_widgets(server=self.server):
             widgets = flatten_list([d.get('attributes').get('widget') for d in datasets])
         else:
