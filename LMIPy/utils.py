@@ -38,8 +38,8 @@ def html_box(item):
             instrument = item.type
         else:
             instrument = item.instrument
-        html_string = ("<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #2BA4A0;"
-                    "border-radius: 2px; background: #2BA4A0; line-height: 1.21429em; padding: 10px;''>"
+        html_string = ("<div class='item_container' style='height: auto; overflow: hidden; border: 3px solid #2BA4A0;"
+                    "border-radius: 2px; background: #fff; line-height: 1.21429em; padding: 10px;''>"
                     "<div class='item_left' style='width: 100px; height: 100px; float: left; padding-right:10px''>"
                     f"<a href='{item.thumb_url}' target='_blank'>"
                     f"<img class='itemThumbnail' src='{item.thumb_url}'>"
@@ -55,8 +55,8 @@ def html_box(item):
     elif is_geometry:
         kind_of_item = 'Geometry'
         url_link = f'{item.server}/v1/geostore/{item.id}'
-        html_string = ("<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #2bA4A0;"
-            "border-radius: 2px; background: #2bA4A0; line-height: 1.21429em; padding: 10px;''>"
+        html_string = ("<div class='item_container' style='height: auto; overflow: hidden; border: 3px solid #2bA4A0;"
+            "border-radius: 2px; background: #fff; line-height: 1.21429em; padding: 10px;''>"
             "<div class='item_left' style='width: 210px; float: left;''>"
             f"{site_link}"
             f"{site_logo}"
@@ -90,8 +90,8 @@ def html_box(item):
                            f"{item.attributes.get('tableName')}"
                            "</a>"
                           )
-    html = ("<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #2BA4A0;"
-            "border-radius: 2px; background: #2BA4A0; line-height: 1.21429em; padding: 10px;''>"
+    html = ("<div class='item_container' style='height: auto; overflow: hidden; border: 3px solid #2BA4A0;"
+            "border-radius: 2px; background: #fff; line-height: 1.21429em; padding: 10px;''>"
             "<div class='item_left' style='width: 210px; float: left;''>"
             f"{site_link}"
             f"{site_logo}"
@@ -108,8 +108,8 @@ def html_box(item):
     return html
 
 def show_image_collection(item, i):
-    html_string = ("<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #2BA4A0;"
-                "border-radius: 2px; background: #2BA4A0; line-height: 1.21429em; padding: 10px;''>"
+    html_string = ("<div class='item_container' style='height: auto; overflow: hidden; border: 3px solid #2BA4A0;"
+                "border-radius: 2px; background: #fff; line-height: 1.21429em; padding: 10px;''>"
                 "<div class='item_left' style='width: 100px; height: 100px; hidden;padding-left: 10px; float: left; padding-right:10px''>"
                 f"<a href='{item.get('thumb_url')}' target='_blank'>"
                 f"<img class='itemThumbnail' src='{item.get('thumb_url')}'>"
@@ -179,8 +179,8 @@ def show(item, i):
     else:
         site_link = "<a href='https://skydipper.com/' target='_blank'>"
         site_logo = "<img class='itemThumbnail' src='https://skydipper.com/images/logo.png'>"
-    html = ("<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #2BA4A0;"
-            "border-radius: 2px; background: #2BA4A0; line-height: 1.21429em; padding: 10px;''>"
+    html = ("<div class='item_container' style='height: auto; overflow: hidden; border: 3px solid #2BA4A0;"
+            "border-radius: 2px; background: #fff; line-height: 1.21429em; padding: 10px;''>"
             "<div class='item_left' style='width: 210px;  float: left;''>"
             f"{site_link}"
             f"{site_logo}"
