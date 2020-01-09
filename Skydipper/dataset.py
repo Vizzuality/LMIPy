@@ -21,6 +21,8 @@ class Dataset:
         An ID hash of the dataset in the API.
     attributes: dic
         A dictionary holding the attributes of a dataset.
+    fname: str
+        A path/file string pointing to the location of a file for upload.
     sever: str
         A URL string of the vizzuality server.
     """
@@ -28,6 +30,8 @@ class Dataset:
         self.id = id_hash
         self.layers = []
         self.server = server
+        self.token = token
+        self.fname = fname
         if not attributes and not fname:
             self.attributes = self.get_dataset()
         elif attributes and token:
@@ -38,9 +42,9 @@ class Dataset:
             self.id = attributes.get('id')
             self.attributes = self.get_dataset()
         elif fname and token:
-            connector_dic = self.upload_new_file(token=token, fname=fname)
-            self.attributes = self.from_csv(connector_dic=connector_dic,token=token, fname=fname)
-            self.id = self.attributes.get('id')   
+            self.connector_url = self.upload_new_file()
+            self.id = self.from_csv()
+            self.attributes = self.get_dataset()
         if len(self.attributes.get('layer', [])) > 0:
             self.layers = [Layer(id_hash=l.get('id', None), attributes=l, server=self.server) for l in self.attributes.get('layer')]
             _ = self.attributes.pop('layer')
@@ -88,51 +92,37 @@ class Dataset:
         else:
             raise ValueError(f'Dataset with id={self.id} does not exist.')
 
-    def upload_new_file(self, token, fname):
+    def upload_new_file(self):
         """Pass a token and file path/name and hit the upload endpoint"""
-        #print(f"I am in upload with file target {fname}")
-        url = "https://api.skydipper.com/v1/dataset/upload"
-        headers = {"Authorization": f'Bearer {token}'} #files = {'dataset': open('path/sample.csv', 'rb')}
-        files = {'dataset': open(fname, 'rb')}
+        url = f"{self.server}/v1/dataset/upload"
+        headers = {"Authorization": f'Bearer {self.token}'}
+        files = {'dataset': open(self.fname, 'rb')}
         data = { 'provider':"csv" }
         r = requests.post(url, headers=headers, files=files, data=data)
-        return {"connectorUrl": r.json().get('connectorUrl')}
+        try:
+            return r.json().get('connectorUrl')
+        except:
+            raise ValueError(f"Posting dataset failed {r.status_code}: {r.json()}")
 
-    def from_csv(self, connector_dic,fname,token):
+    def from_csv(self):
         """Build a set of attributes for a CSV type object and send them to Dataset endpoint"""
-        #print(f"Target file {connector_dic} uploaded as Dataset")
-        url = "https://api.skydipper.com/v1/dataset/"
-        headers = {"Authorization": f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
+        url = f"{self.server}/v1/dataset/"
+        headers = {"Authorization": f'Bearer {self.token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
         payload = {
             'dataset': {
                 'application': ['skydipper'],
                  "connectorType": "document",
-                 "connectorUrl": connector_dic.get("connectorUrl"),
+                 "connectorUrl": self.connector_url,
                 'provider': 'csv',
                 'env': 'production',
                 "name": "csv_test",
             }
         }
-        rx = requests.post(url, data=json.dumps(payload), headers=headers)
-        #print(rx.status_code)
-        #print(rx.json())
-        id_csv = rx.json().get('data').get('id')
-        print(id_csv)
-
+        r = requests.post(url, data=json.dumps(payload), headers=headers)
         try:
-            hash = random.getrandbits(16)
-            if server_uses_widgets(self.server):
-                url = f'{self.server}/v1/dataset/{id_csv}?includes=layer,widget,vocabulary,metadata&hash={hash}'
-            else:
-                url = f'{self.server}/v1/dataset/{id_csv}?includes=layer,metadata&hash={hash}'
-            r = requests.get(url)
+            return r.json().get('data').get('id')
         except:
-            raise ValueError(f'Unable to get Dataset {id_csv} from {r.url}')
-        if r.status_code == 200:
-            return r.json().get('data').get('attributes')
-        else:
-            raise ValueError(f'Dataset with id={id_csv} does not exist.')
-
+            raise ValueError(f"Response returned {r.json()}, with {r.status_code}")
 
     def carto_query(self, sql):
         """
