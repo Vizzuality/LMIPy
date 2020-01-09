@@ -117,7 +117,10 @@ class Layer:
             return f'{self.server}/v1/layer/{self.id}/tile/gee/{{z}}/{{x}}/{{y}}'
 
     def get_carto_tiles(self):
-        """Get carto tiles"""
+        """Get tiles for Skydipper Carto Assets"""
+        if self.server != 'https://api.skydipper.com':
+            print(f"Not implemented for {self.server} source.")
+            return None
         sql_config = self.attributes.get('layerConfig').get('sql_config', None)
         layerConfig = self.attributes.get('layerConfig')
         if sql_config:
@@ -136,15 +139,13 @@ class Layer:
             "layers": [{ **l, "options": { **l["options"]}} for l in layerConfig.get("body").get("layers")]
         }))
         apiParams = f"?stat_tag=API&config={_layerTpl}"
-        url = f"https://{layerConfig.get('account')}.carto.com/api/v1/map{apiParams}"
+        url = f"http://35.233.41.65/user/skydipper/api/v1/map{apiParams}"
         r = requests.get(url, headers={'Content-Type': 'application/json'})
-        if r.status_code == 200:
-            response = r.json()
-        else:
-            raise ValueError(f'Unable to get retrieve map url for {self.id} from {self.attributes.get("provider")}')
-
-        tile_url = f'{response["cdn_url"]["templates"]["https"]["url"]}/{layerConfig["account"]}/api/v1/map/{response["layergroupid"]}/{{z}}/{{x}}/{{y}}.png'
-        return tile_url
+        try:
+            tile_url = r.json().get('metadata').get('tilejson').get('raster').get('tiles')[0]
+            return tile_url
+        except:
+            raise ValueError(f'Unable to find map layer from {r.json()} response. Status code: {r.status_code}')
 
     def get_mapbox_tiles(self):
         """"Retrieve mapbox tiles... as raster :("""
@@ -423,9 +424,9 @@ class Layer:
 
     def query(self, sql='SELECT * FROM data LIMIT 5'):
         """
-        Intersect layer against some geometry class object, geosjon object, shapely shape, or by id.
+        Query the dataset object attaced to an instanciated layer object.
         """
-        return self.parse_query(sql=sql)
+        return self.dataset().query(sql=sql)
 
     def dataset(self):
         """
@@ -520,7 +521,6 @@ class Layer:
             else:
                 print(r.status_code)
                 return None
-            print(f'{server}/v1/layer/{new_layer_id}')
             return Layer(id_hash=new_layer_id, server=server)
 
     def merge(self, token=None, target_layer=None, target_layer_id=None, target_server="https://api.skydipper.com", key_whitelist=[], force=False):

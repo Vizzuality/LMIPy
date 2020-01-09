@@ -4,7 +4,6 @@ import random
 import geopandas as gpd
 import os
 import datetime
-#from shapely.geometry import shape
 from pprint import pprint
 from .layer import Layer
 from .utils import html_box, nested_set, server_uses_widgets
@@ -21,21 +20,29 @@ class Dataset:
         An ID hash of the dataset in the API.
     attributes: dic
         A dictionary holding the attributes of a dataset.
+    fname: str
+        A path/file string pointing to the location of a file for upload.
     sever: str
         A URL string of the vizzuality server.
     """
-    def __init__(self, id_hash=None, attributes=None, server="https://api.skydipper.com", token=None):
+    def __init__(self, id_hash=None, attributes=None, server="https://api.skydipper.com", fname=None, token=None):
         self.id = id_hash
         self.layers = []
         self.server = server
-        if not attributes:
+        self.token = token
+        self.fname = fname
+        if not attributes and not fname:
+            # Pull back a dataset from an id
             self.attributes = self.get_dataset()
-        elif attributes and token:
-            created_dataset = self.new_dataset(token=token, attributes=attributes, server=server)
+        elif attributes and token and not fname:
+            # Instansiating a dataset from a dictionary
+            created_dataset = self.new_dataset(attributes=attributes)
             self.attributes = created_dataset.attributes
             self.id = created_dataset.id
-        elif attributes:
-            self.id = attributes.get('id')
+        elif attributes and token and fname:
+            # Uploading a csv file and creating a dataset
+            self.connector_url = self.upload_new_file(attributes=attributes)
+            self.id = self.from_csv(attributes=attributes)
             self.attributes = self.get_dataset()
         if len(self.attributes.get('layer', [])) > 0:
             self.layers = [Layer(id_hash=l.get('id', None), attributes=l, server=self.server) for l in self.attributes.get('layer')]
@@ -84,23 +91,47 @@ class Dataset:
         else:
             raise ValueError(f'Dataset with id={self.id} does not exist.')
 
-    def carto_query(self, sql):
+    def upload_new_file(self, attributes):
         """
-        Returns a GeoPandas GeoDataFrame for CARTO datasets. The sql query should
-        always use dataset as the source (i.e. 'from dataset') as this will be
-        replaced with the tableName from dataset.attributes.
+         Pass a token, file path/name, and attribute dictionary
+         and hit the upload endpoint to return a connector url
         """
-        sql = sql.lower().replace('from data',f"FROM {self.attributes.get('tableName')}")
-        if not self.attributes.get('connectorUrl'):
-            raise ValueError("ConnectorUrl attribute missing.")
-        account = self.attributes.get('connectorUrl').split('/')[2].split('.')[0]
-        urlCarto = f"https://{account}.carto.com/api/v2/sql"
-        params = {"q": sql}
-        r = requests.get(urlCarto, params=params)
-        if r.status_code == 200:
-            return gpd.GeoDataFrame(r.json().get('rows'))
-        else:
-            raise ValueError(f"Bad response from Carto {r.status_code}: {r.json()}")
+        if not attributes:
+            raise ValueError("You must set an attribute dictionary to upload.")
+        url = f"{self.server}/v1/dataset/upload"
+        headers = {"Authorization": f'Bearer {self.token}'}
+        files = {'dataset': open(self.fname, 'rb')}
+        try:
+            data = { 'provider': attributes.get('provider') }
+        except:
+            return ValueError(f'Attributes must specify a provider type to upload a file.')
+        r = requests.post(url, headers=headers, files=files, data=data)
+        try:
+            return r.json().get('connectorUrl')
+        except:
+            raise ValueError(f"Posting dataset failed {r.status_code}: {r.json()}")
+
+    def from_csv(self, attributes):
+        """Build a set of attributes for a CSV type object and send them to Dataset endpoint where the
+                attributes should be a dictionary like {
+                                                        'application': ['skydipper'],
+                                                        "connectorType": "document",
+                                                        'provider': 'csv',
+                                                        'env': 'production',
+                                                        "name": "csv_test",
+                                                    }
+        """
+        url = f"{self.server}/v1/dataset/"
+        headers = {"Authorization": f'Bearer {self.token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
+        attributes['connectorUrl'] = self.connector_url
+        payload = {
+            'dataset': attributes
+        }
+        r = requests.post(url, data=json.dumps(payload), headers=headers)
+        try:
+            return r.json().get('data').get('id')
+        except:
+            raise ValueError(f"Response returned {r.json()}, with {r.status_code}")
 
     def query(self, sql="SELECT * FROM data LIMIT 5"):
         """
@@ -115,10 +146,17 @@ class Dataset:
             Valid SQL string.
         """
         provider = self.attributes.get('provider', None)
-        if provider == 'cartodb':
-            return self.carto_query(sql=sql)
+        if provider != 'cartodb':
+            raise ValueError(f"Provider must be 'cartodb', not {provider}.")
+        sql = sql.lower().replace('from data',f"FROM {self.attributes.get('tableName')}")
+        params = {"sql": sql}
+        queryURL = f"{self.server}/v1/query/{self.id}"
+        r = requests.get(url=queryURL, params=params)
+        if r.status_code == 200:
+            return gpd.GeoDataFrame(r.json().get('data'))
         else:
-            raise ValueError(f'Unable to perform query on datasets with provider {provider}. Must be `cartodb`.')
+            raise ValueError(f"Bad response from Query service {r.status_code}: {r.json()}")
+
 
     def head(self, n=5, decode_geom=True, token=None):
         """
@@ -544,17 +582,17 @@ class Dataset:
         else:
             raise ValueError(f'Widget creation requires name string, application list and a widgetConfig object.')
 
-    def new_dataset(self, token=None, attributes=None, server="https://api.skydipper.com"):
+    def new_dataset(self, attributes=None):
         """
         Create a new staging or prod Dataset entity from attributes.
         """
-        if not token:
+        if not self.token:
             raise ValueError(f'[token] API token required to create a new dataset.')
         elif not attributes:
             raise ValueError(f'Attributes required to create a new dataset.')
         else:
-            url = f'{server}/dataset'
-            headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
+            url = f'{self.server}/dataset'
+            headers = {'Authorization': f'Bearer {self.token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
             payload = {'dataset': attributes}
 
             r = requests.post(url, data=json.dumps(payload), headers=headers)
@@ -564,7 +602,7 @@ class Dataset:
                 print(r.status_code)
                 return None
             print(f'{self.server}/v1/dataset/{new_dataset_id}')
-            return Dataset(id_hash=new_dataset_id, server=server)
+            return Dataset(id_hash=new_dataset_id, server=self.server)
 
     def merge(self, token=None, target_dataset=None, target_dataset_id=None, target_server="https://api.skydipper.com", key_whitelist=[], force=False):
         """
