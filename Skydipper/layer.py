@@ -460,7 +460,7 @@ class Layer:
             except:
                 raise ValueError(f'Unable to retrieve values from response {r.json()}')
         else:
-            print("Hint: sometimes this service fails due to load on EE servers. Try again.")
+            print("Hint: sometimes this service fails due to restore on EE servers. Try again.")
             raise ValueError(f'Bad response: {r.status_code} from query: {r.url}')
 
     def save(self, path=None):
@@ -470,9 +470,9 @@ class Layer:
         from .dataset import Dataset
         self.dataset().save(path=path)
 
-    def load(self, path=None, check=True):
+    def restore(self, path=None, check=True):
         """
-        From a local backup at the specified path, loads and returns a previous version of the current dataset.
+        From a local backup at the specified path, restores and returns a previous version of the current dataset.
         """
         from .dataset import Dataset
         if not path:
@@ -494,7 +494,7 @@ class Layer:
                 elif check:
                     print('Loaded != existing')
         except:
-            raise ValueError(f'Failed to load backup from f{path}')
+            raise ValueError(f'Failed to restore backup from f{path}')
 
         return Layer(attributes={**recovered_layer['attributes'], 'id': recovered_layer['id']}, server=server)
 

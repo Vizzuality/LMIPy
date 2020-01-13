@@ -402,7 +402,7 @@ class Dataset:
             except:
                 raise ValueError(f'Unable to retrieve values from response {r.json()}')
         else:
-            print("Hint: sometimes this service fails due to load on EE servers. Try again.")
+            print("Hint: sometimes this service fails due to restore on EE servers. Try again.")
             raise ValueError(f'Bad response: {r.status_code} from query: {r.url}')
 
     def save(self, path=None):
@@ -442,11 +442,11 @@ class Dataset:
         with open(f"{path}/{self.id}.json", 'w') as fp:
             json.dump(save_json, fp)
         print('Save complete!')
+        return
 
-
-    def load(self, path=None, check=True):
+    def restore(self, path=None, check=True):
         """
-        From a local backup at the specified path, loads and returns a previous version of the current dataset.
+        From a local backup at the specified path, restores and returns a previous version of the current dataset.
         """
         if not path:
             print('Requires a file path to valid backup folder.')
@@ -465,7 +465,7 @@ class Dataset:
                     print('Loaded attributes != existing attributes')
                     pprint(difs)
         except:
-            raise ValueError(f'Failed to load backup from f{path}/{self.id}.json')
+            raise ValueError(f'Failed to restore backup from f{path}/{self.id}.json')
         return Dataset(attributes={**recovered_dataset['attributes'], 'id': recovered_dataset['id']}, server=server)
 
     def add_vocabulary(self, vocab_params=None, token=None):

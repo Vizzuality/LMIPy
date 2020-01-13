@@ -34,7 +34,7 @@ def test_collection_save():
     col.save(path=save_path)
     assert os.path.exists(save_path) == True
     assert f"{ds.id}.json" in os.listdir(save_path)
-    _ = [os.remove(save_path+f"/{f}") for f in os.listdir(save_path)]
+    _ = [os.remove(f"{save_path}/{f}") for f in os.listdir(save_path)]
     os.rmdir(save_path)
 
 #----- Dataset Tests -----#
@@ -45,7 +45,8 @@ def test_create_dataset():
     assert type(ds.attributes) == dict
     assert len(ds.attributes) > 0
 
-# Test deactivated for now until we add Carto or PostGIS to Skydipper
+# Test deactivated for now until we add
+# Carto or PostGIS to Skydipper
 # def test_queries_on_datasets():
 #     ds = Dataset(id_hash='94241cb4-9e91-4a1a-9fcc-993b8ac9c2b7')
 #     df = ds.query()
@@ -53,31 +54,6 @@ def test_create_dataset():
 #     df = ds.query('SELECT fid, ST_ASGEOJSON(the_geom_webmercator) FROM data LIMIT 5')
 #     assert len(df) == 5
 
-
-# Metadata tests and Class object will have to be re-written as the metadata service is defined
-
-def test_access_meta():
-    ds = Dataset(id_hash='94241cb4-9e91-4a1a-9fcc-993b8ac9c2b7')
-    assert type(ds.metadata) == list
-    assert ds.metadata is not None
-
-# def test_access_meta_attributes():
-#     ds = Dataset('94241cb4-9e91-4a1a-9fcc-993b8ac9c2b7')
-#     meta = ds.metadata[0].attributes
-#     assert type(meta) is dict
-
-def test_dataset_save():
-    ds = Dataset(id_hash='94241cb4-9e91-4a1a-9fcc-993b8ac9c2b7')
-    save_path = './tests'
-    ds.save(path=save_path)
-    assert os.path.exists(save_path+f"/{ds.id}.json") == True
-
-def test_dataset_load():
-    ds = Dataset(id_hash='94241cb4-9e91-4a1a-9fcc-993b8ac9c2b7')
-    load_path = f'./tests'
-    loaded = ds.load(path=load_path, check=True)
-    assert loaded.id == '94241cb4-9e91-4a1a-9fcc-993b8ac9c2b7'
-    os.remove(load_path+f"/{ds.id}.json")
 
 ### Update Dataset
 # def test_update_dataset():
@@ -195,13 +171,13 @@ def test_layer_save():
     l.save(path=save_path)
     assert os.path.exists(save_path+f"/{ds.id}.json") == True
 
-def test_layer_load():
+def test_layer_restore():
     l = Layer(id_hash='e7070d5f-3d38-46b1-86eb-e98782da55dd')
     ds = l.dataset()
-    load_path = f'./tests'
-    loaded = l.load(path=load_path, check=True)
-    assert loaded.id == 'e7070d5f-3d38-46b1-86eb-e98782da55dd'
-    os.remove(load_path+f"/{ds.id}.json")
+    restore_path = f'./tests'
+    restored = l.restore(path=restore_path, check=True)
+    assert restored.id == 'e7070d5f-3d38-46b1-86eb-e98782da55dd'
+    os.remove(restore_path+f"/{ds.id}.json")
 
 ### Clone and Delete Layer
 def test_clone_and_delete_layer():
@@ -215,120 +191,6 @@ def test_clone_and_delete_layer():
     assert cloned.id is not '94241cb4-9e91-4a1a-9fcc-993b8ac9c2b7'
     assert cloned.delete(token=SKYDIPPER_API_TOKEN, force=True) == None
 
-### Create and Delete Layer
-# def test_create_and_delete_layer():
-#     ds_id = '94241cb4-9e91-4a1a-9fcc-993b8ac9c2b7'
-#     l_payload = {
-#         "name": f'Created Layer TEST',
-#         "dataset": ds_id,
-#         "description": "",
-#         "application": [
-#             "skydipper"
-#         ],
-#         "iso": [],
-#         "provider": "gee",
-#         "published": False,
-#         "default": False,
-#         "env": "production",
-#         "layerConfig": {},
-#         "legendConfig": {},
-#         "interactionConfig": {},
-#         "applicationConfig": {}
-#     }
-#     new = Layer(token=SKYDIPPER_API_TOKEN, attributes=l_payload)
-#     assert new.attributes['name'] == f'Created Layer TEST'
-#     assert new.delete(token=SKYDIPPER_API_TOKEN, force=True) == None
-
-### Update Layer
-# def test_update_layer():
-#     l = Layer(id_hash='25dcb710-6b85-4bfa-b09b-e4c70c33f381')
-#     updated = l.update(token=API_TOKEN, update_params={'name': f'Template Layer UPDATED'})
-#     assert updated.attributes['name'] == f'Template Layer UPDATED'
-#     updated = l.update(token=API_TOKEN, update_params={'name': f'Template Layer'})
-#     assert updated.attributes['name'] == 'Template Layer'
-
-### Merge Layer
-# def test_merge_layer():
-#     staging_layer = Layer('626e08ed-15b5-499a-8a46-9a5cb52d0a30', server='https://staging-api.globalforestwatch.org')
-#     staging_layer.update(token=API_TOKEN, update_params={
-#         'name': 'Template Layer Staging',
-#         'iso': [],
-#         'layerConfig': {},
-#         'legendConfig': {},
-#         'applicationConfig': {},
-#         'interactionConfig': {}
-#     })
-#     production_layer = Layer('25dcb710-6b85-4bfa-b09b-e4c70c33f381')
-#     whitelist = [
-#             'layerConfig',
-#             'legendConfig',
-#             'applicationConfig',
-#             'interactionConfig',
-#             'description',
-#             'iso',
-#             'application',
-#             'provider',
-#             'published'
-#             ]
-#     merged_layer = production_layer.merge(token=API_TOKEN,
-#         target_layer=None,
-#         target_layer_id='626e08ed-15b5-499a-8a46-9a5cb52d0a30',
-#         target_server='https://staging-api.globalforestwatch.org',
-#         key_whitelist=whitelist,
-#         force=True)
-#     merged_atts = {k:v for k,v in merged_layer.attributes.items() if k in whitelist}
-#     production_atts =  {k:v for k,v in production_layer.attributes.items() if k in whitelist}
-#     assert merged_atts ==  production_atts
-
-
-#----- Meta Tests -----#
-
-### Delete Meta
-# def test_delete_meta():
-#     ds = Dataset(id_hash='7cf3fab2-3fbe-4980-b572-712207b2c8c7')
-#     m = ds.metadata[0]
-#     assert type(m.id) == str
-#     deleted_meta = m.delete(token=API_TOKEN)
-#     assert deleted_meta == None
-
-### Add Meta
-# def test_add_meta():
-#     ds = Dataset(id_hash='7cf3fab2-3fbe-4980-b572-712207b2c8c7')
-#     payload = {
-#     'application': 'gfw',
-#     'info': {'citation': 'Example citation',
-#         'color': '#fe6598',
-#         'description': 'This is an example dataset.',
-#         'isLossLayer': True,
-#         'name': 'Template Layer'},
-#         'language': 'en'
-#     }
-#     ds.add_metadata(meta_params=payload, token=API_TOKEN)
-#     updated_ds = Dataset(id_hash='7cf3fab2-3fbe-4980-b572-712207b2c8c7')
-#     assert len(updated_ds.metadata) > 0
-
-### Update Meta
-# def test_update_meta():
-#     ds = Dataset(id_hash='7cf3fab2-3fbe-4980-b572-712207b2c8c7')
-#     m = ds.metadata[0]
-#     assert type(m.id) == str
-#     payload = {
-#     'application': 'gfw',
-#     'info': {'citation': 'TEST',
-#         'color': '#fe6598',
-#         'description': 'TEST',
-#         'isLossLayer': False,
-#         'name': 'Template Layer'},
-#     'language': 'en'}
-#     m.update(update_params=payload, token=API_TOKEN)
-#     ds = Dataset(id_hash='7cf3fab2-3fbe-4980-b572-712207b2c8c7')
-#     updated_m = ds.metadata[0]
-#     assert updated_m.attributes['info']['description'] == 'TEST'
-#     assert updated_m.attributes['info']['isLossLayer'] == False
-
-### Merge Meta
-
-#----- Geometry Tests -----#
 
 def test_geometry_create_and_describe():
     atts={'geojson': {'type': 'FeatureCollection',
@@ -363,23 +225,6 @@ def test_create_image():
     im = ic[0]
     assert im.attributes['provider'] is not None
 
-#----- Table Tests -----#
-
-# def test_create_table():
-#     t = Table(id_hash='97546f05-3dce-4dd0-9abf-80fd1bff9cee')
-#     assert t.id == '97546f05-3dce-4dd0-9abf-80fd1bff9cee'
-
-# def test_table_head():
-#     t = Table(id_hash='97546f05-3dce-4dd0-9abf-80fd1bff9cee')
-#     df = t.head()
-#     assert len(df) > 0
-
-# def test_table_query():
-#     t = Table(id_hash='97546f05-3dce-4dd0-9abf-80fd1bff9cee')
-#     df = t.query()
-#     assert len(df) == 5
-
-#----- Utils Tests -----#
 
 def test_sld_functions():
     sld_obj = {
