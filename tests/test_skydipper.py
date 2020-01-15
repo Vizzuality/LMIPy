@@ -2,7 +2,7 @@ import pytest
 import random
 import os
 import os.path
-from Skydipper import Dataset, Table, Collection, Layer, Metadata, Vocabulary, Widget, Image, ImageCollection, Geometry, utils
+from Skydipper import Dataset, Collection, Layer, Metadata, Vocabulary, Widget, Image, ImageCollection, Geometry, utils
 
 try:
     SKYDIPPER_API_TOKEN = os.environ.get("SKYDIPPER_API_TOKEN", None)

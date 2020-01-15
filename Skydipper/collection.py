@@ -5,7 +5,6 @@ import json
 import datetime
 from tqdm import tqdm
 from .dataset import Dataset
-from .table import Table
 from .layer import Layer
 from .utils import create_class, show, flatten_list, parse_filters, server_uses_widgets
 
@@ -162,8 +161,6 @@ class Collection:
             if any(found):
                 if len(filtered_response) < self.limit:
                     filtered_response.append(item)
-                if item.get('type') == 'dataset' and item.get('attributes').get('provider') in ['csv', 'json'] and return_tables:
-                    collection.append({'type': 'Table','id': item.get('id'), 'attributes': item.get('attributes'), 'server': self.server})
                 elif item.get('type') == 'dataset' and item.get('attributes').get('provider') != ['csv','json'] and return_datasets:
                     collection.append({'type': 'Dataset','id': item.get('id'), 'attributes': item.get('attributes'), 'server': self.server})
                 if item.get('type') == 'layer' and return_layers:
@@ -219,7 +216,7 @@ class Collection:
         for item in tqdm(self):
             if item['id'] not in saved:
                 entity_type = item.get('type')
-                if entity_type in ['Dataset', 'Table']:
+                if entity_type in ['Dataset']:
                     ds_id = item['id']
                 else:
                     ds_id = item['attributes']['dataset']

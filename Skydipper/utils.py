@@ -4,7 +4,6 @@ def html_box(item):
     """Returns an HTML block with template strings filled-in based on item attributes."""
     is_layer = str(type(item)) == "<class 'Skydipper.layer.Layer'>"
     is_dataset = str(type(item)) == "<class 'Skydipper.dataset.Dataset'>"
-    is_table = str(type(item)) == "<class 'Skydipper.table.Table'>"
     is_widget = str(type(item)) == "<class 'Skydipper.Skydipper.Widget'>"
     is_geometry = str(type(item)) == "<class 'Skydipper.geometry.Geometry'>"
     is_image = str(type(item)) == "<class 'Skydipper.image.Image'>"
@@ -23,12 +22,6 @@ def html_box(item):
             url_link = f'{item.server}/v1/layer/{item.id}?includes=metadata'
     elif is_dataset:
         kind_of_item = 'Dataset'
-        if needs_widgets_and_co:
-            url_link = f'{item.server}/v1/dataset/{item.id}?includes=vocabulary,metadata,layer,widget'
-        else:
-            url_link = f'{item.server}/v1/dataset/{item.id}?includes=metadata,layer'
-    elif is_table:
-        kind_of_item = 'Table'
         if needs_widgets_and_co:
             url_link = f'{item.server}/v1/dataset/{item.id}?includes=vocabulary,metadata,layer,widget'
         else:
@@ -78,12 +71,6 @@ def html_box(item):
                            f"{item.attributes.get('tableName')}"
                            "</a>"
                           )
-    if item.attributes.get('connectorUrl') and item.attributes.get('provider') == "csv":
-        table_statement = (f"CSV Table: <a href={item.attributes.get('connectorUrl')}"
-                           " target='_blank'>"
-                           f"{item.attributes.get('tableName')}"
-                           "</a>"
-                          )
     if item.attributes.get('provider') == 'gee':
         table_statement = (f"GEE asset: <a href='https://code.earthengine.google.com/asset='"
                            f"{item.attributes.get('tableName')} target='_blank'>"
@@ -124,7 +111,6 @@ def show(item, i):
     """Returns an HTML block with template strings filled-in based on item attributes."""
     is_layer = item['type'] == 'Layer'
     is_dataset = item['type'] == 'Dataset'
-    is_table = item['type'] == 'Table'
     is_widget = item['type'] == 'Widget'
     server = item['server']
     item_id = item['id']
@@ -142,15 +128,6 @@ def show(item, i):
             url_link = f'{server}/v1/dataset/{item_id}?includes=vocabulary,metadata,layer,widget'
         else:
             url_link = f'{server}/v1/dataset/{item_id}?includes=metadata,layer'
-    elif is_table:
-        kind_of_item = 'Table'
-        if uses_widgets:
-            url_link = f'{server}/v1/dataset/{item_id}?includes=vocabulary,metadata,layer,widget'
-        else:
-            url_link = f'{server}/v1/dataset/{item_id}?includes=metadata,layer'
-    elif is_widget:
-        kind_of_item = 'Table'
-        url_link = f'{server}/v1/widget/{item_id}'
     else:
         kind_of_item = 'Unknown'
         url_link = None
@@ -198,14 +175,12 @@ def show(item, i):
     return html
 
 def create_class(item):
-    from .dataset import Dataset
-    from .table import Table
+    from .dataset import DatasetTable
     from .layer import Layer
     from .Skydipper import Widget
     from .image import Image
-    if item['type'] == 'Table':
-        return Table(id_hash = item.get('id'), server = item.get('server'))
-    elif item['type'] == 'Dataset':
+
+    if item['type'] == 'Dataset':
         return Dataset(id_hash = item.get('id'), server = item.get('server'))
     elif item['type'] == 'Layer':
         return Layer(id_hash = item.get('id'), server = item.get('server'))

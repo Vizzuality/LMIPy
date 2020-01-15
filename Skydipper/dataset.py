@@ -34,11 +34,10 @@ class Dataset:
         if not attributes and not fname:
             # Pull back a dataset from an id
             self.attributes = self.get_dataset()
-        elif attributes and token and not fname:
-            # Instansiating a dataset from a dictionary
-            created_dataset = self.new_dataset(attributes=attributes)
-            self.attributes = created_dataset.attributes
-            self.id = created_dataset.id
+        elif attributes and token and not fname and not id_hash:
+            # Create a dataset from a dictionary
+            self.id = self.new_dataset(attributes=attributes)
+            self.attributes = self.get_dataset()
         elif attributes and token and fname:
             # Uploading a csv file and creating a dataset
             self.connector_url = self.upload_new_file(attributes=attributes)
@@ -72,6 +71,25 @@ class Dataset:
 
     def _repr_html_(self):
         return html_box(item=self)
+
+    def new_dataset(self, attributes=None):
+        """
+        Create a new staging or prod Dataset entity from attributes and valid API Key.
+        """
+        if not self.token:
+            raise ValueError(f'[token] API token required to create a new dataset.')
+        elif not attributes:
+            raise ValueError(f'Attributes required to create a new dataset.')
+        else:
+            url = f'{self.server}/dataset'
+            headers = {'Authorization': f'Bearer {self.token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
+            payload = {'dataset': attributes}
+            r = requests.post(url, data=json.dumps(payload), headers=headers)
+            if r.status_code == 200:
+                return r.json()['data']['id']
+            else:
+                raise ValueError(f"Failed to create new dataset. Server response: {r.status_code}. {r.json()}")
+
 
     def get_dataset(self):
         """
@@ -581,28 +599,6 @@ class Dataset:
                 return None
         else:
             raise ValueError(f'Widget creation requires name string, application list and a widgetConfig object.')
-
-    def new_dataset(self, attributes=None):
-        """
-        Create a new staging or prod Dataset entity from attributes.
-        """
-        if not self.token:
-            raise ValueError(f'[token] API token required to create a new dataset.')
-        elif not attributes:
-            raise ValueError(f'Attributes required to create a new dataset.')
-        else:
-            url = f'{self.server}/dataset'
-            headers = {'Authorization': f'Bearer {self.token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
-            payload = {'dataset': attributes}
-
-            r = requests.post(url, data=json.dumps(payload), headers=headers)
-            if r.status_code == 200:
-                new_dataset_id = r.json()['data']['id']
-            else:
-                print(r.status_code)
-                return None
-            print(f'{self.server}/v1/dataset/{new_dataset_id}')
-            return Dataset(id_hash=new_dataset_id, server=self.server)
 
     def merge(self, token=None, target_dataset=None, target_dataset_id=None, target_server="https://api.skydipper.com", key_whitelist=[], force=False):
         """

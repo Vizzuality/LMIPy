@@ -36,15 +36,6 @@ Create a Layer object based on an existing ID on default server.
 Layer dc6f6dd2-0718-4e41-81d2-109866bb9edd
 ```
 
-Create a Table object based on an existing ID.
-```
->>> table = Table('fbf159d7-a462-4af3-8228-43ee3e3391e7')
-# return the head of the table as a geopandas dataframe
->>> df = table.head(5)
-# return a query of the table as a geopandas dataframe
->>> result = table.query(sql='SELECT count(*) as my_count FROM data WHERE year > 1991 and year < 1995' )
-```
-
 Obtain a collection of objects using a search term.
 ```
 >>> col = Collection(search='tree',object_type=['dataset'], app=['gfw'],limit=5)
