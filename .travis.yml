@@ -3,7 +3,7 @@ language: python
 python:
   - "3.7"
 install:
-  - pip install pytest-cov Skydipper codecov
+  - pip install pytest-cov Skydipper codecov earthengine-api google-cloud-storage
 script:
 #- pytest --cov=Skydipper tests/
   - py.test --cov-report=xml --cov=Skydipper tests/
