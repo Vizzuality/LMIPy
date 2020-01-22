@@ -1,4 +1,6 @@
 import json
+import math
+import ee
 
 def html_box(item):
     """Returns an HTML block with template strings filled-in based on item attributes."""
@@ -280,3 +282,112 @@ def server_uses_widgets(server):
         return True
     else:
         return False
+
+def tile_url(image, viz_params=None):
+    """Create a target url for tiles from an EE image asset.
+    e.g.
+    im = ee.Image("LE7_TOA_1YEAR/" + year).select("B3","B2","B1")
+    viz = {'opacity': 1, 'gain':3.5, 'bias':4, 'gamma':1.5}
+    url = tile_url(image=im),viz_params=viz)
+    """
+    if viz_params:
+        d = image.getMapId(viz_params)
+    else:
+        d = image.getMapId()
+    base_url = 'https://earthengine.googleapis.com'
+    url = (f"https://earthengine.googleapis.com/v1alpha/{d['mapid']}/tiles/{{z}}/{{x}}/{{y}}")
+    return url
+
+
+class EE_TILE_CALCS(object):
+    """
+    Copyright (c) 2018 Gennadii Donchyts. All rights reserved.
+    This work is licensed under the terms of the MIT license.
+    For a copy, see <https://opensource.org/licenses/MIT>.
+    Refactored to Python, Vizzuality, 2020.
+    This code will help you calculate tile bounds, intersected with
+    a given geom, at a specified z-level.
+    """
+    def __init__(self, tileSize=256):
+        ee.Initialize()
+        self.tileSize = tileSize
+        self.equatorial_circumference = 40075016.686
+        self.origin = 2 * math.pi * 6378137 / 2.0
+
+    def zoomToScale(self, zoom):
+        tileWidth = self.equatorial_circumference / math.pow(2, zoom)
+        pixelWidth = tileWidth / self.tileSize
+        return pixelWidth
+
+    def scaleToZoom(self, scale):
+        tileWidth = scale * self.tileSize
+        zoom = math.log(self.equatorial_circumference / tileWidth) / math.log(2)
+        return math.ceil(zoom)
+
+    def pixelsToMeters(self, px, py, zoom):
+        resolution = self.zoomToScale(zoom)
+        x = px * resolution - self.origin
+        y = py * resolution - self.origin
+        return [x, y]
+
+    def metersToPixels(self, x, y, zoom):
+        resolution = zoomToScale(zoom)
+        px = (x + self.origin) / resolution
+        py = (y + self.origin) / resolution
+        return px, py
+
+    def degreesToTiles(self, lon, lat, zoom):
+        tx = math.floor((lon + 180) / 360 * math.pow(2, zoom))
+        ty = math.floor((1 - math.log(math.tan(self.toRadians(lat)) + 1 / math.cos(self.toRadians(lat))) / math.pi) / 2 * math.pow(2, zoom))
+        return [tx, ty]
+
+    @staticmethod
+    def tilesToDegrees(tx, ty, zoom):
+        lon = tx / math.pow(2, zoom) * 360 - 180
+        n = math.pi - 2 * math.pi * ty / math.pow(2, zoom)
+        lat = toDegrees(math.atan(0.5 * (math.exp(n) - math.exp(-n))))
+        return [lon, lat]
+
+    def getTilesForGeometry(self, geometry, zoom):
+        bounds = ee.List(geometry.bounds().coordinates().get(0))
+        ll = bounds.get(0).getInfo() # <-- Look at making this happen server-side
+        ur = bounds.get(2).getInfo() # <-- Look at making this happen server-side
+        tmin = self.degreesToTiles(ll[0], ll[1], zoom)
+        tmax = self.degreesToTiles(ur[0], ur[1], zoom)
+        tiles = []
+        for tx in range(tmin[0], tmax[0] + 1):
+            for ty in range(tmax[1], tmin[1] + 1):
+                bounds = self.getTileBounds(tx, ty, zoom)
+                rect = ee.Geometry.Rectangle(bounds, 'EPSG:3857', False)
+                tiles.append(ee.Feature(rect).set({'tx': tx, 'ty': ty, 'zoom': zoom }))
+        return ee.FeatureCollection(tiles).filterBounds(geometry)
+
+    def getTilesList(self, geometry, zoom):
+        """Returns a list of individual features, where each feature element is a tile footprint."""
+        bounds = ee.List(geometry.bounds().coordinates().get(0))
+        ll = bounds.get(0).getInfo() # <-- Look at making this happen server-side
+        ur = bounds.get(2).getInfo() # <-- Look at making this happen server-side
+        tmin = self.degreesToTiles(ll[0], ll[1], zoom)
+        tmax = self.degreesToTiles(ur[0], ur[1], zoom)
+        tiles = []
+        for tx in range(tmin[0], tmax[0] + 1):
+            for ty in range(tmax[1], tmin[1] + 1):
+                bounds = self.getTileBounds(tx, ty, zoom)
+                rect = ee.Geometry.Rectangle(bounds, 'EPSG:3857', False)
+                tiles.append(ee.Feature(rect).set({'tx': tx, 'ty': ty, 'zoom': zoom }))
+        return tiles
+
+    def getTileBounds(self, tx, ty, zoom, tileSize=256):
+        """Returns a FeatureCollection object, where each feature is a tile footprint"""
+        ty = math.pow(2, zoom) - ty - 1 # TMS -> XYZ, flip y index
+        tmp_min = self.pixelsToMeters(tx * tileSize, ty * tileSize, zoom)
+        tmp_max = self.pixelsToMeters((tx + 1) * tileSize, (ty + 1) * tileSize, zoom)
+        return [tmp_min, tmp_max]
+
+    @staticmethod
+    def toRadians(degrees):
+        return degrees * math.pi / 180
+
+    @staticmethod
+    def toDegrees(radians):
+        return radians * 180 / math.pi
