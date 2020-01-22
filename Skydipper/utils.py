@@ -1,6 +1,8 @@
 import json
 import math
 import ee
+from time import sleep
+from google.cloud import storage
 
 def html_box(item):
     """Returns an HTML block with template strings filled-in based on item attributes."""
@@ -177,7 +179,7 @@ def show(item, i):
     return html
 
 def create_class(item):
-    from .dataset import DatasetTable
+    from .dataset import Dataset
     from .layer import Layer
     from .Skydipper import Widget
     from .image import Image
@@ -391,3 +393,173 @@ class EE_TILE_CALCS(object):
     @staticmethod
     def toDegrees(radians):
         return radians * 180 / math.pi
+
+
+class MovieMaker(object):
+    """
+    Create movie tiles for a list of bounds, to go into a GCS bucket
+
+    Parameters
+    ----------
+    area: ee.Geometry.Polygon()
+        A polygon that covers the area which you want to generate tiles within.
+
+    zlist: list
+        A list of integer values of z-levels to process, e.g. z=[3] or z=[3,4,5]
+
+    privatekey_path: string
+        A string specifying the direction of a json keyfile on your local filesystem
+        e.g. "/Users/me/.privateKeys/key_with_bucket_permissions.json"
+
+    bucket_name: string
+        A string specifying a GCS bucket (to which your private key should have access)
+        e.g. 'skydipper_materials'
+
+    folder_path: string
+        A string specifying a folder name to create within the target bucket.
+        e.g. 'movie-tiles/DTEST'
+
+    report_status: bool
+        Set to true if you want the program to report on the files it is generating.
+        Beware it can get long for high z-levels.
+    """
+    def __init__(self, privatekey_path, bucket_name, folder_path,
+                    area=None, zlist=None, ic=None, report_status=False):
+        self.storage_client = storage.Client.from_service_account_json(privatekey_path)
+        self.privatekey_path = privatekey_path
+        self.bucket = self.storage_client.get_bucket(bucket_name)
+        self.bucket_name = bucket_name
+        self.folder_path = folder_path
+        self.tiler = EE_TILE_CALCS()
+        self.area = area
+        self.zlist = zlist
+        self.ic = ic
+        self.report_status = report_status
+        ee.Initialize()
+
+    def run(self):
+        """Main worker method"""
+        assert type(self.zlist) == list, "the zlist must be a list to run, e.g. zlist=[2]"
+        assert type(self.area) == ee.geometry.Geometry, "An area of type ee.geometry.Geometry must be provided to run"
+        for zlevel in self.zlist:
+            print(f"🧨 Calculating Z-level {zlevel}")
+            tileset = self.tiler.getTilesList(self.area, zlevel)
+            d = self.initial_dic_creation(tileset=tileset) # Starting dic of whatever has been burned to the bucket
+            to_do = self.get_items_by_state(d, 'WAITING')
+            for unprocessed in to_do:
+                z=unprocessed[0].split('/')[-3]
+                x=unprocessed[0].split('/')[-2]
+                y=unprocessed[0].split('/')[-1].split('.mp4')[0]
+                if self.report_status: print(f'{z}/{x}/{y}')
+                try:
+                    self.movie_maker(tile=unprocessed[1].get('tile'), z=z, x=x, y=y)
+                except (ee.EEException) as err:
+                    sleep(60 * 5)  # Simple - Wait 5 mins and try assigning tasks again (this assumes the only issue )
+                    self.movie_maker(tile=unprocessed[1].get('tile'), z=z, x=x, y=y)
+        print("Program ended normally. Note that after the files have been generated you should run MovieMaker().reNamer()")
+        self.reNamer()
+        return
+
+    def movie_maker(self, tile, z, x, y):
+        """Generates a single movie tile"""
+        g = tile.geometry()
+        filtered = self.ic.filterBounds(g)
+        #print(f"🗺 Exporting movie-tile to {self.bucket_name}/{self.folder_path}/{z}/{x}/{y}.mp4")
+        exp_task = ee.batch.Export.video.toCloudStorage(
+                        collection = filtered,
+                        description = f'{z}_{x}_{y}',
+                        bucket= self.bucket_name,
+                        fileNamePrefix = f"{self.folder_path}/{z}/{x}/{y}",
+                        dimensions = [256,256],
+                        framesPerSecond = 2,
+                        region = g)
+        exp_task.start()
+
+    def reNamer(self):
+        """Renames source files to a clean target that removes jank added by EE."""
+        blob_gen = self.bucket.list_blobs(prefix=self.folder_path)
+        blobs = [blob for blob in blob_gen]
+        print(f'Scanning target {self.bucket_name}/{self.folder_path} for files that require renaming...')
+        for blob in blobs:
+            tmp_name = blob.name
+            if tmp_name[-4:] == '.mp4' and ("ee-export-video" in tmp_name):
+                target_name = f"{tmp_name.split('ee-export-video')[0]}.mp4"
+                if self.report_status: print(f'renaming:{tmp_name}-->{target_name}')
+                _ = self.bucket.rename_blob(blob, target_name)
+
+    def getDoneFileList(self):
+        """Returns list of file names in a bucket/path that have already been created"""
+        blob_gen = self.bucket.list_blobs(prefix=self.folder_path)
+        blobs = [blob for blob in blob_gen]
+        completed_files = []
+        for blob in blobs:
+            completed_files.append(blob.name)
+        return completed_files
+
+    def getFullTargetList(self, z):
+        """
+            Return a list of all files we intend to create for a specified z (int) target to cover a given ee.Geometry input
+            area, with a folder path (string) direction appended.
+        """
+        target_list = []
+        tmp_fc = self.tiler.getTilesForGeometry(self.area, z)
+        tmp_info = tmp_fc.getInfo()   # <---this is the point where I have the properties, I should make sure to propagate them rather then call getinfo again
+        target_list = [f"{self.folder_path}/{item.get('properties').get('zoom')}/{item.get('properties').get('tx')}/{item.get('properties').get('ty')}.mp4"
+                       for item in tmp_info.get('features')]
+        return sorted(target_list)
+
+    def get_current_status(self):
+        """Consult the current EE Task list to see what's what"""
+        batch_jobs = ee.batch.Task.list()
+        processing_list = []
+        processing_status = []
+        badness_list = []
+        for job in batch_jobs:
+            state = job.state
+            try:
+                tmp = job.config['description'].split("_")
+                tmp_fname = f"{self.folder_path}/{tmp[0]}/{tmp[1]}/{tmp[2]}.mp4"
+                processing_list.append(tmp_fname)
+                processing_status.append(state)
+            except:
+                badness_list.append(job)
+        return {'processing':processing_list,
+                'status': processing_status,
+                'badness': badness_list}
+
+    def get_objective_list(self, tileset):
+        """Returns a list of target files 1:1 for the target tiles"""
+        tmp_list = []
+        for tile in tileset:
+            tmp_str = tile.__str__()
+            zoom = json.loads(tmp_str[11:-1]).get('arguments').get('value')
+            ty = json.loads(tmp_str[11:-1]).get('arguments').get('object').get('arguments').get('value')
+            tx = json.loads(tmp_str[11:-1]).get('arguments').get('object').get('arguments').get('object').get('arguments').get('value')
+            tmp_list.append(f"{self.folder_path}/{zoom}/{tx}/{ty}.mp4")
+        return tmp_list
+
+    @staticmethod
+    def generate_master_dic(objectives, tileset):
+        d = {}
+        for obj, tile in zip(objectives, tileset):
+            d[obj] = {'tile': tile, 'status': "WAITING"}
+        return d
+
+    @staticmethod
+    def get_items_by_state(d, state="WAITING"):
+        result = []
+        for i in d.items():
+            if (i[1].get('status') == state):
+                result.append(i)
+        return result
+
+
+    def initial_dic_creation(self, tileset):
+        objectives = self.get_objective_list(tileset) # <--- calculate target files to keep track
+        d = self.generate_master_dic(objectives=objectives, tileset=tileset)
+        self.reNamer()
+        done = self.getDoneFileList() # Consult the bucket and see what files have been completed
+        for item in done:
+            if d.get(item, None):
+                d[item]['status']='COMPLETED'
+        return d
