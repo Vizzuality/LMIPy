@@ -106,7 +106,7 @@ class Collection:
         response_list = []
         if 'layer' in self.object_type:
             _ = [response_list.append(l) for l in layers]
-        if 'dataset' in self.object_type or 'table' in self.object_type:
+        if 'dataset' in self.object_type:
             _ = [response_list.append(d) for d in datasets]
         if 'widget' in self.object_type:
             _ = [response_list.append(w) for w in widgets]
