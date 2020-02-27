@@ -63,7 +63,6 @@ class Geometry:
         """
         raise ValueError(f'Params functionality not supported in Skydipper.')
 
-
     def create_geostore_from_geojson(self, attributes):
         """Parse valid geojson into a geostore object and register it to a
         Gestore object on a server. Return the object, and instantiate a
@@ -286,3 +285,22 @@ class Geometry:
                 print(f"Description attempt failed: response: {r.status_code}, \n {r.json()}")
                 return None
         return None
+
+    def simplify(self, tolerance, preserve_topology=True):
+        """
+        Returns a simplified geometry produced by the Douglas-Peucker
+        algorithm. Coordinates of the simplified geometry will be no more than the
+        tolerance distance from the original. Unless the topology preserving
+        option is used, the algorithm may produce self-intersecting or
+        otherwise invalid geometries. Returns a Geostore object.
+
+        Parameters
+        ----------
+        tolerance: int
+            Tolerance value
+        preserve_topology: bool
+            Should the topology be presevered, True or False.
+        """
+        s = self.shape()[0]
+        tmp_s = s.simplify(tolerance=tolerance, preserve_topology=True)
+        return Geometry(s=tmp_s)
