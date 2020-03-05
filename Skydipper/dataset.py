@@ -8,7 +8,7 @@ from pprint import pprint
 from .layer import Layer
 from .utils import html_box, nested_set, server_uses_widgets
 from .Skydipper import Vocabulary, Metadata, Widget
-
+from .user import User
 
 class Dataset:
     """
@@ -26,6 +26,7 @@ class Dataset:
         A URL string of the vizzuality server.
     """
     def __init__(self, id_hash=None, attributes=None, server="https://api.skydipper.com", fname=None, token=None):
+        self.User = User()
         self.id = id_hash
         self.layers = []
         self.server = server
@@ -101,7 +102,7 @@ class Dataset:
                 url = f'{self.server}/v1/dataset/{self.id}?includes=layer,widget,vocabulary,metadata&hash={hash}'
             else:
                 url = f'{self.server}/v1/dataset/{self.id}?includes=layer,metadata&hash={hash}'
-            r = requests.get(url)
+            r = requests.get(url, headers=self.User.headers)
         except:
             raise ValueError(f'Unable to get Dataset {self.id} from {r.url}')
         if r.status_code == 200:

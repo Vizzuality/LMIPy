@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="Skydipper",
-    version="0.1.10",
+    version="0.1.11",
     author="Vizzuality",
     author_email="benjamin.laken@vizzuality.com",
     description="Pythonic interface to the Skydipper API.",
