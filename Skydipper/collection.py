@@ -6,7 +6,8 @@ import datetime
 from tqdm import tqdm
 from .dataset import Dataset
 from .layer import Layer
-from .utils import create_class, show, flatten_list, parse_filters, server_uses_widgets
+from .utils import create_class, show, flatten_list, parse_filters
+from .user import User
 
 class Collection:
     """
@@ -18,7 +19,7 @@ class Collection:
     Parameters
     ----------
     app: list
-        A list of string IDs of applications to search, e.g. [‘gfw’, ‘rw’]
+        A list of string IDs of applications to search, e.g. ['skydipper', ‘soilsRevealed’]
     limit: int
         Maximum number of items to return
     order: str
@@ -33,9 +34,10 @@ class Collection:
         A dictionary of filter key, value pairs e.g. {'provider', 'gee'}
         Possible search keys: 'connectorType', 'provider', 'status', 'published', 'protected', 'geoInfo'.
     """
-    def __init__(self, search='', app=['gfw','rw'], env='production', limit=1000, order='name', sort='desc',
-                 object_type=['dataset', 'layer','table', 'widget'], server="https://api.skydipper.com",
+    def __init__(self, search='', app=['skydipper','soilsRevealed'], env='production', limit=1000, order='name', sort='desc',
+                 object_type=['dataset', 'layer','table'], server="https://api.skydipper.com",
                  filters=None, mapbox_token=None):
+        self.User = User()
         self.search = [search.lower()] + search.lower().strip().split(' ')
         self.server = server
         self.app = ",".join(app)
@@ -99,17 +101,11 @@ class Collection:
             layers = tmp_atts.get('layer', None)
         layers = flatten_list(layers)
         #layers = flatten_list([d.get('attributes').get('layer') for d in datasets])
-        if server_uses_widgets(server=self.server):
-            widgets = flatten_list([d.get('attributes').get('widget') for d in datasets])
-        else:
-            widgets = None
         response_list = []
         if 'layer' in self.object_type:
             _ = [response_list.append(l) for l in layers]
         if 'dataset' in self.object_type:
             _ = [response_list.append(d) for d in datasets]
-        if 'widget' in self.object_type:
-            _ = [response_list.append(w) for w in widgets]
         filtered_list = self.filter_results(response_list)
         ordered_list = self.order_results(filtered_list)
         return ordered_list
@@ -117,13 +113,10 @@ class Collection:
     def get_entities(self):
         hash = random.getrandbits(16)
         filter_string = parse_filters(self.filters)
-        if server_uses_widgets(server=self.server):
-            url = (f'{self.server}/v1/dataset?app={self.app}&env={self.env}&{filter_string}'
-                   f'includes=layer,vocabulary,metadata,widget&page[size]=1000&hash={hash}')
-        else:
-            url = (f'{self.server}/v1/dataset?app={self.app}&env={self.env}&{filter_string}'
-                   f'includes=layer,metadata&page[size]=1000&hash={hash}')
-        r = requests.get(url)
+       # url = (f'{self.server}/v1/dataset?app={self.app}&env={self.env}&{filter_string}'
+       #           f'includes=layer,metadata&page[size]=1000&hash={hash}')
+        url = (f'{self.server}/v1/dataset?includes=layer,metadata&page[size]=1000&hash={hash}')
+        r = requests.get(url, headers=self.User.headers)
         response_list = r.json().get('data', None)
         if not response_list:
             raise ValueError('No items found')
@@ -137,7 +130,6 @@ class Collection:
             return_layers = 'layer' in self.object_type
             return_datasets = 'dataset' in self.object_type
             return_tables = 'dataset' in self.object_type
-            return_widgets = 'widget' in self.object_type
             #print(f"Filter: {type(item)}, {item}")
             if type(item) == dict:
                 tmp_atts = item.get('attributes')
@@ -165,8 +157,6 @@ class Collection:
                     collection.append({'type': 'Dataset','id': item.get('id'), 'attributes': item.get('attributes'), 'server': self.server})
                 if item.get('type') == 'layer' and return_layers:
                     collection.append({'type': 'Layer', 'id': item.get('id'), 'attributes': item.get('attributes'), 'server': self.server, 'mapbox_token':self.mapbox_token})
-                if item.get('type') == 'widget' and return_widgets:
-                    collection.append({'type': 'Widget', 'id': item.get('id'), 'attributes': item.get('attributes'), 'server': self.server})
         return collection
 
     def order_results(self, collection_list):
@@ -209,10 +199,6 @@ class Collection:
         print(f'Saving to path: {path}')
         saved = []
         failed = []
-        if server_uses_widgets(self.server):
-            url_args = "vocabulary,metadata,layer,widget"
-        else:
-            url_args = "metadata,layer"
         for item in tqdm(self):
             if item['id'] not in saved:
                 entity_type = item.get('type')
@@ -221,8 +207,8 @@ class Collection:
                 else:
                     ds_id = item['attributes']['dataset']
                 try:
-                    url = f'{self.server}/v1/dataset/{ds_id}?includes={url_args}'
-                    r = requests.get(url)
+                    url = f'{self.server}/v1/dataset/{ds_id}?includes=metadata,layer'
+                    r = requests.get(url, headers=self.User.headers)
                     dataset_config = r.json()['data']
                 except:
                     failed.append(item)

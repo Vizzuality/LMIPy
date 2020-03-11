@@ -9,6 +9,7 @@ import shapely.wkt
 import geojson
 from .utils import html_box, get_geojson_string
 import json
+from .user import User
 
 class Geometry:
     """
@@ -27,6 +28,7 @@ class Geometry:
     """
     def __init__(self, id_hash=None, attributes=None, s=None, parameters=None, server='https://api.skydipper.com'):
         self.server = server
+        self.User = User()
         if s:
             attributes = self.create_attributes_from_shapely(s)
         if parameters:
@@ -72,11 +74,8 @@ class Geometry:
             body = json.loads(json.dumps(attributes))
         except:
             raise ValueError(f"Unable to pass attributes. Expected valid geojson, recieved: {attributes}")
-        header= {
-                'Content-Type':'application/json'
-                }
         url = self.server + '/v1/geostore'
-        r = requests.post(url, headers=header, json=body)
+        r = requests.post(url, headers=self.User.headers, json=body)
         if r.status_code == 200:
             self.id = r.json().get('data').get('id')
             return r.json().get('data').get('attributes')
@@ -89,7 +88,7 @@ class Geometry:
         """
         hash = random.getrandbits(16)
         url = (f'{self.server}/{version}/geostore/{self.id}?simplify={simplify}&hash={hash}')
-        r = requests.get(url)
+        r = requests.get(url, headers=self.User.headers)
         if r.status_code == 200:
             return r.json().get('data').get('attributes')
         else:
@@ -132,7 +131,7 @@ class Geometry:
                   "band_viz": json.dumps(band_viz)
                   }
         url = "https://api.skydipper.com/v1/recent-imagery"
-        r = requests.get(url, params=params)
+        r = requests.get(url, params=params, headers=self.User.headers)
         if r.status_code == 200:
             tile_url = r.json().get('data').get('tiles')[0].get('attributes').get('tile_url')
             return tile_url
@@ -140,9 +139,7 @@ class Geometry:
             return None
 
     def get_composite_url(self, centroid, band_viz, instrument, date_range):
-        valid_servers = ['https://production-api.globalforestwatch.org',
-                         'https://staging-api.globalforestwatch.org',
-                         "https://api.skydipper.com"]
+        valid_servers = ["https://api.skydipper.com"]
         if self.server in valid_servers:
             params = {"geostore": self.id,
                       "instrument": instrument,
@@ -151,7 +148,7 @@ class Geometry:
                      }
             url = "/v1/composite-service"
             url = self.server + url
-            r = requests.get(url, params=params)
+            r = requests.get(url, params=params, headers=self.User.headers)
             if r.status_code == 200:
                 tile_url = r.json().get('attributes').get('tile_url')
                 return tile_url
@@ -162,11 +159,7 @@ class Geometry:
                       "date_range": date_range,
                       "band_viz": json.dumps(band_viz)
                      }
-            headers = {
-                        'Content-Type': "application/json",
-                        'cache-control': "no-cache",
-                        }
-            r = requests.request("POST", url, data=payload, headers=headers, params=params)
+            r = requests.request("POST", url, data=payload, headers=self.User.headers, params=params)
             if r.status_code == 200:
                 tile_url = r.json().get('attributes').get('tile_url')
                 return tile_url
@@ -240,16 +233,13 @@ class Geometry:
             An optional application id string (such as 'gfw') to tailor the description to.
         """
         # If the geostore exists on the right server, send the id, else send the valid geojson attributes
-        valid_servers = ['https://production-api.globalforestwatch.org',
-                         'https://staging-api.globalforestwatch.org',
-                         "https://api.skydipper.com"]
+        valid_servers = ["https://api.skydipper.com"]
         if self.server in valid_servers:
             params = {"geostore": self.id,
                       "lang": lang,
                       "app": app}
-            url = "/v1/geodescriber"
-            url = self.server + url
-            r = requests.get(url, params=params)
+            url = f"{self.server}/v1/geodescriber"
+            r = requests.get(url, params=params, headers=self.User.headers)
             if r.status_code == 200:
                 if self.server == 'https://api.skydipper.com':
                     tmp = r.json().get('attributes')
@@ -268,11 +258,7 @@ class Geometry:
             url = "https://api.skydipper.com/v1/geodescriber/geom"
             payload = json.dumps(self.attributes)
             querystring = {"lang": lang, "app": app}
-            headers = {
-                        'Content-Type': "application/json",
-                        'cache-control': "no-cache",
-                        }
-            r = requests.request("POST", url, data=payload, headers=headers, params=querystring)
+            r = requests.request("POST", url, data=payload, headers=self.User.headers, params=querystring)
             if r.status_code == 200:
                 d = {'title': r.json().get('data').get('title'),
                      'description': r.json().get('data').get('description'),

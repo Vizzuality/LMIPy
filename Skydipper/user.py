@@ -42,7 +42,8 @@ class User:
         #print(f"Authentication success: {self.token_valid()}")
         self.headers =  {
                         'Authorization': f'Bearer {self.token}',
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Cache-Control': 'no-cache'
                         }
 
     def gen_token(self):
