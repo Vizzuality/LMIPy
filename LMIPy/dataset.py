@@ -244,7 +244,10 @@ class Dataset:
 
         The argument `clone_server` specifies the server to clone to. Default server = https://api.resourcewatch.org
 
-        Set clone_children=True to clone all child layers, and widgets.
+        Set clone_children=True to clone all child layers, widgets, vocabs and metadata entities.
+        Alternatively you may set clone_children as a list containing one or more or 'layer', 'widget', 'vocab', 'meta'
+        in order to selectively clone children by entity type.
+        .
         """
         if not clone_server: clone_server = self.server
         if not token:
