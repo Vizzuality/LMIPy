@@ -291,7 +291,7 @@ class Dataset:
                             l.clone(token=token, env=env, layer_params={'name': layer_name}, clone_server=clone_server, target_dataset_id=clone_dataset_id)
                         except:
                             raise ValueError(f'Layer cloning failed for {l.id}')
-                else:
+                elif len(layers) == 0:
                     print("No child layers to clone!")
                 widgets =  self.widget
                 if len(widgets) > 0 and 'widget' in clone_children:
@@ -308,7 +308,7 @@ class Dataset:
                             clone_dataset.add_widget(token=token, widget_params=widget_payload)
                         except:
                             raise ValueError(f'Widget cloning failed for {widget.id}')
-                else:
+                elif len(widgets) == 0:
                     print("No child widgets to clone!")
                 vocabs = self.vocabulary
                 if len(vocabs) > 0 and ('vocab' in clone_children or clone_children == True):
@@ -323,6 +323,8 @@ class Dataset:
                             clone_dataset.add_vocabulary(vocab_params=vocab_payload, token=token)
                         except:
                             raise ValueError('Failed to clone Vocabulary.')
+                elif len(vocabs) == 0:
+                    print("No child vocabs to clone!")
                 metas = self.metadata
                 if len(metas) > 0 and ('meta' in clone_children or clone_children == True):
                     for m in metas:
@@ -336,6 +338,8 @@ class Dataset:
                             clone_dataset.add_metadata(meta_params=meta_payload, token=token)
                         except:
                             raise ValueError('Failed to clone Metadata.')
+                elif len(metas) == 0:
+                    print("No child metadata to clone!")
             # self.attributes = Dataset(clone_dataset_id, server=clone_server).attributes
             return Dataset(id_hash=clone_dataset_id, server=clone_server)
 
@@ -461,8 +465,7 @@ class Dataset:
                 raise ValueError(f'Vocabulary creation failed.')
             if r.status_code == 200:
                 print(f'Vocabulary {vocab_type} created.')
-                self.attributes = self.get_dataset()
-                return self
+                return Dataset(id_hash=ds_id, server=self.server)
             else:
                 print(f'Failed with error code {r.status_code}')
                 return None
@@ -498,8 +501,7 @@ class Dataset:
                 raise ValueError(f'Vocabulary creation failed.')
             if r.status_code == 200:
                 print(f'Metadata created.')
-                self.attributes = self.get_dataset()
-                return self
+                return Dataset(id_hash=ds_id, server=self.server)
             else:
                 print(f'Failed with error code {r.status_code}')
                 return None
@@ -540,8 +542,7 @@ class Dataset:
                 raise ValueError(f'Widget creation failed.')
             if r.status_code == 200:
                 print(f'Widget created.')
-                self.attributes = self.get_dataset()
-                return self
+                return Dataset(id_hash=ds_id, server=self.server)
             else:
                 print(f'Failed with error code {r.status_code}')
                 return None
