@@ -280,7 +280,7 @@ class Dataset:
             print(f'{clone_server}/v1/dataset/{clone_dataset_id}')
             if clone_children:
                 layers =  self.layers
-                if len(layers) > 0:
+                if len(layers) > 0 and ('layer' in clone_children or clone_children == True):
                     for l in layers:
                         try:
                             layer_name = l.attributes['name']
@@ -291,7 +291,7 @@ class Dataset:
                 else:
                     print("No child layers to clone!")
                 widgets =  self.widget
-                if len(widgets) > 0:
+                if len(widgets) > 0 and 'widget' in clone_children:
                     for w in widgets:
                         widget = w.attributes
                         widget_payload = {
@@ -308,7 +308,7 @@ class Dataset:
                 else:
                     print("No child widgets to clone!")
                 vocabs = self.vocabulary
-                if len(vocabs) > 0:
+                if len(vocabs) > 0 and ('vocab' in clone_children or clone_children == True):
                     for v in vocabs:
                         vocab = v.attributes
                         vocab_payload = {
@@ -321,7 +321,7 @@ class Dataset:
                         except:
                             raise ValueError('Failed to clone Vocabulary.')
                 metas = self.metadata
-                if len(metas) > 0:
+                if len(metas) > 0 and ('meta' in clone_children or clone_children == True):
                     for m in metas:
                         meta = m.attributes
                         meta_payload = {
