@@ -38,7 +38,9 @@ class User:
             #print("No token file - Generating one now")
             self.gen_token()
         # At this point, there should be a cred file. Read the credential from the file and Test if it is valid
-        self.read_token()
+        self.token = self.read_token()
+        if not self.token_valid():
+            self.gen_token()
         #print(f"Authentication success: {self.token_valid()}")
         self.headers =  {
                         'Authorization': f'Bearer {self.token}',
@@ -76,7 +78,7 @@ class User:
         """Read the token from the creds file"""
         with open(self.hidden_creds_file_path, 'r') as opened_file:
             tmp = opened_file.readlines()[0]
-        self.token = tmp
+        return tmp
 
     def token_valid(self):
         url = "https://api.skydipper.com/api/v1/microservice"
