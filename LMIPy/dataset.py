@@ -4,7 +4,9 @@ import random
 import geopandas as gpd
 import os
 import datetime
+
 #from shapely.geometry import shape
+from time import sleep
 from pprint import pprint
 from .layer import Layer
 from .utils import html_box, nested_set, server_uses_widgets
@@ -197,6 +199,7 @@ class Dataset:
     def delete(self, token=None, force=False):
         """
         Deletes a target Dataset object.
+        If force=True, deletes dataset along with all children.
         """
         if not token:
             raise ValueError(f'[token] API token required to delete.')
@@ -249,6 +252,7 @@ class Dataset:
         in order to selectively clone children by entity type.
         .
         """
+        if clone_children == True: clone_children = ['layer', 'widget', 'vocab', 'meta']
         if not clone_server: clone_server = self.server
         if not token:
             raise ValueError(f'[token] API token required to clone.')
@@ -282,8 +286,10 @@ class Dataset:
                 return None
             print(f'{clone_server}/v1/dataset/{clone_dataset_id}')
             if clone_children:
+                # Wait for dataset to be added
+                sleep(0.5)
                 layers =  self.layers
-                if len(layers) > 0 and ('layer' in clone_children or clone_children == True):
+                if len(layers) > 0 and 'layer' in clone_children:
                     for l in layers:
                         try:
                             layer_name = l.attributes['name']
@@ -311,7 +317,7 @@ class Dataset:
                 elif len(widgets) == 0:
                     print("No child widgets to clone!")
                 vocabs = self.vocabulary
-                if len(vocabs) > 0 and ('vocab' in clone_children or clone_children == True):
+                if len(vocabs) > 0 and 'vocab' in clone_children:
                     for v in vocabs:
                         vocab = v.attributes
                         vocab_payload = {
@@ -326,7 +332,7 @@ class Dataset:
                 elif len(vocabs) == 0:
                     print("No child vocabs to clone!")
                 metas = self.metadata
-                if len(metas) > 0 and ('meta' in clone_children or clone_children == True):
+                if len(metas) > 0 and 'meta' in clone_children:
                     for m in metas:
                         meta = m.attributes
                         meta_payload = {
