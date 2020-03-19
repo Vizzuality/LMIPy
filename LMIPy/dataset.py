@@ -274,6 +274,10 @@ class Dataset:
                     'name': clone_dataset_attr['name']
                 }
             }
+            ## wms exception
+            if payload['dataset']['connectorType'] == 'wms' and payload['dataset']['tableName'] == None:
+                del payload['dataset']['tableName']
+
             print(f'Creating clone dataset')
             url = f'{clone_server}/dataset'
             headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
