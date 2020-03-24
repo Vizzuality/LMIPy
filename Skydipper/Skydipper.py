@@ -2,7 +2,7 @@ import requests
 import random
 import json
 from .utils import html_box, nested_set
-
+from .user import User
 
 class Metadata:
     """
@@ -18,6 +18,8 @@ class Metadata:
             raise ValueError(f"Non metadata attributes passed to Metadata class ({attributes.get('type')})")
         self.id = attributes.get('id')
         self.server = server
+        self.type = "Metadata"
+        self.User = User()
         self.attributes = attributes.get('attributes')
 
     def __repr__(self):
@@ -47,12 +49,11 @@ class Metadata:
                 "language": lang,
                 "info": info,
             }
-            print('payload',payload)
+            print('payload', payload)
             try:
                 url = f'{self.server}/v1/dataset/{ds_id}/metadata'
                 print('url',url)
-                headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
-                r = requests.patch(url, data=json.dumps(payload), headers=headers)
+                r = requests.patch(url, data=json.dumps(payload), headers=self.User.headers)
             except:
                 raise ValueError(f'Metadata update failed.')
             if r.status_code == 200:
@@ -77,8 +78,7 @@ class Metadata:
         if lang and app:
             try:
                 url = f'{self.server}/dataset/{ds_id}/metadata?application={app}&language={lang}'
-                headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
-                r = requests.delete(url, headers=headers)
+                r = requests.delete(url, headers=self.User.headers)
             except:
                 raise ValueError(f'Metdata deletion failed.')
             if r.status_code == 200:
