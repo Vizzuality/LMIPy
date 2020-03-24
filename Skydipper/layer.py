@@ -6,8 +6,8 @@ import json
 import random
 import re
 from pprint import pprint
-from .utils import html_box, get_geojson_string, nested_set, server_uses_widgets
-
+from .utils import html_box, get_geojson_string, nested_set
+from .user import User
 
 class Layer:
     """
@@ -25,6 +25,7 @@ class Layer:
     def __init__(self, id_hash=None, attributes=None,
                     server="https://api.skydipper.com", mapbox_token=None, token=None):
         self.server = server
+        self.User = User()
         self.mapbox_token = mapbox_token
         if not attributes and id_hash:
             self.id = id_hash
@@ -48,15 +49,12 @@ class Layer:
 
     def get_layer(self):
         """
-        Returns a layer from a Vizzuality API.
+        Returns a layer from the Skydipper API.
         """
         try:
             hash = random.getrandbits(16)
-            if server_uses_widgets(self.server):
-                url = f'{self.server}/v1/layer/{self.id}?includes=vocabulary,metadata&hash={hash}'
-            else:
-                url = f'{self.server}/v1/layer/{self.id}?includes=metadata&hash={hash}'
-            r = requests.get(url)
+            url = f'{self.server}/v1/layer/{self.id}?includes=metadata&hash={hash}'
+            r = requests.get(url, headers=self.User.headers)
         except:
             raise ValueError(f'Unable to get Layer {self.id} from {r.url}')
         if r.status_code == 200:
@@ -254,7 +252,7 @@ class Layer:
         try:
             url = f"{self.server}/dataset/{self.attributes['dataset']}/layer/{self.id}"
             headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
-            r = requests.patch(url, data=json.dumps(payload), headers=headers)
+            r = requests.patch(url, data=json.dumps(payload), headers=self.User.headers)
         except:
             raise ValueError(f'Layer update failed.')
         if r.status_code == 200:
@@ -289,8 +287,7 @@ class Layer:
         if conf:
             try:
                 url = f'{self.server}/dataset/{self.attributes["dataset"]}/layer/{self.id}'
-                headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
-                r = requests.delete(url, headers=headers)
+                r = requests.delete(url, headers=self.User.headers)
             except:
                 raise ValueError(f'Layer deletion failed.')
             if r.status_code == 200:
@@ -338,8 +335,7 @@ class Layer:
             }
             print(f'Creating clone dataset')
             url = f'{clone_server}/dataset'
-            headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
-            r = requests.post(url, data=json.dumps(payload), headers=headers)
+            r = requests.post(url, data=json.dumps(payload), headers=self.User.headers)
             print(r.url)
             pprint(payload)
             if r.status_code == 200:
@@ -364,7 +360,7 @@ class Layer:
         print(f'Creating clone layer on target dataset')
         url = f'{clone_server}/dataset/{target_dataset_id}/layer'
         headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
-        r = requests.post(url, data=json.dumps(payload), headers=headers)
+        r = requests.post(url, data=json.dumps(payload), headers=self.User.headers)
         if r.status_code == 200:
                 clone_layer_id = r.json()['data']['id']
         else:
@@ -453,7 +449,7 @@ class Layer:
         sql = f"SELECT ST_SUMMARYSTATS() from {self.attributes.get('layerConfig').get('assetId')}"
         params = {"sql": sql,
                   "geostore": geometry.id}
-        r = requests.get(url, params=params)
+        r = requests.get(url, params=params, headers=self.User.headers)
         if r.status_code == 200:
             try:
                 return r.json().get('data', None)[0].get('st_summarystats')
@@ -512,10 +508,8 @@ class Layer:
         else:
             dataset_id = attributes['dataset']
             url = f'{server}/v1/dataset/{dataset_id}/layer'
-            headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
             payload = {**attributes}
-
-            r = requests.post(url, data=json.dumps(payload), headers=headers)
+            r = requests.post(url, data=json.dumps(payload), headers=self.User.headers)
             if r.status_code == 200:
                 new_layer_id = r.json()['data']['id']
             else:
