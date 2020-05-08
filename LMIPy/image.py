@@ -37,7 +37,7 @@ class Image:
 
     def __init__(self, source=None, instrument=None, date_time=None, cloud_score=None,
                  thumb_url = None, bbox=None, tile_url=None, ring=None,
-                 server='https://production-api.globalforestwatch.org', type=None, np_array=None,
+                 server='http://api.resourcewatch.org', type=None, np_array=None,
                  np_array_bounds=None, band_viz={'bands': ['B4', 'B3', 'B2'], 'min': 0, 'max': 0.4}):
         self.source = source
         if type == None:

@@ -53,9 +53,9 @@ class Layer:
         try:
             hash = random.getrandbits(16)
             if server_uses_widgets(self.server):
-                url = f'{self.server}/v1/layer/{self.id}?includes=vocabulary,metadata&hash={hash}'
+                url = f'{self.server}/v1/layer/{self.id}?hash={hash}'
             else:
-                url = f'{self.server}/v1/layer/{self.id}?includes=metadata&hash={hash}'
+                url = f'{self.server}/v1/layer/{self.id}?hash={hash}'
             r = requests.get(url)
         except:
             raise ValueError(f'Unable to get Layer {self.id} from {r.url}')
