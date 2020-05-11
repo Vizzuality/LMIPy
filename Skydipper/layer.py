@@ -23,15 +23,16 @@ class Layer:
         A string of the server URL.
     """
     def __init__(self, id_hash=None, attributes=None,
-                    server="https://api.skydipper.com", mapbox_token=None, token=None):
+                    server="https://api.skydipper.com", mapbox_token=None):
         self.server = server
         self.User = User()
+        self.token = self.User.token
         self.mapbox_token = mapbox_token
         if not attributes and id_hash:
             self.id = id_hash
             self.attributes = self.get_layer()
-        elif attributes and token:
-            created_layer = self.new_layer(token=token, attributes=attributes, server=self.server)
+        elif attributes and self.token:
+            created_layer = self.new_layer(token=self.token, attributes=attributes, server=self.server)
             self.attributes = created_layer.attributes
             self.id = created_layer.id
         elif attributes:
@@ -219,7 +220,7 @@ class Layer:
         uk = list(updatable_fields.keys())
         return uk
 
-    def update(self, update_params=None, token=None):
+    def update(self, update_params=None, token=token):
         """
         Update layer specific attribute values
 
@@ -274,7 +275,7 @@ class Layer:
             print('Requires y/n input!')
             return False
 
-    def delete(self, token=None, force=False):
+    def delete(self, token=token, force=False):
         """
         Deletes a target layer
         """
@@ -298,7 +299,7 @@ class Layer:
             print('Deletion aborted')
         return None
 
-    def clone(self, token=None, env='staging', clone_server=None, layer_params={}, target_dataset_id=None):
+    def clone(self, token=token, env='staging', clone_server=None, layer_params={}, target_dataset_id=None):
         """
         Create a clone of current Layer (and its parent Dataset) as a new staging or prod Layer.
         A set of attributes can be specified for the clone Layer using layer_params.
@@ -495,7 +496,7 @@ class Layer:
         return Layer(attributes={**recovered_layer['attributes'], 'id': recovered_layer['id']}, server=server)
 
 
-    def new_layer(self, token=None, attributes=None, server="https://api.skydipper.com"):
+    def new_layer(self, token=self.token, attributes=None, server="https://api.skydipper.com"):
         """
         Create a new staging or prod Layer entity from attributes.
         """
@@ -517,7 +518,7 @@ class Layer:
                 return None
             return Layer(id_hash=new_layer_id, server=server)
 
-    def merge(self, token=None, target_layer=None, target_layer_id=None, target_server="https://api.skydipper.com", key_whitelist=[], force=False):
+    def merge(self, token=self.token, target_layer=None, target_layer_id=None, target_server="https://api.skydipper.com", key_whitelist=[], force=False):
         """
         'Merge' one Layer entity into another target Layer.
         The argument `key_whitelist` can be used to specify which properties you wish to merge (if not all)
