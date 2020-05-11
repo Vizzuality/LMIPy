@@ -34,11 +34,11 @@ class Dataset:
         if not attributes and not fname:
             # Pull back a dataset from an id
             self.attributes = self.get_dataset()
-        elif attributes and token and not fname and not id_hash:
+        elif attributes and self.User.token and not fname and not id_hash:
             # Create a dataset from a dictionary
             self.id = self.new_dataset(attributes=attributes)
             self.attributes = self.get_dataset()
-        elif attributes and token and fname:
+        elif attributes and self.User.token and fname:
             # Uploading a csv file and creating a dataset
             self.connector_url = self.upload_new_file(attributes=attributes)
             self.id = self.from_csv(attributes=attributes)
