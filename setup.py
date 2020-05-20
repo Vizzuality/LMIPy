@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="Skydipper",
-    version="0.2.5",
+    version="0.2.6",
     author="Vizzuality",
     author_email="benjamin.laken@vizzuality.com",
     description="Pythonic interface to the Skydipper API.",
@@ -15,7 +15,7 @@ setuptools.setup(
     url="https://github.com/Skydipper/Skydipper",
     install_requires=['requests>=2.2.0',
                         'folium==0.8.3',
-                        'google-cloud-storage==1.25.0',
+                        'google-cloud-storage',
                         'earthengine-api==0.1.215',
                         'geopandas>=0.4.1',
                         'geojson>=2.4.0',
