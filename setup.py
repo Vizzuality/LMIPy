@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="LMIPy",
-    version="0.3.27",
+    version="0.3.28",
     author="Vizzuality",
     author_email="benjamin.laken@vizzuality.com",
     description="Pythonic interface to various backend ecosystems related geospatial data.",
@@ -14,6 +14,7 @@ setuptools.setup(
     license='MIT',
     url="https://github.com/Vizzuality/LMIPy",
     install_requires=['requests>=2.2.0',
+                        'pypng>=0.0.19',
                         'folium==0.8.3',
                         'geopandas>=0.4.1',
                         'geojson>=2.4.0',
