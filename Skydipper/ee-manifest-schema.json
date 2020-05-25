@@ -1,0 +1,505 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "http://foo.bar/schemas/ee-manifest-schema.json",
+    "type": "object",
+    "title": "ImageManifest",
+    "definitions": {
+      "Timestamp": {
+        "type": "object",
+        "title": "Timestamp",
+        "required": [
+          "seconds"
+        ],
+        "properties": {
+          "seconds": {
+            "type": "integer",
+            "default": 0,
+            "examples": [
+              123
+            ]
+          }
+        }
+      },
+      "PyramidingPolicy": {
+        "type": "string",
+        "title": "PyramidingPolicy",
+        "enum": [
+          "MEAN",
+          "MODE",
+          "SAMPLE"
+        ],
+        "default": null,
+        "examples": [
+          "<string>"
+        ],
+        "pattern": "^(.*)$"
+      },
+      "MissingData": {
+        "$id": "#/definitions/missing_data",
+        "type": "object",
+        "title": "MissingData",
+        "required": [
+          "values"
+        ],
+        "properties": {
+          "values": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "default": null,
+              "examples": [
+                -999,
+                0.0
+              ]
+            }
+          }
+        }
+      },
+      "ID": {
+        "type": "string",
+        "title": "ID",
+        "default": "",
+        "examples": [
+          "<string>"
+        ],
+        "pattern": "^(.*)$"
+      },
+      "Uris": {
+        "type": "array",
+        "title": "Uris",
+        "items": {
+          "type": "string",
+          "default": "",
+          "examples": [
+            "<string>"
+          ],
+          "pattern": "^(.*)$"
+        }
+      },
+      "AffineTransform": {
+        "type": "object",
+        "title": "AffineTransform",
+        "required": [
+          "scale_x",
+          "shear_x",
+          "translate_x",
+          "shear_y",
+          "scale_y",
+          "translate_y"
+        ],
+        "properties": {
+          "scale_x": {
+            "type": "number",
+            "default": 0.0,
+            "examples": [
+              0.1
+            ]
+          },
+          "shear_x": {
+            "type": "number",
+            "default": 0.0,
+            "examples": [
+              0.1
+            ]
+          },
+          "translate_x": {
+            "type": "number",
+            "default": 0.0,
+            "examples": [
+              0.1
+            ]
+          },
+          "shear_y": {
+            "type": "number",
+            "default": 0.0,
+            "examples": [
+              0.1
+            ]
+          },
+          "scale_y": {
+            "type": "number",
+            "default": 0.0,
+            "examples": [
+              0.1
+            ]
+          },
+          "translate_y": {
+            "type": "number",
+            "default": 0.0,
+            "examples": [
+              0.1
+            ]
+          }
+        }
+      },
+      "Sources": {
+        "type": "array",
+        "title": "Sources",
+        "items": {
+          "type": "object",
+          "required": [
+            "uris"
+          ],
+          "properties": {
+            "uris": {
+              "$ref": "#/definitions/Uris"
+            },
+            "affine_transform": {
+              "$ref": "#/definitions/AffineTransform"
+            }
+          }
+        }
+      },
+      "DataType": {
+        "type": "string",
+        "title": "DataType",
+        "enum": [
+          "DATA_TYPE_UNSPECIFIED",
+          "INT8",
+          "UINT8",
+          "INT16",
+          "UINT16",
+          "INT32",
+          "UINT32",
+          "FLOAT32",
+          "FLOAT64"
+        ],
+        "default": null,
+        "examples": [
+          "<string>"
+        ],
+        "pattern": "^(.*)$"
+      },
+      "CRS": {
+        "type": "string",
+        "title": "CRS",
+        "default": "",
+        "examples": [
+          "<string>"
+        ],
+        "pattern": "^(.*)$"
+      },
+      "Tilesets": {
+        "type": "array",
+        "title": "Tilesets",
+        "items": {
+          "type": "object",
+          "required": [
+            "sources"
+          ],
+          "properties": {
+            "data_type": {
+              "$ref": "#/definitions/DataType"
+            },
+            "id": {
+              "$ref": "#/definitions/ID"
+            },
+            "crs": {
+              "$ref": "#/definitions/CRS"
+            },
+            "sources": {
+              "$ref": "#/definitions/Sources"
+            }
+          }
+        }
+      },
+      "BandIds": {
+        "type": "array",
+        "title": "BandIds",
+        "items": {
+          "$ref": "#/definitions/ID"
+        }
+      },
+      "MaskBands": {
+        "type": "array",
+        "title": "MaskBands",
+        "items": {
+          "type": "object",
+          "required": [
+            "tileset_id"
+          ],
+          "properties": {
+            "tileset_id": {
+              "$ref": "#/definitions/ID"
+            },
+            "band_ids": {
+              "$ref": "#/definitions/BandIds"
+            }
+          }
+        }
+      },
+      "Bands": {
+        "type": "array",
+        "title": "Bands",
+        "items": {
+          "type": "object",
+          "title": "Band",
+          "required": [
+            "id",
+            "tileset_band_index",
+            "pyramiding_policy"
+          ],
+          "properties": {
+            "id": {
+              "$ref": "#/definitions/ID"
+            },
+            "tileset_id": {
+              "$ref": "#/definitions/ID"
+            },
+            "tileset_band_index": {
+              "$ref": "#/definitions/TilesetBandIndex"
+            },
+            "missing_data": {
+              "$ref": "#/definitions/MissingData"
+            },
+            "pyramiding_policy": {
+              "$ref": "#/definitions/PyramidingPolicy"
+            }
+          }
+        }
+      },
+      "TilesetBandIndex": {
+        "type": "integer",
+        "title": "TilesetBandIndex",
+        "default": 0,
+        "examples": [
+          0
+        ]
+      },
+      "Footprint": {
+        "type": "object",
+        "title": "Footprint",
+        "required": [
+          "points",
+          "band_id"
+        ],
+        "properties": {
+          "points": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "x",
+                "y"
+              ],
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "default": 0.0,
+                  "examples": [
+                    0.1
+                  ]
+                },
+                "y": {
+                  "type": "number",
+                  "default": 0.0,
+                  "examples": [
+                    0.1
+                  ]
+                }
+              }
+            }
+          },
+          "band_id": {
+            "$ref": "#/definitions/ID"
+          }
+        }
+      },
+      "Properties": {
+        "type": "object",
+        "title": "Properties",
+        "properties": {
+          "name": {
+            "type": "string",
+            "default": "",
+            "examples": [
+              "<string>"
+            ],
+            "pattern": "^(.*)$"
+          },
+          "alternateName": {
+            "type": "string",
+            "default": "",
+            "examples": [
+              "<string>"
+            ],
+            "pattern": "^(.*)$"
+          },
+          "description": {
+            "type": "string",
+            "default": "",
+            "examples": [
+              "<string>"
+            ],
+            "pattern": "^(.*)$"
+          },
+          "provider": {
+            "type": "string",
+            "default": "",
+            "examples": [
+              "<string>"
+            ],
+            "pattern": "^(.*)$"
+          },
+          "citation": {
+            "type": "string",
+            "default": "",
+            "examples": [
+              "<string>"
+            ],
+            "pattern": "^(.*)$"
+          },
+          "creator": {
+            "type": "string",
+            "default": "",
+            "examples": [
+              "<string>"
+            ],
+            "pattern": "^(.*)$"
+          },
+          "keywords": {
+            "type": "string",
+            "default": "",
+            "examples": [
+              "<string>; <string>; <string>"
+            ],
+            "pattern": "^(.*)$"
+          },
+          "temporalCoverage": {
+            "type": "string",
+            "default": "",
+            "examples": [
+              "<string>"
+            ],
+            "pattern": "^(.*)$"
+          },
+          "variableMeasured": {
+            "type": "string",
+            "default": "",
+            "examples": [
+              "<string>"
+            ],
+            "pattern": "^(.*)$"
+          },
+          "unitText": {
+            "type": "string",
+            "default": "",
+            "examples": [
+              "<string>"
+            ],
+            "pattern": "^(.*)$"
+          },
+          "measurementTechnique": {
+            "type": "string",
+            "default": "",
+            "examples": [
+              "<string>"
+            ],
+            "pattern": "^(.*)$"
+          },
+          "version": {
+            "type": "string",
+            "default": "",
+            "examples": [
+              "<string>"
+            ],
+            "pattern": "^(.*)$"
+          },
+          "url": {
+            "type": "string",
+            "default": "",
+            "examples": [
+              "<string>"
+            ],
+            "pattern": "^(.*)$"
+          },
+          "sameAs": {
+            "type": "string",
+            "default": "",
+            "examples": [
+              "<string>"
+            ],
+            "pattern": "^(.*)$"
+          },
+          "identifier": {
+            "type": "string",
+            "default": "",
+            "examples": [
+              "<string>"
+            ],
+            "pattern": "^(.*)$"
+          },
+          "license": {
+            "type": "string",
+            "default": "",
+            "examples": [
+              "<string>"
+            ],
+            "pattern": "^(.*)$"
+          }
+        }
+      },
+      "Name": {
+        "type": "string",
+        "title": "Name",
+        "default": "",
+        "examples": [
+          "<string>"
+        ],
+        "pattern": "^(.*)$"
+      },
+      "UriPrefix": {
+        "type": "string",
+        "title": "UriPrefix",
+        "default": "",
+        "examples": [
+          "<string>"
+        ],
+        "pattern": "^(.*)$"
+      }
+    },
+    "required": [
+      "name",
+      "tilesets",
+      "bands",
+      "start_time",
+      "end_time",
+      "properties",
+      "uri_prefix"
+    ],
+    "properties": {
+      "name": {
+        "$ref": "#/definitions/Name"
+      },
+      "tilesets": {
+        "$ref": "#/definitions/Tilesets"
+      },
+      "bands": {
+        "$ref": "#/definitions/Bands"
+      },
+      "mask_bands": {
+        "$ref": "#/definitions/MaskBands"
+      },
+      "footprint": {
+        "$ref": "#/definitions/Footprint"
+      },
+      "missing_data": {
+        "$ref": "#/definitions/MissingData"
+      },
+      "pyramiding_policy": {
+        "$ref": "#/definitions/PyramidingPolicy"
+      },
+      "uri_prefix": {
+        "$ref": "#/definitions/UriPrefix"
+      },
+      "start_time": {
+        "$ref": "#/definitions/Timestamp"
+      },
+      "end_time": {
+        "$ref": "#/definitions/Timestamp"
+      },
+      "properties": {
+        "$ref": "#/definitions/Properties"
+      }
+    }
+  }

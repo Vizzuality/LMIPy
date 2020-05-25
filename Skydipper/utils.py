@@ -3,6 +3,46 @@ import math
 import ee
 from time import sleep
 from google.cloud import storage
+import rasterio
+from shapely.geometry import Polygon, mapping
+
+def get_bbox_and_footprint(uri_prefix, file_path):
+    """
+    Get image bounding box and footprint
+
+    Uses rasterio which can access virtual assets 
+    
+    Parameters
+    ----------
+    uri_prefix : str
+        URI prefix
+    file_path : str
+        File path
+    
+    Returns
+    -------
+    list, Polygon object
+        A list representing the bounding box (DEFINE) and A polygon representing the image footprint.
+    
+    Examples
+    --------
+    # Multiband image
+    uris_list = ["/gee_data/L7_AOI_00.tif"]
+    bbox, footprint = get_bbox_and_footprint("https://storage.googleapis.com/skydipper_materials", uris_list[0])
+    print(bbox)
+    print(footprint)
+    """    
+    with rasterio.open(f"{uri_prefix}{file_path}") as ds:
+        bounds = ds.bounds
+        bbox = [bounds.left, bounds.bottom, bounds.right, bounds.top]
+        footprint = Polygon([
+            [bounds.left, bounds.bottom],
+            [bounds.left, bounds.top],
+            [bounds.right, bounds.top],
+            [bounds.right, bounds.bottom]
+        ])
+        
+        return (bbox, mapping(footprint))
 
 def html_box(item):
     """Returns an HTML block with template strings filled-in based on item attributes."""
