@@ -146,7 +146,7 @@ class Dataset:
         except:
             raise ValueError(f"Response returned {r.json()}, with {r.status_code}")
 
-    def query(self, sql="SELECT * FROM data LIMIT 5"):
+    def query(self, sql="SELECT * FROM <data> LIMIT 5", return_geopandas=True):
         """
         Query a Dataset object
 
@@ -161,12 +161,15 @@ class Dataset:
         provider = self.attributes.get('provider', None)
         if provider != 'cartodb':
             raise ValueError(f"Provider must be 'cartodb', not {provider}.")
-        sql = sql.lower().replace('from data',f"FROM {self.attributes.get('tableName')}")
+        sql = sql.replace('<data>',f"{self.attributes.get('tableName')}")
         params = {"sql": sql}
         queryURL = f"{self.server}/v1/query/{self.id}"
         r = requests.get(url=queryURL, params=params, headers=self.User.headers)
         if r.status_code == 200:
-            return gpd.GeoDataFrame(r.json().get('data'))
+            out = r.json().get('data')
+            if return_geopandas:
+                out = gpd.GeoDataFrame(out)
+            return out
         else:
             raise ValueError(f"Bad response from Query service {r.status_code}: {r.json()}")
 
