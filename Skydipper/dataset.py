@@ -146,6 +146,7 @@ class Dataset:
         except:
             raise ValueError(f"Response returned {r.json()}, with {r.status_code}")
 
+
     def query(self, sql="SELECT * FROM <data> LIMIT 5", return_geopandas=True):
         """
         Query a Dataset object
