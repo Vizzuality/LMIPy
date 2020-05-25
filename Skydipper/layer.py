@@ -6,8 +6,8 @@ import json
 import random
 import re
 from pprint import pprint
-from .utils import html_box, get_geojson_string, nested_set, server_uses_widgets
-
+from .utils import html_box, get_geojson_string, nested_set
+from .user import User
 
 class Layer:
     """
@@ -23,14 +23,16 @@ class Layer:
         A string of the server URL.
     """
     def __init__(self, id_hash=None, attributes=None,
-                    server="https://api.skydipper.com", mapbox_token=None, token=None):
+                    server="https://api.skydipper.com", mapbox_token=None):
         self.server = server
+        self.User = User()
+        self.token = self.User.token
         self.mapbox_token = mapbox_token
         if not attributes and id_hash:
             self.id = id_hash
             self.attributes = self.get_layer()
-        elif attributes and token:
-            created_layer = self.new_layer(token=token, attributes=attributes, server=self.server)
+        elif attributes and self.token:
+            created_layer = self.new_layer(attributes=attributes, server=self.server)
             self.attributes = created_layer.attributes
             self.id = created_layer.id
         elif attributes:
@@ -48,15 +50,12 @@ class Layer:
 
     def get_layer(self):
         """
-        Returns a layer from a Vizzuality API.
+        Returns a layer from the Skydipper API.
         """
         try:
             hash = random.getrandbits(16)
-            if server_uses_widgets(self.server):
-                url = f'{self.server}/v1/layer/{self.id}?includes=vocabulary,metadata&hash={hash}'
-            else:
-                url = f'{self.server}/v1/layer/{self.id}?includes=metadata&hash={hash}'
-            r = requests.get(url)
+            url = f'{self.server}/v1/layer/{self.id}?includes=metadata&hash={hash}'
+            r = requests.get(url, headers=self.User.headers)
         except:
             raise ValueError(f'Unable to get Layer {self.id} from {r.url}')
         if r.status_code == 200:
@@ -221,7 +220,7 @@ class Layer:
         uk = list(updatable_fields.keys())
         return uk
 
-    def update(self, update_params=None, token=None):
+    def update(self, update_params=None):
         """
         Update layer specific attribute values
 
@@ -232,10 +231,8 @@ class Layer:
         update_params: dic
             A dictionary of update paramters. You can identify the possible keys by calling
             self.update_keys(silent=False)
-        token: str
-            A valid API Token.
         """
-        if not token:
+        if not self.token:
             raise ValueError(f'[token=None] API TOKEN required for updates.')
         update_blacklist = ['updatedAt', 'userId', 'dataset', 'slug']
         attributes = {f'{k}':v for k,v in self.attributes.items() if k not in update_blacklist}
@@ -253,8 +250,8 @@ class Layer:
                     payload[k] = v
         try:
             url = f"{self.server}/dataset/{self.attributes['dataset']}/layer/{self.id}"
-            headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
-            r = requests.patch(url, data=json.dumps(payload), headers=headers)
+            headers = {'Authorization': f'Bearer {self.token}', 'Content-Type': 'application/json'}
+            r = requests.patch(url, data=json.dumps(payload), headers=self.User.headers)
         except:
             raise ValueError(f'Layer update failed.')
         if r.status_code == 200:
@@ -276,11 +273,11 @@ class Layer:
             print('Requires y/n input!')
             return False
 
-    def delete(self, token=None, force=False):
+    def delete(self, force=False):
         """
         Deletes a target layer
         """
-        if not token:
+        if not self.token:
             raise ValueError(f'[token=None] API token required to delete.')
         if not force:
             conf = self.confirm_delete()
@@ -289,8 +286,7 @@ class Layer:
         if conf:
             try:
                 url = f'{self.server}/dataset/{self.attributes["dataset"]}/layer/{self.id}'
-                headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
-                r = requests.delete(url, headers=headers)
+                r = requests.delete(url, headers=self.User.headers)
             except:
                 raise ValueError(f'Layer deletion failed.')
             if r.status_code == 200:
@@ -301,7 +297,7 @@ class Layer:
             print('Deletion aborted')
         return None
 
-    def clone(self, token=None, env='staging', clone_server=None, layer_params={}, target_dataset_id=None):
+    def clone(self, env='staging', clone_server=None, layer_params={}, target_dataset_id=None):
         """
         Create a clone of current Layer (and its parent Dataset) as a new staging or prod Layer.
         A set of attributes can be specified for the clone Layer using layer_params.
@@ -312,7 +308,7 @@ class Layer:
         from .dataset import Dataset
         if not clone_server: clone_server = self.server
 
-        if not token:
+        if not self.token:
             raise ValueError(f'[token] API token required to clone.')
         target_layer_name  = self.attributes['name']
         name = layer_params.get('name', f'{target_layer_name} CLONE')
@@ -338,8 +334,7 @@ class Layer:
             }
             print(f'Creating clone dataset')
             url = f'{clone_server}/dataset'
-            headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
-            r = requests.post(url, data=json.dumps(payload), headers=headers)
+            r = requests.post(url, data=json.dumps(payload), headers=self.User.headers)
             print(r.url)
             pprint(payload)
             if r.status_code == 200:
@@ -363,8 +358,7 @@ class Layer:
         }
         print(f'Creating clone layer on target dataset')
         url = f'{clone_server}/dataset/{target_dataset_id}/layer'
-        headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
-        r = requests.post(url, data=json.dumps(payload), headers=headers)
+        r = requests.post(url, data=json.dumps(payload), headers=self.User.headers)
         if r.status_code == 200:
                 clone_layer_id = r.json()['data']['id']
         else:
@@ -453,7 +447,7 @@ class Layer:
         sql = f"SELECT ST_SUMMARYSTATS() from {self.attributes.get('layerConfig').get('assetId')}"
         params = {"sql": sql,
                   "geostore": geometry.id}
-        r = requests.get(url, params=params)
+        r = requests.get(url, params=params, headers=self.User.headers)
         if r.status_code == 200:
             try:
                 return r.json().get('data', None)[0].get('st_summarystats')
@@ -499,11 +493,11 @@ class Layer:
         return Layer(attributes={**recovered_layer['attributes'], 'id': recovered_layer['id']}, server=server)
 
 
-    def new_layer(self, token=None, attributes=None, server="https://api.skydipper.com"):
+    def new_layer(self, attributes=None, server="https://api.skydipper.com"):
         """
         Create a new staging or prod Layer entity from attributes.
         """
-        if not token:
+        if not self.token:
             raise ValueError(f'[token] API token required to create a new dataset.')
         elif not attributes:
             raise ValueError(f'Attributes required to create a new dataset.')
@@ -512,10 +506,8 @@ class Layer:
         else:
             dataset_id = attributes['dataset']
             url = f'{server}/v1/dataset/{dataset_id}/layer'
-            headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
             payload = {**attributes}
-
-            r = requests.post(url, data=json.dumps(payload), headers=headers)
+            r = requests.post(url, data=json.dumps(payload), headers=self.User.headers)
             if r.status_code == 200:
                 new_layer_id = r.json()['data']['id']
             else:
@@ -523,13 +515,13 @@ class Layer:
                 return None
             return Layer(id_hash=new_layer_id, server=server)
 
-    def merge(self, token=None, target_layer=None, target_layer_id=None, target_server="https://api.skydipper.com", key_whitelist=[], force=False):
+    def merge(self, target_layer=None, target_layer_id=None, target_server="https://api.skydipper.com", key_whitelist=[], force=False):
         """
         'Merge' one Layer entity into another target Layer.
         The argument `key_whitelist` can be used to specify which properties you wish to merge (if not all)
         Note: requires API token.
         """
-        if not token:
+        if not self.token:
             raise ValueError(f'[token] API token required update Layer.')
         if not target_layer and target_layer_id and target_server:
             target_layer = Layer(target_layer_id, server=target_server)
@@ -556,7 +548,7 @@ class Layer:
             conf = 'y'
         if conf.lower() == 'y':
             try:
-                merged_layer = target_layer.update(update_params=filtered_payload, token=token)
+                merged_layer = target_layer.update(update_params=filtered_payload)
             except:
                 print('Aborting...')
             print('Completed!')

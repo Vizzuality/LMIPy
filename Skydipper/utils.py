@@ -11,25 +11,14 @@ def html_box(item):
     is_widget = str(type(item)) == "<class 'Skydipper.Skydipper.Widget'>"
     is_geometry = str(type(item)) == "<class 'Skydipper.geometry.Geometry'>"
     is_image = str(type(item)) == "<class 'Skydipper.image.Image'>"
-    needs_widgets_and_co = server_uses_widgets(item.server)
-    if needs_widgets_and_co:
-        site_link = "<a href='https://resourcewatch.org/' target='_blank'>"
-        site_logo = "<img class='itemThumbnail' src='https://resourcewatch.org/static/images/logo-embed.png'>"
-    else:
-        site_link = "<a href='https://skydipper.com/' target='_blank'>"
-        site_logo = "<img class='itemThumbnail' src='https://skydipper.com/images/logo.png'>"
+    site_link = "<a href='https://skydipper.com/' target='_blank'>"
+    site_logo = "<img class='itemThumbnail' src='https://skydipper.com/images/logo.png'>"
     if is_layer:
         kind_of_item = 'Layer'
-        if needs_widgets_and_co:
-            url_link = f'{item.server}/v1/layer/{item.id}?includes=vocabulary,metadata'
-        else:
-            url_link = f'{item.server}/v1/layer/{item.id}?includes=metadata'
+        url_link = f'{item.server}/v1/layer/{item.id}?includes=metadata'
     elif is_dataset:
         kind_of_item = 'Dataset'
-        if needs_widgets_and_co:
-            url_link = f'{item.server}/v1/dataset/{item.id}?includes=vocabulary,metadata,layer,widget'
-        else:
-            url_link = f'{item.server}/v1/dataset/{item.id}?includes=metadata,layer'
+        url_link = f'{item.server}/v1/dataset/{item.id}?includes=metadata,layer'
     elif is_image:
         if item.type in ['Classified Image', 'Composite Image']:
             instrument = item.type
@@ -46,9 +35,6 @@ def html_box(item):
                     f"<b>Cloud score </b>: {item.cloud_score} </br>"
                     " </div> </div>")
         return html_string
-    elif is_widget:
-        kind_of_item = 'Widget'
-        url_link = f'{item.server}/v1/widget/{item.id}'
     elif is_geometry:
         kind_of_item = 'Geometry'
         url_link = f'{item.server}/v1/geostore/{item.id}'
@@ -113,25 +99,17 @@ def show_image_collection(item, i):
 
 def show(item, i):
     """Returns an HTML block with template strings filled-in based on item attributes."""
-    is_layer = item['type'] == 'Layer'
-    is_dataset = item['type'] == 'Dataset'
-    is_widget = item['type'] == 'Widget'
-    server = item['server']
-    item_id = item['id']
-    attributes = item['attributes']
-    uses_widgets = server_uses_widgets(server)
+    is_layer = item.get('type') == 'Layer'
+    is_dataset = item.get('type') == 'Dataset'
+    server = item.get('server', "https://api.skydipper.com")
+    item_id = item.get('id', None)
+    attributes = item.get('attributes', None)
     if is_layer:
         kind_of_item = 'Layer'
-        if uses_widgets:
-            url_link = f'{server}/v1/layer/{item_id}?includes=vocabulary,metadata'
-        else:
-            url_link = f'{server}/v1/layer/{item_id}?includes=metadata'
+        url_link = f'{server}/v1/layer/{item_id}?includes=metadata'
     elif is_dataset:
         kind_of_item = 'Dataset'
-        if uses_widgets:
-            url_link = f'{server}/v1/dataset/{item_id}?includes=vocabulary,metadata,layer,widget'
-        else:
-            url_link = f'{server}/v1/dataset/{item_id}?includes=metadata,layer'
+        url_link = f'{server}/v1/dataset/{item_id}?includes=metadata,layer'
     else:
         kind_of_item = 'Unknown'
         url_link = None
@@ -154,12 +132,8 @@ def show(item, i):
                            f"{attributes.get('tableName')}"
                            "</a>"
                           )
-    if uses_widgets:
-        site_link = "<a href='https://resourcewatch.org/' target='_blank'>"
-        site_logo = "<img class='itemThumbnail' src='https://resourcewatch.org/static/images/logo-embed.png'>"
-    else:
-        site_link = "<a href='https://skydipper.com/' target='_blank'>"
-        site_logo = "<img class='itemThumbnail' src='https://skydipper.com/images/logo.png'>"
+    site_link = "<a href='https://skydipper.com/' target='_blank'>"
+    site_logo = "<img class='itemThumbnail' src='https://skydipper.com/images/logo.png'>"
     html = ("<div class='item_container' style='height: auto; overflow: hidden; border: 1px solid #2BA4A0;"
             "border-radius: 2px; background: #2BA4A0; line-height: 1.21429em; padding: 10px;''>"
             "<div class='item_left' style='width: 210px;  float: left;''>"
@@ -183,8 +157,9 @@ def create_class(item):
     from .layer import Layer
     from .Skydipper import Widget
     from .image import Image
-
-    if item['type'] == 'Dataset':
+    if item['type'] == 'metadata':
+        return Dataset(id_hash=item.get('attributes').get('dataset'), server = item.get('server'))
+    if item['type'] == 'Dataset' :
         return Dataset(id_hash = item.get('id'), server = item.get('server'))
     elif item['type'] == 'Layer':
         return Layer(id_hash = item.get('id'), server = item.get('server'))

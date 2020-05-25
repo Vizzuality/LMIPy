@@ -8,7 +8,7 @@ from pprint import pprint
 from .layer import Layer
 from .utils import html_box, nested_set, server_uses_widgets
 from .Skydipper import Vocabulary, Metadata, Widget
-
+from .user import User
 
 class Dataset:
     """
@@ -25,26 +25,26 @@ class Dataset:
     sever: str
         A URL string of the vizzuality server.
     """
-    def __init__(self, id_hash=None, attributes=None, server="https://api.skydipper.com", fname=None, token=None):
+    def __init__(self, id_hash=None, attributes=None, server="https://api.skydipper.com", fname=None):
+        self.User = User()
         self.id = id_hash
         self.layers = []
         self.server = server
-        self.token = token
         self.fname = fname
         if not attributes and not fname:
             # Pull back a dataset from an id
             self.attributes = self.get_dataset()
-        elif attributes and token and not fname and not id_hash:
+        elif attributes and self.User.token and not fname and not id_hash:
             # Create a dataset from a dictionary
             self.id = self.new_dataset(attributes=attributes)
             self.attributes = self.get_dataset()
-        elif attributes and token and fname:
+        elif attributes and self.User.token and fname:
             # Uploading a csv file and creating a dataset
             self.connector_url = self.upload_new_file(attributes=attributes)
             self.id = self.from_csv(attributes=attributes)
             self.attributes = self.get_dataset()
         if len(self.attributes.get('layer', [])) > 0:
-            self.layers = [Layer(id_hash=l.get('id', None), attributes=l, server=self.server) for l in self.attributes.get('layer')]
+            self.layers = [Layer(id_hash=l.get('id', None), server=self.server) for l in self.attributes.get('layer')]
             _ = self.attributes.pop('layer')
         if len(self.attributes.get('metadata', [])) > 0:
             self.metadata = [Metadata(attributes=m, server=self.server) for m in self.attributes.get('metadata')]
@@ -76,15 +76,12 @@ class Dataset:
         """
         Create a new staging or prod Dataset entity from attributes and valid API Key.
         """
-        if not self.token:
-            raise ValueError(f'[token] API token required to create a new dataset.')
-        elif not attributes:
+        if not attributes:
             raise ValueError(f'Attributes required to create a new dataset.')
         else:
             url = f'{self.server}/dataset'
-            headers = {'Authorization': f'Bearer {self.token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
             payload = {'dataset': attributes}
-            r = requests.post(url, data=json.dumps(payload), headers=headers)
+            r = requests.post(url, data=json.dumps(payload), headers=self.User.headers)
             if r.status_code == 200:
                 return r.json()['data']['id']
             else:
@@ -101,7 +98,7 @@ class Dataset:
                 url = f'{self.server}/v1/dataset/{self.id}?includes=layer,widget,vocabulary,metadata&hash={hash}'
             else:
                 url = f'{self.server}/v1/dataset/{self.id}?includes=layer,metadata&hash={hash}'
-            r = requests.get(url)
+            r = requests.get(url, headers=self.User.headers)
         except:
             raise ValueError(f'Unable to get Dataset {self.id} from {r.url}')
         if r.status_code == 200:
@@ -117,13 +114,12 @@ class Dataset:
         if not attributes:
             raise ValueError("You must set an attribute dictionary to upload.")
         url = f"{self.server}/v1/dataset/upload"
-        headers = {"Authorization": f'Bearer {self.token}'}
         files = {'dataset': open(self.fname, 'rb')}
         try:
             data = { 'provider': attributes.get('provider') }
         except:
             return ValueError(f'Attributes must specify a provider type to upload a file.')
-        r = requests.post(url, headers=headers, files=files, data=data)
+        r = requests.post(url, headers=self.User.headers, files=files, data=data)
         try:
             return r.json().get('connectorUrl')
         except:
@@ -140,12 +136,11 @@ class Dataset:
                                                     }
         """
         url = f"{self.server}/v1/dataset/"
-        headers = {"Authorization": f'Bearer {self.token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
         attributes['connectorUrl'] = self.connector_url
         payload = {
             'dataset': attributes
         }
-        r = requests.post(url, data=json.dumps(payload), headers=headers)
+        r = requests.post(url, data=json.dumps(payload), headers=self.User.headers)
         try:
             return r.json().get('data').get('id')
         except:
@@ -169,14 +164,14 @@ class Dataset:
         sql = sql.lower().replace('from data',f"FROM {self.attributes.get('tableName')}")
         params = {"sql": sql}
         queryURL = f"{self.server}/v1/query/{self.id}"
-        r = requests.get(url=queryURL, params=params)
+        r = requests.get(url=queryURL, params=params, headers=self.User.headers)
         if r.status_code == 200:
             return gpd.GeoDataFrame(r.json().get('data'))
         else:
             raise ValueError(f"Bad response from Query service {r.status_code}: {r.json()}")
 
 
-    def head(self, n=5, decode_geom=True, token=None):
+    def head(self, n=5, decode_geom=True):
         """
         Returns a table as a GeoPandas GeoDataframe from a Vizzuality API using the query endpoint.
         """
@@ -192,7 +187,7 @@ class Dataset:
         uk = list(updatable_fields.keys())
         return uk
 
-    def update(self, update_params=None, token=None, show_difference=False):
+    def update(self, update_params=None, show_difference=False):
         """
         Update a Dataset object
 
@@ -202,12 +197,10 @@ class Dataset:
         ----------
         update_params: dic
             A dictionary object containing {key: value} pairs of attributes to update.
-        token: str
-            A valid API key. https://developer.skydipper.com/
         show_difference: bool
             If set to True a verbose description of the updates will be returned to the user.
         """
-        if not token:
+        if not self.User.token:
             raise ValueError(f'[token=None] API TOKEN required for updates.')
         update_blacklist = ['metadata','layer', 'vocabulary', 'updatedAt', 'userId', 'slug', "clonedHost", "errorMessage", "taskId", "dataLastUpdated"]
         attributes = {f'{k}':v for k,v in self.attributes.items() if k not in update_blacklist}
@@ -225,8 +218,7 @@ class Dataset:
                     payload[k] = v
         try:
             url = f"{self.server}/dataset/{self.id}"
-            headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
-            r = requests.patch(url, data=json.dumps(payload), headers=headers)
+            r = requests.patch(url, data=json.dumps(payload), headers=self.User.headers)
         except:
             raise ValueError(f'Dataset update failed.')
         if r.status_code == 200:
@@ -249,12 +241,10 @@ class Dataset:
             print('Requires y/n input!')
             return False
 
-    def delete(self, token=None, force=False):
+    def delete(self, force=False):
         """
         Deletes a target Dataset object.
         """
-        if not token:
-            raise ValueError(f'[token] API token required to delete.')
         layer_count = len(self.layers)
         if layer_count > 0:
             if not force:
@@ -265,7 +255,7 @@ class Dataset:
                 conf = 'd'
             if conf.lower() == 'd':
                 for l in self.layers:
-                    l.delete(token, force=True)
+                    l.delete(self.User.token, force=True)
             elif conf.lower() == 'a':
                 return False
             else:
@@ -278,8 +268,8 @@ class Dataset:
         if conf:
             try:
                 url = f'{self.server}/dataset/{self.id}'
-                headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
-                r = requests.delete(url, headers=headers)
+                headers = {'Authorization': f'Bearer {self.User.token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
+                r = requests.delete(url, headers=self.User.headers)
             except:
                 raise ValueError(f'Dataset deletion failed.')
             if r.status_code == 200:
@@ -292,7 +282,7 @@ class Dataset:
             print('Deletion aborted.')
         return self
 
-    def clone(self, token=None, env='staging', clone_server=None, dataset_params=None, clone_children=False):
+    def clone(self, env='staging', clone_server=None, dataset_params=None, clone_children=False):
         """
         Create a clone of a target Dataset as a new staging or prod Dataset.
         A set of attributes can be specified for the clone Dataset.
@@ -302,8 +292,6 @@ class Dataset:
         Set clone_children=True to clone all child layers, and widgets.
         """
         if not clone_server: clone_server = self.server
-        if not token:
-            raise ValueError(f'[token] API token required to clone.')
         else:
             name = dataset_params.get('name', self.attributes['name'] + 'CLONE')
             clone_dataset_attr = {**self.attributes, 'name': name}
@@ -324,8 +312,7 @@ class Dataset:
             }
             print(f'Creating clone dataset')
             url = f'{clone_server}/dataset'
-            headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
-            r = requests.post(url, data=json.dumps(payload), headers=headers)
+            r = requests.post(url, data=json.dumps(payload), headers=self.User.headers)
             if r.status_code == 200:
                 clone_dataset_id = r.json()['data']['id']
                 clone_dataset = Dataset(id_hash=clone_dataset_id, server=clone_server)
@@ -340,7 +327,7 @@ class Dataset:
                         try:
                             layer_name = l.attributes['name']
 
-                            l.clone(token=token, env=env, layer_params={'name': layer_name}, clone_server=clone_server, target_dataset_id=clone_dataset_id)
+                            l.clone(token=self.User.token, env=env, layer_params={'name': layer_name}, clone_server=clone_server, target_dataset_id=clone_dataset_id)
                         except:
                             raise ValueError(f'Layer cloning failed for {l.id}')
                 else:
@@ -357,7 +344,7 @@ class Dataset:
                             "application": payload['dataset']['application']
                         }
                         try:
-                            clone_dataset.add_widget(token=token, widget_params=widget_payload)
+                            clone_dataset.add_widget(token=self.User.token, widget_params=widget_payload)
                         except:
                             raise ValueError(f'Widget cloning failed for {widget.id}')
                 else:
@@ -372,7 +359,7 @@ class Dataset:
                             'tags': vocab['tags']
                         }
                         try:
-                            clone_dataset.add_vocabulary(vocab_params=vocab_payload, token=token)
+                            clone_dataset.add_vocabulary(vocab_params=vocab_payload, token=self.User.token)
                         except:
                             raise ValueError('Failed to clone Vocabulary.')
                 metas = self.metadata
@@ -385,7 +372,7 @@ class Dataset:
                             'language': meta['language']
                         }
                         try:
-                            clone_dataset.add_metadata(meta_params=meta_payload, token=token)
+                            clone_dataset.add_metadata(meta_params=meta_payload, token=self.User.token)
                         except:
                             raise ValueError('Failed to clone Metadata.')
             # self.attributes = Dataset(clone_dataset_id, server=clone_server).attributes
@@ -413,7 +400,7 @@ class Dataset:
         sql = f"SELECT ST_SUMMARYSTATS() from {self.attributes.get('tableName')}"
         params = {"sql": sql,
                   "geostore": geometry.id}
-        r = requests.get(url, params=params)
+        r = requests.get(url, params=params, headers=self.User.headers)
         if r.status_code == 200:
             try:
                 return r.json().get('data', [{}])[0].get('st_summarystats', None)
@@ -444,7 +431,7 @@ class Dataset:
             url_args = "metadata,layer"
         try:
             url = f"{self.server}/v1/dataset/{self.id}?includes={url_args}"
-            r = requests.get(url)
+            r = requests.get(url, headers=self.User.headers)
             dataset_config = r.json()['data']
         except:
             raise ValueError(f'Could not retrieve config.')
@@ -492,9 +479,9 @@ class Dataset:
 
         A single application string, name string and tags list must be specified within the `vocab_params` dictionary.
 
-        A RW-API token is required.
+        An API token is required.
         """
-        if not token:
+        if not self.User.token:
             raise ValueError(f'[token] API token required to create new vocabulary.')
         vocab_type = vocab_params.get('name', None)
         vocab_tags = vocab_params.get('tags', None)
@@ -507,7 +494,7 @@ class Dataset:
             }
             try:
                 url = f'{self.server}/v1/dataset/{ds_id}/vocabulary/{vocab_type}'
-                headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
+                headers = {'Authorization': f'Bearer {self.User.token}', 'Content-Type': 'application/json'}
                 r = requests.post(url, data=json.dumps(payload), headers=headers)
             except:
                 raise ValueError(f'Vocabulary creation failed.')
@@ -521,7 +508,7 @@ class Dataset:
         else:
             raise ValueError(f'Vocabulary creation requires: application string, name string, and a list of tags.')
 
-    def add_metadata(self, meta_params=None, token=None):
+    def add_metadata(self, meta_params=None):
         """
         Create a new metadata association to the current dataset.
 
@@ -529,9 +516,9 @@ class Dataset:
         `meta_params` dictionary, as well as an (optional) info dictionary.
         Info has a free schema.
 
-        A RW-API token is required.
+        An API token is required.
         """
-        if not token:
+        if not self.User.token:
             raise ValueError(f'[token] API token required to create new vocabulary.')
         info = meta_params.get('info', None)
         app = meta_params.get('application', None)
@@ -544,8 +531,8 @@ class Dataset:
             }
             try:
                 url = f'{self.server}/v1/dataset/{ds_id}/metadata'
-                headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
-                r = requests.post(url, data=json.dumps(payload), headers=headers)
+                headers = {'Authorization': f'Bearer {self.User.token}', 'Content-Type': 'application/json'}
+                r = requests.post(url, data=json.dumps(payload), headers=self.Users.headers)
             except:
                 raise ValueError(f'Vocabulary creation failed.')
             if r.status_code == 200:
@@ -558,18 +545,14 @@ class Dataset:
         else:
             raise ValueError(f'Metadata creation requires an info object and application string.')
 
-    def add_widget(self, widget_params=None, token=None):
+    def add_widget(self, widget_params=None):
         """
         Create a new widget association to the current dataset.
 
         A application list, name and widgetConfig must be specified within the
         `widget_params` dictionary.
         The widgetConfig key has a free schema.
-
-        A RW-API token is required.
         """
-        if not token:
-            raise ValueError(f'[token] API token required to create new widget.')
         name = widget_params.get('name', None)
         description = widget_params.get('description', None)
         widget_config = widget_params.get('widgetConfig', None)
@@ -585,8 +568,7 @@ class Dataset:
             try:
                 url = f'{self.server}/v1/dataset/{ds_id}/widget'
                 print(url)
-                headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
-                r = requests.post(url, data=json.dumps(payload), headers=headers)
+                r = requests.post(url, data=json.dumps(payload), headers=self.User.headers)
                 print(r.json())
             except:
                 raise ValueError(f'Widget creation failed.')
@@ -600,14 +582,11 @@ class Dataset:
         else:
             raise ValueError(f'Widget creation requires name string, application list and a widgetConfig object.')
 
-    def merge(self, token=None, target_dataset=None, target_dataset_id=None, target_server="https://api.skydipper.com", key_whitelist=[], force=False):
+    def merge(self, target_dataset=None, target_dataset_id=None, target_server="https://api.skydipper.com", key_whitelist=[], force=False):
         """
         'Merge' one Dataset entity into another target Dataset.
         The argument `key_whitelist` can be used to specify which properties you wish to merge (if not all)
-        Note: requires API token.
         """
-        if not token:
-            raise ValueError(f'[token] API token required to update Dataset.')
         if not target_dataset and target_dataset_id and target_server:
             target_dataset = Dataset(target_dataset_id, server=target_server)
         else:
@@ -631,7 +610,8 @@ class Dataset:
             conf = 'y'
         if conf.lower() == 'y':
             try:
-                merged_dataset = target_dataset.update(update_params=filtered_payload, token=token)
+                merged_dataset = target_dataset.update(update_params=filtered_payload,
+                                                        token=self.User.token)
             except:
                 print('Aborting...')
             print('Completed!')
