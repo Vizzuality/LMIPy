@@ -1,4 +1,5 @@
 import json
+from shapely.geometry import mapping, shape, box
 
 def html_box(item):
     """Returns an HTML block with template strings filled-in based on item attributes."""
@@ -305,3 +306,57 @@ def server_uses_widgets(server):
         return True
     else:
         return False
+
+
+def create_grid(feature, N=3, as_shp=False):
+    """
+    Breaks down a feature into an N x N grid and returns a new list of gridded features.
+    :param feature:  geojson feature
+    :param N: Grid dimension
+    :param as_shp: Bool. If True returns a list of shapely objects
+    :return: list of features
+    """
+    geom = feature.get('geometry', None)
+    feature_shp = shape(geom)
+    if not geom: return None
+
+    # Get bounds of grid
+    lon_end,lat_start,lon_start,lat_end = shape(geom).bounds
+
+    num_cells = N * N
+    lon_edge = (lon_end - lon_start) / (num_cells ** 0.5)
+    lat_edge = (lat_end - lat_start) / (num_cells ** 0.5)
+
+    # Generate grid over feature
+    polys = []
+    lon = lon_start
+    for i in range(0, N):
+        x1 = lon
+        x2 = lon + lon_edge
+        lon += lon_edge
+
+        lat = lat_start
+        for j in range(0, N):
+            y1 = lat
+            y2 = lat + lat_edge
+            lat += lat_edge
+
+            polygon = box(x1, y1, x2, y2)
+            polys.append(polygon)
+
+    # Intersects grid against feature
+    intersected_feats = []
+    for p in polys:
+        is_intersect = p.intersects(feature_shp)
+        if is_intersect:
+            intersection = p.intersection(feature_shp)
+            intersected_feats.append(intersection)
+
+    if as_shp: return intersected_feats
+
+    feats = []
+    for f in intersected_feats:
+        feat = mapping(f)
+        feats.append({'type': 'Feature', 'properties': {}, 'geometry': json.dumps(feat)})
+
+    return feats

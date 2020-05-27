@@ -25,7 +25,7 @@ class Geometry:
     s: obj
         A shapely object.
     """
-    def __init__(self, id_hash=None, attributes=None, s=None, parameters=None, server='http://api.resourcewatch.org/'):
+    def __init__(self, id_hash=None, attributes=None, s=None, parameters=None, server='http://api.resourcewatch.org'):
         self.server = server
         if s:
             attributes = self.create_attributes_from_shapely(s)
@@ -62,7 +62,7 @@ class Geometry:
         """
             If you are using this method, you need to use the GFW production server.
         """
-        server = "http://api.resourcewatch.org/"
+        server = "http://api.resourcewatch.org"
         if not parameters:
             raise ValueError(f'parameters requires!')
         iso = parameters.get('iso', None)
@@ -184,7 +184,7 @@ class Geometry:
             return None
 
     def get_composite_url(self, centroid, band_viz, instrument, date_range):
-        valid_servers = ['http://api.resourcewatch.org/',
+        valid_servers = ['http://api.resourcewatch.org',
                          'https://staging-api.globalforestwatch.org']
         if self.server in valid_servers:
             params = {"geostore": self.id,
