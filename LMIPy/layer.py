@@ -531,7 +531,7 @@ class Layer:
             raise ValueError(f'[token] API token required update Layer.')
         if not target_layer and target_layer_id and target_server:
             target_layer = Layer(target_layer_id, server=target_server)
-        else:
+        elif not target_layer:
             raise ValueError(f'Requires either target Layer or Layer id plus server.')
         atts = self.attributes
         payload = {
