@@ -547,7 +547,7 @@ class Layer:
         }
         if not key_whitelist: key_whitelist = [k for k in payload.keys()]
         filtered_payload = {k:v for k,v in payload.items() if v and k in key_whitelist}
-        print(f'Merging {self.id} from {self.server} into {target_layer_id} on {target_server}.\nAre you sure you sure you want to continue?')
+        print(f'Merging {self.id} from {self.server} into {target_layer.id} on {target_layer.server}.\nAre you sure you sure you want to continue? Y/N')
         if not force:
             conf = input()
         else:
