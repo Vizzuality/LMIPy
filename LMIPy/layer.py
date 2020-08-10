@@ -236,6 +236,15 @@ class Layer:
             raise ValueError(f'[token=None] API TOKEN required for updates.')
         update_blacklist = ['updatedAt', 'userId', 'dataset', 'slug']
         attributes = {f'{k}':v for k,v in self.attributes.items() if k not in update_blacklist}
+        if attributes.get('protected', False):
+            print(f"{attributes['env'].title()} Layer: {self.attributes['name']} with id={self.id} is protected.\nContinue with update?\n> y/n")
+            conf = input()
+            if conf.lower() == 'n':
+                print(f"Halting update...")
+                return None
+            elif conf.lower() != 'y':
+                print('Requires y/n input!')
+                return None
         if not update_params:
             raise ValueError(f'[update_params=None] Must specify update parameters.')
         else:
