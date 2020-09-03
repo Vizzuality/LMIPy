@@ -139,7 +139,7 @@ class Dataset:
         uk = list(updatable_fields.keys())
         return uk
 
-    def update(self, update_params=None, token=None, show_difference=False):
+    def update(self, update_params=None, token=None, force=False):
         """
         Update a Dataset object
 
@@ -159,7 +159,7 @@ class Dataset:
         update_blacklist = ['metadata','layer', 'vocabulary', 'updatedAt', 'userId', 'slug', "clonedHost", "errorMessage", "taskId", "dataLastUpdated"]
         attributes = {f'{k}':v for k,v in self.attributes.items() if k not in update_blacklist}
 
-        if attributes.get('protected', False):
+        if attributes.get('protected', False) and not force:
             print(f"{attributes['env'].title()} Dataset: {self.attributes['name']} with id={self.id} is protected.\nContinue with update?\n> y/n")
             conf = input()
             if conf.lower() == 'n':
@@ -184,7 +184,7 @@ class Dataset:
         try:
             url = f"{self.server}/dataset/{self.id}"
             headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
-            r = requests.patch(url, data=json.dumps(payload), headers=headers)
+            r = requests.patch(url, data=json.dumps(payload), headers=headers, timeout=10)
         except:
             raise ValueError(f'Dataset update failed.')
         if r.status_code == 200:

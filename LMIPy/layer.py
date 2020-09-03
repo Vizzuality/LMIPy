@@ -218,7 +218,7 @@ class Layer:
         uk = list(updatable_fields.keys())
         return uk
 
-    def update(self, update_params=None, token=None):
+    def update(self, update_params=None, token=None, force=False):
         """
         Update layer specific attribute values
 
@@ -236,7 +236,7 @@ class Layer:
             raise ValueError(f'[token=None] API TOKEN required for updates.')
         update_blacklist = ['updatedAt', 'userId', 'dataset', 'slug']
         attributes = {f'{k}':v for k,v in self.attributes.items() if k not in update_blacklist}
-        if attributes.get('protected', False):
+        if attributes.get('protected', False) and not force:
             print(f"{attributes['env'].title()} Layer: {self.attributes['name']} with id={self.id} is protected.\nContinue with update?\n> y/n")
             conf = input()
             if conf.lower() == 'n':
@@ -260,7 +260,7 @@ class Layer:
         try:
             url = f"{self.server}/dataset/{self.attributes['dataset']}/layer/{self.id}"
             headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
-            r = requests.patch(url, data=json.dumps(payload), headers=headers)
+            r = requests.patch(url, data=json.dumps(payload), headers=headers, timeout=10)
         except:
             raise ValueError(f'Layer update failed.')
         if r.status_code == 200:
