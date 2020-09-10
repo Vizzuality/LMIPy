@@ -7,7 +7,7 @@ from tqdm import tqdm
 from .dataset import Dataset
 from .table import Table
 from .layer import Layer
-from .utils import create_class, show, flatten_list, parse_filters, server_uses_widgets
+from .utils import html_box, create_class, show, flatten_list, parse_filters, server_uses_widgets
 
 class Collection:
     """
@@ -34,86 +34,126 @@ class Collection:
         A dictionary of filter key, value pairs e.g. {'provider', 'gee'}
         Possible search keys: 'connectorType', 'provider', 'status', 'published', 'protected', 'geoInfo'.
     """
-    def __init__(self, search='', app=['gfw','rw'], env='production', limit=1000, order='name', sort='desc',
+    def __init__(self, id_hash=None, search=None, app=['gfw','rw'], env='production', limit=1000, order='name', sort='desc',
                  object_type=['dataset', 'layer','table', 'widget'], server='https://api.resourcewatch.org',
-                 filters=None, mapbox_token=None):
-        self.search = [search.lower()] + search.lower().strip().split(' ')
+                 filters=None, mapbox_token=None, token=None):
+        self.search = search
+        self.search_terms = [search.lower()] + search.lower().strip().split(' ') if search else ''
         self.server = server
         self.app = ",".join(app)
         self.env = env
+        self.id_hash = id_hash
         self.limit = limit
         self.order = order
         self.sort = sort
         self.filters = filters
         self.mapbox_token = mapbox_token
         self.object_type = object_type
-        self.collection = self.get_collection()
+        self.attributes = self.get_collection(token=token)
+        self.id = id_hash
+        self.resources = self.attributes.get('resources', None)
         self.iter_position = 0
 
     def _repr_html_(self):
-        str_html = ""
-        for n, c in enumerate(self.collection):
-            str_html += show(c, n)
-            if n < len(self.collection)-1:
-                str_html += '<p></p>'
-        return str_html
+        if self.search is not None:
+            str_html = ""
+            for n, c in enumerate(self.resources):
+                str_html += show(c, n)
+                if n < len(self.resources)-1:
+                    str_html += '<p></p>'
+            return str_html
+        else:
+            return html_box(item=self)
 
     def __repr__(self):
         rep_string = "["
-        for n, c in enumerate(self.collection):
-            rep_string += str(f"{n}. {c['type']} {c['id']} {c['attributes']['name']}")
-            if n < len(self.collection)-1:
-                rep_string += ',\n '
+        if self.search is not None:
+            for n, c in enumerate(self.resources):
+                rep_string += str(f"{n}. {c['type']} {c['id']} {c['attributes'].get('name', '')}")
+                if n < len(self.resources)-1:
+                    rep_string += ',\n '
+        else:
+            rep_string += self.__str__()
         rep_string += ']'
         return rep_string
+
+    def __str__(self):
+        return f"Collection {self.id} {self.attributes['name']}"
 
     def __iter__(self):
         return self
 
     def __next__(self):
-        if self.iter_position >= len(self.collection):
+        if self.iter_position >= len(self.resources):
             self.iter_position = 0
             raise StopIteration
         else:
             self.iter_position += 1
-            return self.collection[self.iter_position - 1]
+            return self.resources[self.iter_position - 1]
 
     def __getitem__(self, key):
-        items = self.collection[key]
+        items = self.resources[key]
         if type(items) == list:
             return [create_class(item) for item in items]
         else:
             return create_class(items)
 
     def __len__(self):
-        return len(self.collection)
+        return len(self.resources)
 
-    def get_collection(self):
+    def get_collection(self, token=None):
         """
         Getter for the a collection object. In this case dataset and layers
         are the objects in the API. I.e. tables are a dataset type.
         """
+        if self.id_hash and token and self.search is None:
+            try:
+                url = (f'{self.server}/v1/collection/{self.id_hash}')
+                headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
+                print(url)
+                r = requests.get(url, headers=headers, timeout=10)
+                print(r)
+                col = r.json().get('data', {})
+                if not col:
+                    raise ValueError('No collection found')
+            except:
+                raise ValueError(f'Unable to get collection {self.id_hash} from {self.server}')
+
+            resources = col.get('attributes', {}).get('resources', [])
+            name = col.get('attributes', {}).get('name', [])
+            app = col.get('attributes', {}).get('application', [])
+            entities = [{'type': item.get('type').title() , 'id': item.get('id'), 'attributes': {}, 'server': self.server} for item in resources]
+            return {
+                'resources': entities,
+                'name': name,
+                'application': app
+            }
+
         datasets = self.get_entities()
         layers = []
-        # for d in datasets:
-        #     tmp_atts = d.get('attributes', None)
-        #     layers = tmp_atts.get('layer', None)
-        # layers = flatten_list(layers)
         layers = flatten_list([d.get('attributes').get('layer') for d in datasets])
         if server_uses_widgets(server=self.server):
             widgets = flatten_list([d.get('attributes').get('widget') for d in datasets])
         else:
             widgets = None
+        
         response_list = []
+
         if 'layer' in self.object_type:
             _ = [response_list.append(l) for l in layers]
         if 'dataset' in self.object_type or 'table' in self.object_type:
             _ = [response_list.append(d) for d in datasets]
         if 'widget' in self.object_type:
             _ = [response_list.append(w) for w in widgets]
+
         filtered_list = self.filter_results(response_list)
         ordered_list = self.order_results(filtered_list)
-        return ordered_list
+
+        return {
+            'resources': ordered_list,
+            'name': f"Custom Search: '{self.search}'",
+            'application': None
+        }
 
     def get_entities(self):
         hash = random.getrandbits(16)
@@ -152,13 +192,13 @@ class Collection:
             found = []
             if description:
                 description = description.lower()
-                found.append(any([s in description for s in self.search]))
+                found.append(any([s in description for s in self.search_terms]))
             if name:
                 name = name.lower()
-                found.append(any([s in name for s in self.search]))
+                found.append(any([s in name for s in self.search_terms]))
             if slug:
                 slug = slug.lower().split('_')
-                found.append(any([s in slug for s in self.search]))
+                found.append(any([s in slug for s in self.search_terms]))
             if any(found):
                 if len(filtered_response) < self.limit:
                     filtered_response.append(item)
@@ -193,6 +233,33 @@ class Collection:
         if self.limit < len(tmp_sorted):
             tmp_sorted = tmp_sorted[0:self.limit]
         return tmp_sorted
+
+    # def create_collection(self, token=None):
+    #     if not token:
+    #         raise ValueError(f'[token] API token required to create new collection.')
+    #     elif not (name and app):
+    #         raise ValueError(f'[name] and [app] strings required to create new collection.')
+
+    #     payload = {
+    #         'name': str(name),
+    #         'application': str(app),
+    #         'resources': entities
+    #     }
+
+    #     try:
+    #         url = (f'{self.server}/v1/collection/')
+    #         headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
+    #         r = requests.post(url, data=json.dumps(payload), headers=headers)
+    #         col = r.json().get('data', {})
+    #         if r.status_code == 200:
+    #             print(f"Collection {col['id']} created.")
+    #             return col
+    #         else:
+    #             print(f'Failed with error code {r.status_code}')
+    #             return None
+    #     except:
+    #         raise ValueError(f'Unable to create collection.')
+        
 
     def save(self, path=None):
         """

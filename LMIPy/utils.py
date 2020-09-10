@@ -9,6 +9,7 @@ def html_box(item):
     is_widget = str(type(item)) == "<class 'LMIPy.lmipy.Widget'>"
     is_geometry = str(type(item)) == "<class 'LMIPy.geometry.Geometry'>"
     is_image = str(type(item)) == "<class 'LMIPy.image.Image'>"
+    is_collection = str(type(item)) == "<class 'LMIPy.collection.Collection'>"
     needs_widgets_and_co = server_uses_widgets(item.server)
     if needs_widgets_and_co:
         site_link = "<a href='https://resourcewatch.org/' target='_blank'>"
@@ -69,28 +70,41 @@ def html_box(item):
         html_string += (""
             " </div> </div>")
         return html_string
+    elif is_collection:
+        html_string = ("<div class='item_container' style='height: auto; overflow: hidden; border: 3px solid #2bA4A0;"
+            "border-radius: 2px; background: #fff; line-height: 1.21429em; padding: 10px;''>"
+            "<div class='item_left' style='width: 210px; float: left;''>"
+            f"{site_link}"
+            f"{site_logo}"
+            "</a></div><div class='item_right' style='float: none; width: auto; hidden;padding-left: 10px; overflow: hidden;''>"
+            f"<b>{item.attributes.get('name')}</b>"
+            f"<br><b>Collection id</b>: {item.id}</b>")
+        html_string += (""
+            " </div> </div>")
+        return html_string
     else:
         kind_of_item = 'Unknown'
         url_link = None
     table_statement = f"Data source {item.attributes.get('provider')}"
-    if item.attributes.get('connectorUrl') and item.attributes.get('provider') == "cartodb":
+    if item.attributes.get('connectorUrl', None) and item.attributes.get('provider', None) == "cartodb":
         table_statement = (f"Carto table: <a href={item.attributes.get('connectorUrl')}"
                            " target='_blank'>"
                            f"{item.attributes.get('tableName')}"
                            "</a>"
                           )
-    if item.attributes.get('connectorUrl') and item.attributes.get('provider') == "csv":
+    if item.attributes.get('connectorUrl', None) and item.attributes.get('provider', None) == "csv":
         table_statement = (f"CSV Table: <a href={item.attributes.get('connectorUrl')}"
                            " target='_blank'>"
                            f"{item.attributes.get('tableName')}"
                            "</a>"
                           )
-    if item.attributes.get('provider') == 'gee':
+    if item.attributes.get('provider', None) == 'gee':
         table_statement = (f"GEE asset: <a href='https://code.earthengine.google.com/asset='"
                            f"{item.attributes.get('tableName')} target='_blank'>"
                            f"{item.attributes.get('tableName')}"
                            "</a>"
                           )
+    item_app = item.attributes.get('application', '')
     html = ("<div class='item_container' style='height: auto; overflow: hidden; border: 3px solid #2BA4A0;"
             "border-radius: 2px; background: #fff; line-height: 1.21429em; padding: 10px;''>"
             "<div class='item_left' style='width: 210px; float: left;''>"
@@ -100,11 +114,11 @@ def html_box(item):
             f"<a href={url_link} target='_blank'>"
             f"<b>{item.attributes.get('name')}</b>"
             "</a>"
-            f"<br> {table_statement} | {kind_of_item} in {', '.join(item.attributes.get('application')).upper()}."
-            f"<br>Last Modified: {item.attributes.get('updatedAt')}"
+            f"<br> {table_statement} | {kind_of_item} in {', '.join(item_app).upper() if type(item_app) == list else item_app.upper()}."
+            f"<br>Last Modified: {item.attributes.get('updatedAt', 'N/A')}"
             f"<br><a href='{item.server}/v1/fields/{item.id}' target='_blank'>Fields</a>"
-            f" Connector: {item.attributes.get('provider')}"
-            f" | Published: {item.attributes.get('published')}"
+            f" Connector: {item.attributes.get('provider', 'N/A')}"
+            f" | Published: {item.attributes.get('published', 'N/A')}"
             " </div> </div>")
     return html
 
@@ -188,13 +202,13 @@ def show(item, i):
             "</a></div><div class='item_right' style='float: none; width: auto; hidden;padding-left: 10px; overflow: hidden;''>"
             f"<b>{i}. </b>"
             f"<a href={url_link} target='_blank'>"
-            f"<b>{attributes.get('name')}</b>"
+            f"<b>{attributes.get('name', None)}</b>"
             "</a>"
-            f"<br> {table_statement} | {kind_of_item} in {', '.join(attributes.get('application')).upper()}."
-            f"<br>Last Modified: {attributes.get('updatedAt')}"
+            f"<br> {table_statement} | {kind_of_item} in {', '.join(attributes.get('application', '')).upper()}."
+            f"<br>Last Modified: {attributes.get('updatedAt', None)}"
             f"<br><a href='{server}/v1/fields/{item_id}' target='_blank'>Fields</a>"
-            f" | Connector: {attributes.get('provider')}"
-            f" | Published: {attributes.get('published')}"
+            f" | Connector: {attributes.get('provider', None)}"
+            f" | Published: {attributes.get('published', None)}"
             " </div> </div>")
     return html
 
