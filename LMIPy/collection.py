@@ -253,6 +253,49 @@ class Collection:
     #             return None
     #     except:
     #         raise ValueError(f'Unable to create collection.')
+
+    def add_resources(self, token=None, resources=[]):
+        """
+        Adds a new resources to an existing Collection.
+        Resources must be a list of LMIPy objects (Layer, Dataset, Table, or Widget)
+        Requires token.
+        """
+        if not token:
+            raise ValueError(f'[token] API token required to add resources to collection.')
+        elif not resources:
+            raise ValueError(f'[resources] list required to add resources to update collection.')
+
+        valid_resources = {
+            "<class 'LMIPy.layer.Layer'>": "layer",
+            "<class 'LMIPy.dataset.Dataset'>": "dataset",
+            "<class 'LMIPy.table.Table'>": "dataset",
+            "<class 'LMIPy.lmipy.Widget'>": "widget"
+        }
+        
+        if not all([str(type(item)) in valid_resources.keys() for item in resources]):
+            raise ValueError(f'[resources] list must contain valid LMIPy Layer, Dataset, Table, or Widget objects')
+
+        payloads = [
+            {
+                'type': valid_resources[str(type(item))],
+                'id': item.id
+            } for item in resources
+        ]
+
+        for payload in payloads:
+            try:
+                url = (f'{self.server}/v1/collection/{self.id}/resource')
+                headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
+                r = requests.post(url, data=json.dumps(payload), headers=headers)
+                if r.status_code == 200:
+                    print(f"{payload['type'].title()} {payload['id']} added to Collection {self.id}.")
+                else:
+                    print(f'Failed with error code {r.status_code}')
+            except:
+                raise ValueError(f'Unable to add resources to collection.')
+
+        self.attributes = self.get_collection(token=token)
+        return self
         
 
     def save(self, path=None):
