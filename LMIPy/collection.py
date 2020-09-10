@@ -111,7 +111,7 @@ class Collection:
 
             resources = col.get('attributes', {}).get('resources', [])
             name = col.get('attributes', {}).get('name', '')
-            owner = col.get('attributes', {}).get('owenerId', None)
+            owner = col.get('attributes', {}).get('ownerId', None)
             app = col.get('attributes', {}).get('application', None)
             entities = [{'type': item.get('type').title() , 'id': item.get('id'), 'attributes': {}, 'server': self.server} for item in resources]
             return {
