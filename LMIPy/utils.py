@@ -9,7 +9,6 @@ def html_box(item):
     is_widget = str(type(item)) == "<class 'LMIPy.lmipy.Widget'>"
     is_geometry = str(type(item)) == "<class 'LMIPy.geometry.Geometry'>"
     is_image = str(type(item)) == "<class 'LMIPy.image.Image'>"
-    is_collection = str(type(item)) == "<class 'LMIPy.collection.Collection'>"
     needs_widgets_and_co = server_uses_widgets(item.server)
     if needs_widgets_and_co:
         site_link = "<a href='https://resourcewatch.org/' target='_blank'>"
@@ -67,18 +66,6 @@ def html_box(item):
         for k,v in item.attributes.get('info').items():
             if v and k != 'simplifyThresh':
                 html_string += f"<br><i>{k}: {v}</i>"
-        html_string += (""
-            " </div> </div>")
-        return html_string
-    elif is_collection:
-        html_string = ("<div class='item_container' style='height: auto; overflow: hidden; border: 3px solid #2bA4A0;"
-            "border-radius: 2px; background: #fff; line-height: 1.21429em; padding: 10px;''>"
-            "<div class='item_left' style='width: 210px; float: left;''>"
-            f"{site_link}"
-            f"{site_logo}"
-            "</a></div><div class='item_right' style='float: none; width: auto; hidden;padding-left: 10px; overflow: hidden;''>"
-            f"<b>{item.attributes.get('name')}</b>"
-            f"<br><b>Collection id</b>: {item.id}</b>")
         html_string += (""
             " </div> </div>")
         return html_string
@@ -143,7 +130,8 @@ def show(item, i):
     is_widget = item['type'] == 'Widget'
     server = item['server']
     item_id = item['id']
-    attributes = item['attributes']
+    item = create_class(item)
+    attributes = item.attributes
     uses_widgets = server_uses_widgets(server)
     if is_layer:
         kind_of_item = 'Layer'

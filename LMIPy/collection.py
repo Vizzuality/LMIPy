@@ -51,30 +51,22 @@ class Collection:
         self.object_type = object_type
         self.attributes = self.get_collection(token=token)
         self.id = id_hash
-        self.resources = self.attributes.get('resources', None)
         self.iter_position = 0
 
     def _repr_html_(self):
-        if self.search is not None:
-            str_html = ""
-            for n, c in enumerate(self.resources):
-                str_html += show(c, n)
-                if n < len(self.resources)-1:
-                    str_html += '<p></p>'
-            return str_html
-        else:
-            return html_box(item=self)
+        str_html = ""
+        for n, c in enumerate(self.attributes['resources']):
+            str_html += show(c, n)
+            if n < len(self.attributes['resources'])-1:
+                str_html += '<p></p>'
+        return str_html
 
     def __repr__(self):
         rep_string = "["
-        if self.search is not None:
-            for n, c in enumerate(self.resources):
-                rep_string += str(f"{n}. {c['type']} {c['id']} {c['attributes'].get('name', '')}")
-                if n < len(self.resources)-1:
-                    rep_string += ',\n '
-        else:
-            rep_string += self.__str__()
-        rep_string += ']'
+        for n, c in enumerate(self.attributes['resources']):
+            rep_string += str(f"{n}. {c['type']} {c['id']} {c['attributes'].get('name', '')}")
+            if n < len(self.attributes['resources'])-1:
+                rep_string += ',\n '
         return rep_string
 
     def __str__(self):
@@ -84,22 +76,22 @@ class Collection:
         return self
 
     def __next__(self):
-        if self.iter_position >= len(self.resources):
+        if self.iter_position >= len(self.attributes['resources']):
             self.iter_position = 0
             raise StopIteration
         else:
             self.iter_position += 1
-            return self.resources[self.iter_position - 1]
+            return self.attributes['resources'][self.iter_position - 1]
 
     def __getitem__(self, key):
-        items = self.resources[key]
+        items = self.attributes['resources'][key]
         if type(items) == list:
             return [create_class(item) for item in items]
         else:
             return create_class(items)
 
     def __len__(self):
-        return len(self.resources)
+        return len(self.attributes['resources'])
 
     def get_collection(self, token=None):
         """
@@ -110,9 +102,7 @@ class Collection:
             try:
                 url = (f'{self.server}/v1/collection/{self.id_hash}')
                 headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
-                print(url)
                 r = requests.get(url, headers=headers, timeout=10)
-                print(r)
                 col = r.json().get('data', {})
                 if not col:
                     raise ValueError('No collection found')
@@ -120,13 +110,16 @@ class Collection:
                 raise ValueError(f'Unable to get collection {self.id_hash} from {self.server}')
 
             resources = col.get('attributes', {}).get('resources', [])
-            name = col.get('attributes', {}).get('name', [])
-            app = col.get('attributes', {}).get('application', [])
+            name = col.get('attributes', {}).get('name', '')
+            owner = col.get('attributes', {}).get('owenerId', None)
+            app = col.get('attributes', {}).get('application', None)
             entities = [{'type': item.get('type').title() , 'id': item.get('id'), 'attributes': {}, 'server': self.server} for item in resources]
             return {
                 'resources': entities,
                 'name': name,
-                'application': app
+                'application': app,
+                'ownerId': owner
+
             }
 
         datasets = self.get_entities()
@@ -152,7 +145,8 @@ class Collection:
         return {
             'resources': ordered_list,
             'name': f"Custom Search: '{self.search}'",
-            'application': None
+            'application': None,
+            'ownerId': None
         }
 
     def get_entities(self):
