@@ -244,13 +244,12 @@ class Collection:
         elif not (name and app):
             raise ValueError(f'[name] and [application] strings required in attributes to create new collection.')
 
-        if not attributes.get('resources', []):
-            raise ValueError(f'Resources required to create new collection.')
-
-        entities = [{
-            'type': item['type'] if item and type(item) == dict else item.type.lower(),
-            'id': item['id'] if item and type(item) == dict else item.id
-        } for item in attributes['resources']]
+        entities = []
+        if  attributes.get('resources', []):
+            entities = [{
+                'type': item['type'] if item and type(item) == dict else item.type.lower(),
+                'id': item['id'] if item and type(item) == dict else item.id
+            } for item in attributes['resources']]
 
         payload = {
             'name': str(name),
