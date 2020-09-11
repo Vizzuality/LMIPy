@@ -26,6 +26,7 @@ class Layer:
                     server='https://api.resourcewatch.org', mapbox_token=None, token=None):
         self.server = server
         self.mapbox_token = mapbox_token
+        self.type = 'Layer'
         if not attributes and id_hash:
             self.id = id_hash
             self.attributes = self.get_layer()

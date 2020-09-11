@@ -30,6 +30,7 @@ class Dataset:
         self.id = id_hash
         self.layers = []
         self.server = server
+        self.type = 'Dataset'
         if not attributes:
             self.attributes = self.get_dataset()
         elif attributes and token:

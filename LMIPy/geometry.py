@@ -27,6 +27,7 @@ class Geometry:
     """
     def __init__(self, id_hash=None, attributes=None, s=None, parameters=None, server='http://api.resourcewatch.org'):
         self.server = server
+        self.type = 'Geometry'
         if s:
             attributes = self.create_attributes_from_shapely(s)
         if parameters:
