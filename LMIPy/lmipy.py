@@ -17,6 +17,7 @@ class Metadata:
         if attributes.get('type') != 'metadata':
             raise ValueError(f"Non metadata attributes passed to Metadata class ({attributes.get('type')})")
         self.id = attributes.get('id')
+        self.type = 'Metadata'
         self.server = server
         self.attributes = attributes.get('attributes')
 
@@ -98,6 +99,7 @@ class Vocabulary:
         if attributes.get('type') != 'vocabulary':
             raise ValueError(f"Non vocabulary attributes passed to Vocabulary class ({attributes.get('type')})")
         self.server = server
+        self.type = 'Vocabulary'
         self.attributes = attributes.get('attributes')
         self.id = self.attributes.get('resource').get('id')
 
@@ -154,6 +156,7 @@ class Widget:
     """
     def __init__(self, id_hash=None, attributes=None, server='https://api.resourcewatch.org'):
         self.id = id_hash
+        self.type = 'Widget'
         self.server = server
         if id_hash:
             self.attributes = self.get_widget()

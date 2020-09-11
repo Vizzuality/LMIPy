@@ -37,6 +37,7 @@ class ImageCollection:
                     server='http://api.resourcewatch.org/'):
         self.lat = lat
         self.lon = lon
+        self.type = 'ImageCollection'
         self.start = start
         self.end = end
         self.instrument = instrument
