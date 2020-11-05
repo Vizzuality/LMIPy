@@ -22,9 +22,10 @@ class Layer:
     server: str
         A string of the server URL.
     """
-    def __init__(self, id_hash=None, attributes=None,
+    def __init__(self, id_hash=None, attributes={},
                     server='https://api.resourcewatch.org', mapbox_token=None, token=None):
         self.server = server
+        self.id = id_hash
         self.mapbox_token = mapbox_token
         self.type = 'Layer'
         if not attributes and id_hash:
@@ -34,9 +35,16 @@ class Layer:
             created_layer = self.new_layer(token=token, attributes=attributes, server=self.server)
             self.attributes = created_layer.attributes
             self.id = created_layer.id
-        elif attributes:
-            self.id = attributes.get('id')
+        elif atts and lid:
+            self.id = lid
+            self.attributes = atts
+        elif lid:
+            self.id = lid
             self.attributes = self.get_layer()
+        elif id_hash:
+            self.attributes = self.get_layer()
+        else:
+            raise ValueError(f'Unable to initialise Layer.')
 
     def __repr__(self):
         return self.__str__()
@@ -92,16 +100,6 @@ class Layer:
         url = self.attributes.get('layerConfig').get('url', None)
         if not url:
             url = self.attributes.get('layerConfig').get('body').get('url')
-        # This below code is an issue. Not working and probably wont fix the problem
-        # as far as I can see. E.g. check Forma case. tmp hack for now is to catch directly.
-        # params_config = self.attributes.get('layerConfig').get('params_config', None)
-        # if params_config:
-        #     for config in params_config:
-        #         key = config['key']
-        #         default = config['default']
-        #         required = config['required']
-        #         if required:
-        #             url = url.replace(f'{{{key}}}', f'{default}')
         if '{thresh}' in url:
             # try to replace thresh with a best-guess valid threshold (say 30%)
             url = url.replace('{thresh}','30')
@@ -327,9 +325,7 @@ class Layer:
         for k in clone_layer_attr.keys():
             if k in layer_params:
                 clone_layer_attr[k] = layer_params[k]
-        if target_dataset_id:
-            target_dataset = Dataset(id_hash=target_dataset_id, server=clone_server)
-        else:
+        if not target_dataset_id:
             target_dataset = self.dataset()
             clone_dataset_attr = {**target_dataset.attributes, 'name': name, }
             payload = {"dataset":{
@@ -373,12 +369,13 @@ class Layer:
         headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
         r = requests.post(url, data=json.dumps(payload), headers=headers)
         if r.status_code == 200:
-                clone_layer_id = r.json()['data']['id']
+                response_attr = r.json()['data']
+                clone_layer_id = response_attr['id']
         else:
             print(r.status_code)
             return None
         print(f'{clone_server}/v1/dataset/{target_dataset_id}/layer/{clone_layer_id}')
-        return Layer(id_hash=clone_layer_id, server=clone_server)
+        return Layer(attributes=response_attr, server=clone_server)
 
     def parse_query(self, sql):
         """
@@ -566,7 +563,8 @@ class Layer:
             try:
                 merged_layer = target_layer.update(update_params=filtered_payload, token=token)
             except:
-                print('Aborting...')
+                print('Merge failed')
+                return None
             print('Completed!')
             return merged_layer
 

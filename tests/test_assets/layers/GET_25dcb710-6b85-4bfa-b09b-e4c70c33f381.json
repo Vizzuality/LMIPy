@@ -1,0 +1,134 @@
+{
+  "data": {
+    "id": "25dcb710-6b85-4bfa-b09b-e4c70c33f381",
+    "type": "layer",
+    "attributes": {
+      "name": "Template Layer",
+      "slug": "Template-Layer",
+      "dataset": "7cf3fab2-3fbe-4980-b572-712207b2c8c7",
+      "description": "Boundaries of areas over which indigenous peoples or local communities enjoy rights to the land and certain resources. Only select countries are included, and dates of data displayed vary by country.",
+      "application": [
+        "gfw"
+      ],
+      "iso": [
+        "BRA",
+        "MEX",
+        "CAN",
+        "NZL",
+        "CRI",
+        "PAN",
+        "AUS"
+      ],
+      "provider": "cartodb",
+      "userId": "59db4eace9c1380001d6e4c3",
+      "default": false,
+      "protected": false,
+      "published": false,
+      "env": "staging",
+      "layerConfig": {
+        "account": "wri-01",
+        "body": {
+          "vectorLayers": [
+            {
+              "paint": {
+                "fill-color": "#3BB2D0",
+                "fill-opacity": 0.7
+              },
+              "source-layer": "layer0",
+              "type": "fill"
+            },
+            {
+              "paint": {
+                "line-width": 1,
+                "line-color": "#3BB2D0",
+                "line-opacity": 1
+              },
+              "source-layer": "layer0",
+              "type": "line"
+            }
+          ],
+          "layers": [
+            {
+              "options": {
+                "cartocss": "#gfw_land_rights{  polygon-fill: #f69;  polygon-opacity: 0.7;  line-color: #3BB2D0;  line-width: 1;  line-opacity: 1;}",
+                "cartocss_version": "2.3.0",
+                "sql": "SELECT the_geom_webmercator, cartodb_id, name, country, legal_term, legal_reco as legal_recognition, ROUND(area_ha::text::float) AS area_ha from gfw_land_rights {{where}}"
+              },
+              "type": "cartodb"
+            }
+          ],
+          "maxzoom": 19,
+          "minzoom": 2
+        },
+        "sql_config": [
+          {
+            "key": "where",
+            "key_params": [
+              {
+                "key": "country",
+                "required": false
+              }
+            ]
+          }
+        ]
+      },
+      "legendConfig": {
+        "type": "basic",
+        "items": [
+          {
+            "name": "Land rights areas",
+            "color": "#3BB2D0"
+          }
+        ]
+      },
+      "interactionConfig": {
+        "output": [
+          {
+            "format": null,
+            "type": "string",
+            "property": "Name",
+            "column": "name"
+          },
+          {
+            "format": null,
+            "type": "string",
+            "property": "Legal Recognition",
+            "column": "legal_recognition"
+          },
+          {
+            "format": null,
+            "type": "number",
+            "property": "Area",
+            "column": "area_ha"
+          },
+          {
+            "hidden": true,
+            "type": "number",
+            "property": "cartodb_id",
+            "format": null,
+            "column": "cartodb_id"
+          },
+          {
+            "hidden": true,
+            "type": "json",
+            "property": "the_geom",
+            "format": "json",
+            "column": "the_geom_webmercator"
+          }
+        ],
+        "type": "intersection"
+      },
+      "applicationConfig": {
+        "metadata": "gfw_land_rights",
+        "menuPosition": 0,
+        "global": true,
+        "default": true,
+        "analysisEndpoint": "use",
+        "active": true
+      },
+      "staticImageConfig": {},
+      "createdAt": "2019-09-24T07:35:59.856Z",
+      "updatedAt": "2019-09-27T14:16:50.574Z"
+    }
+  }
+}

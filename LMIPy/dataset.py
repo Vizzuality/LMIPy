@@ -23,7 +23,7 @@ class Dataset:
         An ID hash of the dataset in the API.
     attributes: dic
         A dictionary holding the attributes of a dataset.
-    sever: str
+    server: str
         A URL string of the vizzuality server.
     """
     def __init__(self, id_hash=None, attributes=None, server='https://api.resourcewatch.org', token=None):
@@ -55,7 +55,7 @@ class Dataset:
         else:
             self.vocabulary = []
         if len(self.attributes.get('widget', [])) > 0:
-            self.widget =[Widget(w.get('id'), attributes=1, server=self.server) for w in self.attributes.get('widget')]
+            self.widget =[Widget(w.get('id'), attributes=w, server=self.server) for w in self.attributes.get('widget')]
             _ = self.attributes.pop('widget')
         else:
             self.widget = []
@@ -291,7 +291,7 @@ class Dataset:
                 del payload['dataset']['tableName']
 
             print(f'Creating clone dataset')
-            url = f'{clone_server}/dataset'
+            url = f'{clone_server}/dataset/'
             headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
             r = requests.post(url, data=json.dumps(payload), headers=headers)
             if r.status_code == 200:
@@ -309,7 +309,6 @@ class Dataset:
                     for l in layers:
                         try:
                             layer_name = l.attributes['name']
-
                             l.clone(token=token, env=env, layer_params={'name': layer_name}, clone_server=clone_server, target_dataset_id=clone_dataset_id)
                         except:
                             raise ValueError(f'Layer cloning failed for {l.id}')
@@ -362,7 +361,6 @@ class Dataset:
                             raise ValueError('Failed to clone Metadata.')
                 elif len(metas) == 0:
                     print("No child metadata to clone!")
-            # self.attributes = Dataset(clone_dataset_id, server=clone_server).attributes
             return Dataset(id_hash=clone_dataset_id, server=clone_server)
 
 
@@ -417,7 +415,7 @@ class Dataset:
         else:
             url_args = "metadata,layer"
         try:
-            url = f"{self.server}/v1/dataset/{self.id}?includes={url_args}"
+            url = f'{self.server}/v1/dataset/{self.id}?includes=layer,widget,vocabulary,metadata&hash={random.getrandbits(16)}'
             r = requests.get(url)
             dataset_config = r.json()['data']
         except:
@@ -520,7 +518,7 @@ class Dataset:
                 headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
                 r = requests.post(url, data=json.dumps(payload), headers=headers)
             except:
-                raise ValueError(f'Vocabulary creation failed.')
+                raise ValueError(f'Metadata creation failed.')
             if r.status_code == 200:
                 print(f'Metadata created.')
                 return Dataset(id_hash=ds_id, server=self.server)
@@ -559,7 +557,6 @@ class Dataset:
                 print(url)
                 headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
                 r = requests.post(url, data=json.dumps(payload), headers=headers)
-                print(r.json())
             except:
                 raise ValueError(f'Widget creation failed.')
             if r.status_code == 200:

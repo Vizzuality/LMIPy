@@ -158,12 +158,17 @@ class Widget:
         self.id = id_hash
         self.type = 'Widget'
         self.server = server
-        if id_hash:
+        self.id = id_hash
+        atts = attributes.get('attributes', None)
+        wid = attributes.get('id', None)
+        if atts and wid:
+            self.id = wid
+            self.attributes = atts 
+        elif wid:
+            self.id = wid
             self.attributes = self.get_widget()
-        elif attributes:
-            self.id = attributes.get('id')
+        elif id_hash:
             self.attributes = self.get_widget()
-
         else:
             raise ValueError(f'Unable to initialise Widget without id_hash.')
 
@@ -185,7 +190,7 @@ class Widget:
             url = (f'{self.server}/v1/widget/{self.id}?hash={hash}')
             r = requests.get(url)
         except:
-            raise ValueError(f'Unable to get Widget {self.id} from {r.url}')
+            raise ValueError(f'Unable to get Widget {self.id} from {url}')
 
         if r.status_code == 200:
             return r.json().get('data').get('attributes')
@@ -220,15 +225,15 @@ class Widget:
                     payload[k] = v
             try:
                 url = f'{self.server}/v1/dataset/{ds_id}/widget/{w_id}'
-                print('url',url)
+                print(url)
                 headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
                 r = requests.patch(url, data=json.dumps(payload), headers=headers)
             except:
                 raise ValueError(f'Widget update failed.')
             if r.status_code == 200:
                 print(f'Widget updated.')
-                self.attributes = self.get_widget()
-                return self
+                response = r.json()['data']
+                return Widget(attributes=response)
             else:
                 print(f'Failed with error code {r.status_code}')
                 return None
@@ -293,10 +298,10 @@ class Widget:
         if conf.lower() == 'y':
             try:
                 merged_widget = target_widget.update(update_params=filtered_payload, token=token)
+                print('Completed!')
+                return merged_widget
             except:
                 print('Aborting...')
-            print('Completed!')
-            return merged_widget
 
         elif conf.lower() == 'n':
             print('Aborting...')

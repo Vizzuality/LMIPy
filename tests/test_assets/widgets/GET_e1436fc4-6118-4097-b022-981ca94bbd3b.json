@@ -1,0 +1,28 @@
+{
+  "data": {
+    "id": "e1436fc4-6118-4097-b022-981ca94bbd3b",
+    "type": "widget",
+    "attributes": {
+      "name": "Template Widget",
+      "dataset": "7cf3fab2-3fbe-4980-b572-712207b2c8c7",
+      "slug": "Template-Widget_2",
+      "userId": "57a0aa1071e394dd32ffe137",
+      "application": [
+        "gfw"
+      ],
+      "verified": false,
+      "default": false,
+      "protected": false,
+      "defaultEditableWidget": false,
+      "published": true,
+      "freeze": false,
+      "env": "production",
+      "widgetConfig": {
+        "key": "val"
+      },
+      "template": false,
+      "createdAt": "2019-09-24T15:29:38.847Z",
+      "updatedAt": "2019-09-24T15:29:38.847Z"
+    }
+  }
+}
