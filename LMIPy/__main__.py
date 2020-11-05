@@ -26,10 +26,12 @@ def main():
     
     args = parser.parse_args()
 
-    if args.function == 'validate' and args.slug and args.id:
+    if args.function == 'validate_table' and args.slug and args.id:
         validate_table(args.id[0], args.slug[0])
-    elif args.function == 'validate' and args.path:
+    elif args.function == 'validate_table' and args.path:
         validate_tables(args.path[0])
+    else:
+        print('invalid arguments')
 
 if __name__ == "__main__":
     main()
