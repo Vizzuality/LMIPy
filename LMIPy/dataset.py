@@ -4,10 +4,12 @@ import random
 import geopandas as gpd
 import os
 import datetime
+
 #from shapely.geometry import shape
+from time import sleep
 from pprint import pprint
 from .layer import Layer
-from .utils import html_box, nested_set
+from .utils import html_box, nested_set, server_uses_widgets
 from .lmipy import Vocabulary, Metadata, Widget
 
 
@@ -28,9 +30,10 @@ class Dataset:
         self.id = id_hash
         self.layers = []
         self.server = server
+        self.type = 'Dataset'
         if not attributes:
             self.attributes = self.get_dataset()
-        elif attributes and token:   
+        elif attributes and token:
             created_dataset = self.new_dataset(token=token, attributes=attributes, server=server)
             self.attributes = created_dataset.attributes
             self.id = created_dataset.id
@@ -73,7 +76,10 @@ class Dataset:
         """
         try:
             hash = random.getrandbits(16)
-            url = (f'{self.server}/v1/dataset/{self.id}?includes=layer,widget,vocabulary,metadata&hash={hash}')
+            if server_uses_widgets(self.server):
+                url = f'{self.server}/v1/dataset/{self.id}?includes=layer,widget,vocabulary,metadata&hash={hash}'
+            else:
+                url = f'{self.server}/v1/dataset/{self.id}?includes=layer,metadata&hash={hash}'
             r = requests.get(url)
         except:
             raise ValueError(f'Unable to get Dataset {self.id} from {r.url}')
@@ -134,7 +140,7 @@ class Dataset:
         uk = list(updatable_fields.keys())
         return uk
 
-    def update(self, update_params=None, token=None):
+    def update(self, update_params=None, token=None, force=False):
         """
         Update a Dataset object
 
@@ -145,14 +151,25 @@ class Dataset:
         update_params: dic
             A dictionary object containing {key: value} pairs of attributes to update.
         token: str
-            A valid API key from the Resource Watch API. https://resource-watch.github.io/doc-api/index-rw.html
+            A valid API key. https://developer.skydipper.com/
         show_difference: bool
             If set to True a verbose description of the updates will be returned to the user.
         """
         if not token:
-            raise ValueError(f'[token=None] Resource Watch API TOKEN required for updates.')
+            raise ValueError(f'[token=None] API TOKEN required for updates.')
         update_blacklist = ['metadata','layer', 'vocabulary', 'updatedAt', 'userId', 'slug', "clonedHost", "errorMessage", "taskId", "dataLastUpdated"]
         attributes = {f'{k}':v for k,v in self.attributes.items() if k not in update_blacklist}
+
+        if attributes.get('protected', False) and not force:
+            print(f"{attributes['env'].title()} Dataset: {self.attributes['name']} with id={self.id} is protected.\nContinue with update?\n> y/n")
+            conf = input()
+            if conf.lower() == 'n':
+                print(f"Halting update...")
+                return None
+            elif conf.lower() != 'y':
+                print('Requires y/n input!')
+                return None
+
         if not update_params:
             raise ValueError(f'[update_params=None] Must specify update parameters.')
         else:
@@ -168,7 +185,7 @@ class Dataset:
         try:
             url = f"{self.server}/dataset/{self.id}"
             headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
-            r = requests.patch(url, data=json.dumps(payload), headers=headers)
+            r = requests.patch(url, data=json.dumps(payload), headers=headers, timeout=10)
         except:
             raise ValueError(f'Dataset update failed.')
         if r.status_code == 200:
@@ -194,9 +211,10 @@ class Dataset:
     def delete(self, token=None, force=False):
         """
         Deletes a target Dataset object.
+        If force=True, deletes dataset along with all children.
         """
         if not token:
-            raise ValueError(f'[token] Resource Watch API token required to delete.')
+            raise ValueError(f'[token] API token required to delete.')
         layer_count = len(self.layers)
         if layer_count > 0:
             if not force:
@@ -241,11 +259,15 @@ class Dataset:
 
         The argument `clone_server` specifies the server to clone to. Default server = https://api.resourcewatch.org
 
-        Set clone_children=True to clone all child layers, and widgets.
+        Set clone_children=True to clone all child layers, widgets, vocabs and metadata entities.
+        Alternatively you may set clone_children as a list containing one or more or 'layer', 'widget', 'vocab', 'meta'
+        in order to selectively clone children by entity type.
+        .
         """
+        if clone_children == True: clone_children = ['layer', 'widget', 'vocab', 'meta']
         if not clone_server: clone_server = self.server
         if not token:
-            raise ValueError(f'[token] Resource Watch API token required to clone.')
+            raise ValueError(f'[token] API token required to clone.')
         else:
             name = dataset_params.get('name', self.attributes['name'] + 'CLONE')
             clone_dataset_attr = {**self.attributes, 'name': name}
@@ -264,30 +286,36 @@ class Dataset:
                     'name': clone_dataset_attr['name']
                 }
             }
+            ## wms exception
+            if payload['dataset']['connectorType'] == 'wms' and payload['dataset']['tableName'] == None:
+                del payload['dataset']['tableName']
+
             print(f'Creating clone dataset')
             url = f'{clone_server}/dataset/'
             headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
             r = requests.post(url, data=json.dumps(payload), headers=headers)
             if r.status_code == 200:
-                clone_dataset_id = r.json()['data']['id'] 
+                clone_dataset_id = r.json()['data']['id']
                 clone_dataset = Dataset(id_hash=clone_dataset_id, server=clone_server)
             else:
                 print(r.status_code)
                 return None
             print(f'{clone_server}/v1/dataset/{clone_dataset_id}')
             if clone_children:
+                # Wait for dataset to be added
+                sleep(0.5)
                 layers =  self.layers
-                if len(layers) > 0:
+                if len(layers) > 0 and 'layer' in clone_children:
                     for l in layers:
                         try:
                             layer_name = l.attributes['name']
                             l.clone(token=token, env=env, layer_params={'name': layer_name}, clone_server=clone_server, target_dataset_id=clone_dataset_id)
                         except:
                             raise ValueError(f'Layer cloning failed for {l.id}')
-                else:
+                elif len(layers) == 0:
                     print("No child layers to clone!")
-                widgets =  self.widget 
-                if len(widgets) > 0:
+                widgets =  self.widget
+                if len(widgets) > 0 and 'widget' in clone_children:
                     for w in widgets:
                         widget = w.attributes
                         widget_payload = {
@@ -301,10 +329,10 @@ class Dataset:
                             clone_dataset.add_widget(token=token, widget_params=widget_payload)
                         except:
                             raise ValueError(f'Widget cloning failed for {widget.id}')
-                else:
+                elif len(widgets) == 0:
                     print("No child widgets to clone!")
                 vocabs = self.vocabulary
-                if len(vocabs) > 0:
+                if len(vocabs) > 0 and 'vocab' in clone_children:
                     for v in vocabs:
                         vocab = v.attributes
                         vocab_payload = {
@@ -316,8 +344,10 @@ class Dataset:
                             clone_dataset.add_vocabulary(vocab_params=vocab_payload, token=token)
                         except:
                             raise ValueError('Failed to clone Vocabulary.')
+                elif len(vocabs) == 0:
+                    print("No child vocabs to clone!")
                 metas = self.metadata
-                if len(metas) > 0:
+                if len(metas) > 0 and 'meta' in clone_children:
                     for m in metas:
                         meta = m.attributes
                         meta_payload = {
@@ -329,17 +359,19 @@ class Dataset:
                             clone_dataset.add_metadata(meta_params=meta_payload, token=token)
                         except:
                             raise ValueError('Failed to clone Metadata.')
+                elif len(metas) == 0:
+                    print("No child metadata to clone!")
             return Dataset(id_hash=clone_dataset_id, server=clone_server)
 
 
     def intersect(self, geometry):
         """
         EXPERIMENTAL FEATURE
-        
+
         Intersect an EE raster with a geometry
 
         Given a valid LMIPy.Geometry object, return a dictionary based on reduceRegion.
-        
+
         Parameters
         ---------
         geometry: Geometry
@@ -378,14 +410,17 @@ class Dataset:
         else:
            if not os.path.isdir(path):
                 os.mkdir(path)
-
+        if server_uses_widgets(self.server):
+            url_args = "vocabulary,metadata,layer,widget"
+        else:
+            url_args = "metadata,layer"
         try:
             url = f'{self.server}/v1/dataset/{self.id}?includes=layer,widget,vocabulary,metadata&hash={random.getrandbits(16)}'
             r = requests.get(url)
             dataset_config = r.json()['data']
         except:
             raise ValueError(f'Could not retrieve config.')
-        
+
         save_json = {
             "id": self.id,
             "type": "dataset",
@@ -397,7 +432,7 @@ class Dataset:
         with open(f"{path}/{self.id}.json", 'w') as fp:
             json.dump(save_json, fp)
         print('Save complete!')
-        
+
 
     def load(self, path=None, check=True):
         """
@@ -432,7 +467,7 @@ class Dataset:
         A RW-API token is required.
         """
         if not token:
-            raise ValueError(f'[token] Resource Watch API token required to create new vocabulary.')
+            raise ValueError(f'[token] API token required to create new vocabulary.')
         vocab_type = vocab_params.get('name', None)
         vocab_tags = vocab_params.get('tags', None)
         app = vocab_params.get('application', None)
@@ -450,8 +485,7 @@ class Dataset:
                 raise ValueError(f'Vocabulary creation failed.')
             if r.status_code == 200:
                 print(f'Vocabulary {vocab_type} created.')
-                self.attributes = self.get_dataset()
-                return self
+                return Dataset(id_hash=ds_id, server=self.server)
             else:
                 print(f'Failed with error code {r.status_code}')
                 return None
@@ -469,7 +503,7 @@ class Dataset:
         A RW-API token is required.
         """
         if not token:
-            raise ValueError(f'[token] Resource Watch API token required to create new vocabulary.')
+            raise ValueError(f'[token] API token required to create new vocabulary.')
         info = meta_params.get('info', None)
         app = meta_params.get('application', None)
         ds_id = self.id
@@ -487,8 +521,7 @@ class Dataset:
                 raise ValueError(f'Metadata creation failed.')
             if r.status_code == 200:
                 print(f'Metadata created.')
-                self.attributes = self.get_dataset()
-                return self
+                return Dataset(id_hash=ds_id, server=self.server)
             else:
                 print(f'Failed with error code {r.status_code}')
                 return None
@@ -506,7 +539,7 @@ class Dataset:
         A RW-API token is required.
         """
         if not token:
-            raise ValueError(f'[token] Resource Watch API token required to create new widget.')
+            raise ValueError(f'[token] API token required to create new widget.')
         name = widget_params.get('name', None)
         description = widget_params.get('description', None)
         widget_config = widget_params.get('widgetConfig', None)
@@ -528,8 +561,7 @@ class Dataset:
                 raise ValueError(f'Widget creation failed.')
             if r.status_code == 200:
                 print(f'Widget created.')
-                self.attributes = self.get_dataset()
-                return self
+                return Dataset(id_hash=ds_id, server=self.server)
             else:
                 print(f'Failed with error code {r.status_code}')
                 return None
@@ -541,7 +573,7 @@ class Dataset:
         Create a new staging or prod Dataset entity from attributes.
         """
         if not token:
-            raise ValueError(f'[token] Resource Watch API token required to create a new dataset.')
+            raise ValueError(f'[token] API token required to create a new dataset.')
         elif not attributes:
             raise ValueError(f'Attributes required to create a new dataset.')
         else:
@@ -557,7 +589,7 @@ class Dataset:
                 return None
             print(f'{self.server}/v1/dataset/{new_dataset_id}')
             return Dataset(id_hash=new_dataset_id, server=server)
-            
+
     def merge(self, token=None, target_dataset=None, target_dataset_id=None, target_server='https://api.resourcewatch.org', key_whitelist=[], force=False):
         """
         'Merge' one Dataset entity into another target Dataset.
@@ -565,7 +597,7 @@ class Dataset:
         Note: requires API token.
         """
         if not token:
-            raise ValueError(f'[token] Resource Watch API token required to update Dataset.')
+            raise ValueError(f'[token] API token required to update Dataset.')
         if not target_dataset and target_dataset_id and target_server:
             target_dataset = Dataset(target_dataset_id, server=target_server)
         else:

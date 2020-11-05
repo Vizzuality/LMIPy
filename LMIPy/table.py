@@ -37,6 +37,7 @@ class Table(Dataset):
             url = (f'{self.server}/v1/query/{self.id}?sql={sql}')
             r = requests.get(url)
             if r.status_code == 200:
+                print(r.url)
                 response_data = r.json().get('data')
                 for d in response_data:
                     if d.get('the_geom', None):

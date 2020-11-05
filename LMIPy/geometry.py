@@ -25,8 +25,9 @@ class Geometry:
     s: obj
         A shapely object.
     """
-    def __init__(self, id_hash=None, attributes=None, s=None, parameters=None, server='https://production-api.globalforestwatch.org'):
+    def __init__(self, id_hash=None, attributes=None, s=None, parameters=None, server='http://api.resourcewatch.org'):
         self.server = server
+        self.type = 'Geometry'
         if s:
             attributes = self.create_attributes_from_shapely(s)
         if parameters:
@@ -62,7 +63,7 @@ class Geometry:
         """
             If you are using this method, you need to use the GFW production server.
         """
-        server = "https://production-api.globalforestwatch.org"
+        server = "http://api.resourcewatch.org"
         if not parameters:
             raise ValueError(f'parameters requires!')
         iso = parameters.get('iso', None)
@@ -175,7 +176,7 @@ class Geometry:
                   "end": end,
                   "band_viz": json.dumps(band_viz)
                   }
-        url = "https://production-api.globalforestwatch.org/v1/recent-tiles"
+        url = "http://api.resourcewatch.org/v1/recent-tiles"
         r = requests.get(url, params=params)
         if r.status_code == 200:
             tile_url = r.json().get('data').get('tiles')[0].get('attributes').get('tile_url')
@@ -184,7 +185,7 @@ class Geometry:
             return None
 
     def get_composite_url(self, centroid, band_viz, instrument, date_range):
-        valid_servers = ['https://production-api.globalforestwatch.org',
+        valid_servers = ['http://api.resourcewatch.org',
                          'https://staging-api.globalforestwatch.org']
         if self.server in valid_servers:
             params = {"geostore": self.id,
@@ -199,8 +200,7 @@ class Geometry:
                 tile_url = r.json().get('attributes').get('tile_url')
                 return tile_url
         else:
-            #url = 'http://localhost:4500/api/v1/composite-service/geom'
-            url = "https://production-api.globalforestwatch.org/v1/composite-service/geom"
+            url = "http://api.resourcewatch.org/v1/composite-service/geom"
             payload = json.dumps(self.attributes)
             params = {"instrument": instrument,
                       "date_range": date_range,
@@ -284,7 +284,7 @@ class Geometry:
             An optional application id string (such as 'gfw') to tailor the description to.
         """
         # If the geostore exists on the right server, send the id, else send the valid geojson attributes
-        valid_servers = ['https://production-api.globalforestwatch.org',
+        valid_servers = ['http://api.resourcewatch.org',
                          'https://staging-api.globalforestwatch.org']
         if self.server in valid_servers:
             params = {"geostore": self.id,
@@ -305,7 +305,7 @@ class Geometry:
                 print(f"Description attempt failed: response: {r.status_code}, \n {r.json()}")
                 return None
         else:
-            url = "https://production-api.globalforestwatch.org/v1/geodescriber/geom"
+            url = "http://api.resourcewatch.org/v1/geodescriber/geom"
             payload = json.dumps(self.attributes)
             querystring = {"lang": lang, "app": app}
             headers = {

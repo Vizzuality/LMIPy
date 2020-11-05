@@ -34,9 +34,10 @@ class ImageCollection:
 
     def __init__(self, lat, lon, start, end, instrument=None,
                     band_viz={'bands': ['B4', 'B3', 'B2'], 'min': 0, 'max': 0.4},
-                    server='https://production-api.globalforestwatch.org'):
+                    server='http://api.resourcewatch.org/'):
         self.lat = lat
         self.lon = lon
+        self.type = 'ImageCollection'
         self.start = start
         self.end = end
         self.instrument = instrument
@@ -85,7 +86,7 @@ class ImageCollection:
 
     def get_collection(self):
         """Returns a list of Image objects."""
-        url = 'https://production-api.globalforestwatch.org/recent-tiles'
+        url = 'http://api.resourcewatch.org/recent-tiles'
         params = {'lon':self.lon,
                   'lat':self.lat,
                   'start':self.start,

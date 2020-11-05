@@ -17,6 +17,7 @@ class Metadata:
         if attributes.get('type') != 'metadata':
             raise ValueError(f"Non metadata attributes passed to Metadata class ({attributes.get('type')})")
         self.id = attributes.get('id')
+        self.type = 'Metadata'
         self.server = server
         self.attributes = attributes.get('attributes')
 
@@ -36,7 +37,7 @@ class Metadata:
         """
         from .dataset import Dataset
         if not token:
-            raise ValueError(f'[token] Resource Watch API token required to update metadata.')
+            raise ValueError(f'[token] API token required to update metadata.')
         app = self.attributes.get('application', None)
         lang = update_params.get('language', 'en')
         info = update_params.get('info', None)
@@ -63,14 +64,14 @@ class Metadata:
                 return None
         else:
             raise ValueError(f'Metadata update requires info object and application string.')
-            
+
     def delete(self, token=None):
         """
         Delete the current metadata, removing it's association to the parent dataset.
         A RW-API token is required.
         """
         if not token:
-            raise ValueError(f'[token] Resource Watch API token required to delete vocabulary.')
+            raise ValueError(f'[token] API token required to delete vocabulary.')
         lang = self.attributes.get('language', None)
         app = self.attributes.get('application', None)
         ds_id = self.attributes.get('dataset', None)
@@ -98,6 +99,7 @@ class Vocabulary:
         if attributes.get('type') != 'vocabulary':
             raise ValueError(f"Non vocabulary attributes passed to Vocabulary class ({attributes.get('type')})")
         self.server = server
+        self.type = 'Vocabulary'
         self.attributes = attributes.get('attributes')
         self.id = self.attributes.get('resource').get('id')
 
@@ -110,12 +112,12 @@ class Vocabulary:
     def update(self, update_params=None, token=None):
         """
         Update the attributes of a Vocabulary object providing a RW-API token is supplied.
-        
+
         A single application string, name string and tags list must be specified within the `update_params` dictionary.
         """
         from .dataset import Dataset
         if not token:
-            raise ValueError(f'[token] Resource Watch API token required to update vocabulary.')
+            raise ValueError(f'[token] API token required to update vocabulary.')
         update_params['application'] = self.attributes.get('application', None)
         ds_id = self.id
         self.delete(token=token)
@@ -128,7 +130,7 @@ class Vocabulary:
         A RW-API token is required.
         """
         if not token:
-            raise ValueError(f'[token] Resource Watch API token required to delete vocabulary.')
+            raise ValueError(f'[token] API token required to delete vocabulary.')
         vocab_type = self.attributes.get('name', None)
         app = self.attributes.get('application', None)
         ds_id = self.id
@@ -152,7 +154,9 @@ class Widget:
     attributes: dic
         A dictionary holding the attributes of a widget (which are attached to a Dataset).
     """
-    def __init__(self, id_hash=None, attributes={}, server='https://api.resourcewatch.org'):
+    def __init__(self, id_hash=None, attributes=None, server='https://api.resourcewatch.org'):
+        self.id = id_hash
+        self.type = 'Widget'
         self.server = server
         self.id = id_hash
         atts = attributes.get('attributes', None)
@@ -170,7 +174,7 @@ class Widget:
 
     def __repr__(self):
         return self.__str__()
-    
+
     def _repr_html_(self):
         return html_box(item=self)
 
@@ -204,7 +208,7 @@ class Widget:
         """
         from .dataset import Dataset
         if not token:
-            raise ValueError(f'[token] Resource Watch API token required to update widget.')
+            raise ValueError(f'[token] API token required to update widget.')
         ds_id = self.attributes.get('dataset', None)
         w_id = self.id
         update_keys = ["widgetConfig", "name", "description", "application", "default", "protected", "defaultEditableWidget", "published", "freeze"]
@@ -235,14 +239,14 @@ class Widget:
                 return None
         else:
             raise ValueError(f'Widget update requires update_params object.')
-            
+
     def delete(self, token=None):
         """
         Delete the current widget.
         A RW-API token is required.
         """
         if not token:
-            raise ValueError(f'[token] Resource Watch API token required to delete vocabulary.')
+            raise ValueError(f'[token] API token required to delete vocabulary.')
         w_id = self.id
         ds_id = self.attributes.get('dataset', None)
         try:
@@ -254,7 +258,7 @@ class Widget:
         if r.status_code == 200:
             print(f'Widget deleted.')
         return None
-    
+
     def save(self, path=None):
         """
         Construct dataset json and save to local path in a date-referenced folder
@@ -271,7 +275,7 @@ class Widget:
         Note: requires API token.
         """
         if not token:
-            raise ValueError(f'[token] Resource Watch API token required to update Dataset.')
+            raise ValueError(f'[token] API token required to update Dataset.')
         if not target_widget and target_widget_id and target_server:
             target_widget = Widget(target_widget_id, server=target_server)
         else:

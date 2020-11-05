@@ -6,7 +6,7 @@ import json
 import random
 import re
 from pprint import pprint
-from .utils import html_box, get_geojson_string, nested_set
+from .utils import html_box, get_geojson_string, nested_set, server_uses_widgets
 
 
 class Layer:
@@ -27,9 +27,11 @@ class Layer:
         self.server = server
         self.id = id_hash
         self.mapbox_token = mapbox_token
-        atts = attributes.get('attributes', None)
-        lid = attributes.get('id', None)
-        if token and attributes and not atts:
+        self.type = 'Layer'
+        if not attributes and id_hash:
+            self.id = id_hash
+            self.attributes = self.get_layer()
+        elif attributes and token:
             created_layer = self.new_layer(token=token, attributes=attributes, server=self.server)
             self.attributes = created_layer.attributes
             self.id = created_layer.id
@@ -59,11 +61,13 @@ class Layer:
         """
         try:
             hash = random.getrandbits(16)
-            url = f'{self.server}/v1/layer/{self.id}?hash={hash}'
+            if server_uses_widgets(self.server):
+                url = f'{self.server}/v1/layer/{self.id}?hash={hash}'
+            else:
+                url = f'{self.server}/v1/layer/{self.id}?hash={hash}'
             r = requests.get(url)
         except:
             raise ValueError(f'Unable to get Layer {self.id} from {r.url}')
-
         if r.status_code == 200:
             return r.json().get('data').get('attributes')
         else:
@@ -213,7 +217,7 @@ class Layer:
         uk = list(updatable_fields.keys())
         return uk
 
-    def update(self, update_params=None, token=None):
+    def update(self, update_params=None, token=None, force=False):
         """
         Update layer specific attribute values
 
@@ -225,12 +229,21 @@ class Layer:
             A dictionary of update paramters. You can identify the possible keys by calling
             self.update_keys(silent=False)
         token: str
-            A valid Resource Watch Token.
+            A valid API Token.
         """
         if not token:
-            raise ValueError(f'[token=None] Resource Watch API TOKEN required for updates.')
+            raise ValueError(f'[token=None] API TOKEN required for updates.')
         update_blacklist = ['updatedAt', 'userId', 'dataset', 'slug']
         attributes = {f'{k}':v for k,v in self.attributes.items() if k not in update_blacklist}
+        if attributes.get('protected', False) and not force:
+            print(f"{attributes['env'].title()} Layer: {self.attributes['name']} with id={self.id} is protected.\nContinue with update?\n> y/n")
+            conf = input()
+            if conf.lower() == 'n':
+                print(f"Halting update...")
+                return None
+            elif conf.lower() != 'y':
+                print('Requires y/n input!')
+                return None
         if not update_params:
             raise ValueError(f'[update_params=None] Must specify update parameters.')
         else:
@@ -246,7 +259,7 @@ class Layer:
         try:
             url = f"{self.server}/dataset/{self.attributes['dataset']}/layer/{self.id}"
             headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
-            r = requests.patch(url, data=json.dumps(payload), headers=headers)
+            r = requests.patch(url, data=json.dumps(payload), headers=headers, timeout=10)
         except:
             raise ValueError(f'Layer update failed.')
         if r.status_code == 200:
@@ -273,7 +286,7 @@ class Layer:
         Deletes a target layer
         """
         if not token:
-            raise ValueError(f'[token=None] Resource Watch API token required to delete.')
+            raise ValueError(f'[token=None] API token required to delete.')
         if not force:
             conf = self.confirm_delete()
         elif force:
@@ -305,7 +318,7 @@ class Layer:
         if not clone_server: clone_server = self.server
 
         if not token:
-            raise ValueError(f'[token] Resource Watch API token required to clone.')
+            raise ValueError(f'[token] API token required to clone.')
         target_layer_name  = self.attributes['name']
         name = layer_params.get('name', f'{target_layer_name} CLONE')
         clone_layer_attr = {**self.attributes, 'name': name}
@@ -337,7 +350,7 @@ class Layer:
             else:
                 print(r.status_code)
                 return None
-            
+
         payload = {
             'application': clone_layer_attr['application'],
             'applicationConfig': clone_layer_attr['applicationConfig'],
@@ -495,7 +508,7 @@ class Layer:
         Create a new staging or prod Layer entity from attributes.
         """
         if not token:
-            raise ValueError(f'[token] Resource Watch API token required to create a new dataset.')
+            raise ValueError(f'[token] API token required to create a new dataset.')
         elif not attributes:
             raise ValueError(f'Attributes required to create a new dataset.')
         elif not attributes.get('dataset', None):
@@ -522,10 +535,10 @@ class Layer:
         Note: requires API token.
         """
         if not token:
-            raise ValueError(f'[token] Resource Watch API token required update Layer.')
+            raise ValueError(f'[token] API token required update Layer.')
         if not target_layer and target_layer_id and target_server:
             target_layer = Layer(target_layer_id, server=target_server)
-        else:
+        elif not target_layer:
             raise ValueError(f'Requires either target Layer or Layer id plus server.')
         atts = self.attributes
         payload = {
@@ -541,7 +554,7 @@ class Layer:
         }
         if not key_whitelist: key_whitelist = [k for k in payload.keys()]
         filtered_payload = {k:v for k,v in payload.items() if v and k in key_whitelist}
-        print(f'Merging {self.id} from {self.server} into {target_layer_id} on {target_server}.\nAre you sure you sure you want to continue?')
+        print(f'Merging {self.id} from {self.server} into {target_layer.id} on {target_layer.server}.\nAre you sure you sure you want to continue? Y/N')
         if not force:
             conf = input()
         else:
