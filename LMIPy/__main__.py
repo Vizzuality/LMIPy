@@ -18,9 +18,8 @@ def str2bool(v):
 
 def main():
     parser = argparse.ArgumentParser(prog='LMIPy')
-    parser.add_argument("function", help="function to run", type=str, choices=['validate'])
+    parser.add_argument("function", help="function to run", type=str, choices=['validate_table'])
     parser.add_argument("-p", "--path", help="relative path of ids_json", type=str, nargs=1)
-    parser.add_argument("-t", "--type", help="entity type", type=str, choices=['layer', 'table', 'dataset'], nargs=1)
     parser.add_argument("-i", "--id", help="entity id", type=str, nargs=1)
     parser.add_argument("-s", "--slug", help="entity slug for determining type", type=str, nargs=1)
     parser.add_argument("-v", "--verbose", help="activate verbose mode", type=str2bool, nargs='?', const=True, default=False)
