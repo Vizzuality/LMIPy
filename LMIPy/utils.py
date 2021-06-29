@@ -303,7 +303,7 @@ def server_uses_widgets(server):
     """
     Does the server currently set use Widget objects? Response gives True if it does, false if not.
     """
-    uses_widgets = ['https://api.resourcewatch.org','https://staging-api.globalforestwatch.org']
+    uses_widgets = ['https://api.resourcewatch.org','https://staging-api.resourcewatch.org', 'https://staging-api.globalforestwatch.org']
     if any(server in s for s in uses_widgets):
         return True
     else:

@@ -55,7 +55,7 @@ class Dataset:
         else:
             self.vocabulary = []
         if len(self.attributes.get('widget', [])) > 0:
-            self.widget =[Widget(w.get('id'), attributes=1, server=self.server) for w in self.attributes.get('widget')]
+            self.widget =[Widget(id_hash=w.get('id'), server=self.server) for w in self.attributes.get('widget')]
             _ = self.attributes.pop('widget')
         else:
             self.widget = []
@@ -290,8 +290,8 @@ class Dataset:
             if payload['dataset']['connectorType'] == 'wms' and payload['dataset']['tableName'] == None:
                 del payload['dataset']['tableName']
 
-            print(f'Creating clone dataset')
-            url = f'{clone_server}/dataset'
+            url = f"{clone_server}{'/v1' if clone_server == 'https://staging-api.globalforestwatch.org' else ''}/dataset"
+            print(f'Creating clone dataset: {url}')
             headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
             r = requests.post(url, data=json.dumps(payload), headers=headers)
             if r.status_code == 200:
@@ -300,7 +300,7 @@ class Dataset:
             else:
                 print(r.status_code)
                 return None
-            print(f'{clone_server}/v1/dataset/{clone_dataset_id}')
+            print(f'{clone_server}/dataset/{clone_dataset_id}')
             if clone_children:
                 # Wait for dataset to be added
                 sleep(0.5)
