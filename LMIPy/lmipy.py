@@ -11,13 +11,13 @@ class User:
             'staging': 'https://staging-api.resourcewatch.org'
         }.get(env, None)
 
-    def login(self):
+    def login(self, email=None):
         data = None
         with requests.Session() as s:
             headers = {'Content-Type': 'application/json'}
-            payload = json.dumps({ 'email': f'{input(f"Email: ")}',
+            payload = json.dumps({'email': email or f'{input(f"Email: ")}',
                                 'password': f'{getpass.getpass(prompt="Password: ")}'})
-            response = s.post(f'{self.server}/auth/login',  headers = headers,  data = payload)
+            response = s.post(f'{self.server}/auth/login',  headers=headers,  data=payload)
             response.raise_for_status()
             data = response.json().get('data', None)
         
