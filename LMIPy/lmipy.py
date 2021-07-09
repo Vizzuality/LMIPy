@@ -2,7 +2,78 @@ import requests
 import random
 import json
 from .utils import html_box, nested_set
+import getpass
 
+class User:
+    def __init__(self, env='production'):
+        self.server =  {
+            'production': 'https://api.resourcewatch.org',
+            'staging': 'https://staging-api.resourcewatch.org'
+        }.get(env, None)
+
+    def login(self):
+        data = None
+        with requests.Session() as s:
+            headers = {'Content-Type': 'application/json'}
+            payload = json.dumps({ 'email': f'{input(f"Email: ")}',
+                                'password': f'{getpass.getpass(prompt="Password: ")}'})
+            response = s.post(f'{self.server}/auth/login',  headers = headers,  data = payload)
+            response.raise_for_status()
+            data = response.json().get('data', None)
+        
+        if data:
+            self._id = data.get('_id', None)
+            self.createdAt = data.get('createdAt', None)
+            self.email = data.get('email', None)
+            self.apps = data.get('extraUserData', {}).get('apps', [])
+            self.id = data.get('id', None)
+            self.name = data.get('name', None)
+            self.provider = data.get('provider', None)
+            self.role = data.get('role', None)
+            self.token = data.get('token', None)
+            self.updatedAt = data.get('updatedAt', None)
+
+    def getUserById(self, user_id, token=None):
+        if not token: token = self.token
+        with requests.Session() as s:
+            headers = {
+                'Content-Type': 'application/json',
+                'Authorization': f'Bearer {token}'
+            }
+            r = s.get(f'{self.server}/auth/user/{user_id}',  headers = headers)
+            print(r.url)
+            r.raise_for_status()
+            
+        return r.json()
+
+    def updateUser(self, user_id, token=None, payload={}):
+        if not token: token = self.token
+
+        if not payload:
+            print('Payload required')
+            return None
+
+        with requests.Session() as s:
+            headers = {
+                'Content-Type': 'application/json',
+                'Authorization': f'Bearer {token}'
+            }
+            r = s.patch(f'{self.server}/auth/user/{user_id}',  headers=headers, data=json.dumps(payload))
+            print(r.url)
+            r.raise_for_status()
+        return r.json()
+
+    def getUserByEmail(self, user_email, env='prod', token=None):
+        with requests.Session() as s:
+            headers = {
+                'Content-Type': 'application/json',
+                'Authorization': f'Bearer {token}'
+            }
+            r = s.get(f'{sself.server}/auth/user?app=all&email={user_email}',  headers = headers)
+            print(r.url)
+            r.raise_for_status()
+            
+        return r.json()
 
 class Metadata:
     """
