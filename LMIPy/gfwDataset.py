@@ -193,15 +193,10 @@ class GFWDataset:
         self.url = 'https://staging-data-api.globalforestwatch.org/dataset/' if env == 'staging' else 'https://data-api.globalforestwatch.org/dataset/'
         self.env = env
 
-        self._reporting_unit = attributes.get('reporting_unit', None)
-        self._analysis = attributes.get('analysis', None)
-        self._admin = attributes.get('admin', None)
-        self._table = attributes.get('table', None) 
         self._version = attributes.get('version', 'latest')
         self._slug = slug
 
         self.token = attributes.get('token', None)
-#         self.__token = self.authorise()
 
     @property
     def token(self):  
@@ -215,51 +210,6 @@ class GFWDataset:
     def attr(self):
         del self.__token 
                                     
-    @property
-    def reporting_unit(self):
-        """Reporting unit of Analysis table."""
-        return self._reporting_unit
-
-    @reporting_unit.setter
-    def reporting_unit(self, value):
-        self._reporting_unit = value
-
-    @property
-    def analysis(self):
-        """Analysis dataset of the table."""
-        return self._analysis
-
-    @analysis.setter
-    def analysis(self, value):
-        if value and value in ['tcl', 'glad', 'viirs']:
-            self._analysis = value
-            _ = self.generate_slug_string()
-        else:
-            print("Invalid table name, must be: 'tcl', 'glad', or 'viirs'")
-
-    @property
-    def admin(self):
-        """Admin level of the table."""
-        return self._admin
-
-    @admin.setter
-    def admin(self, value):
-        if value and value in ['iso', 'adm1', 'adm2']:
-            self._admin = value
-            _ = self.generate_slug_string()
-            
-        else:
-            print("Invalid admin level, must be: 'iso', 'adm1', or 'adm2'")
-
-    @property
-    def table(self):
-        """Table type."""
-        return self._table
-
-    @table.setter
-    def table(self, value):
-        self._table = value
-
     @property
     def version(self):
         """Version of the table."""
@@ -289,22 +239,9 @@ class GFWDataset:
         data = r.json().get('data', None)
         return data
 
-    def generate_slug_string(self, include_version=False):
-
-        version = self.version
-        reporting_unit = self.reporting_unit
-        analysis = self.analysis
-        admin = f"{self.admin}_" if self.admin else ''
-        table = self.table
-
-        slug_str = '__'.join([t for t in [reporting_unit, analysis, admin] if t]) + table
-        self.slug = slug_str
-        
-        return slug_str + f"/{version}"  if include_version else slug_str
-    
     def get_fields(self, verbose=False):
         """Get data fields"""
-        dataset = self.slug or self.generate_slug_string()
+        dataset = self.slug
         url = self.url + dataset + f'/{self.version}/fields' 
         r = requests.get(url)
         if verbose: print(r.url)
@@ -320,7 +257,7 @@ class GFWDataset:
     def get_metadata(self, verbose=False):
         """Fetch and object populate metadata manually."""
 
-        dataset = self.slug or self.generate_slug_string()
+        dataset = self.slug
         url = self.url + dataset + f'/{self.version}'
         r = requests.get(url)
         if verbose: print(r.url)
@@ -344,7 +281,7 @@ class GFWDataset:
     def get_versions(self, verbose=False):
             """Fetch and object populate metadata manually."""
 
-            dataset =  self.slug or self.generate_slug_string()
+            dataset =  self.slug
             url = self.url + dataset
             r = requests.get(url)
             if verbose: print(r.url)
@@ -360,7 +297,7 @@ class GFWDataset:
     def query(self, sql=None, as_df=False, verbose=False, download=False, geostore_id=None):
         """Query the Data API and return results as json or DataFrame."""
         
-        dataset = self.slug or self.generate_slug_string()
+        dataset = self.slug
         url = self.url + dataset + f"/{self.version}/{'query' if not download else 'download'}" + (f"/{download}" if download else "")
         q = sql or """SELECT * FROM data LIMIT 5"""
 
