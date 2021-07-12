@@ -49,10 +49,10 @@ class Auth:
             return [Creds(env=self.env, attributes=cred) for cred in r.json()['data']]
 
         else:
-            print(r.raise_for_status)
+            print(r.status_code)
             return None
 
-    def generateKey(domain_list=[], org='Vizzuality', email='', alias='', never_expires=False, verbose=False):
+    def generateKey(self, domain_list=[], org='Vizzuality', email='', alias='', never_expires=False, verbose=False):
         """
         Generate a new data-api key.
         
@@ -185,10 +185,52 @@ class Auth:
             responses += [r.json()['data']]
         return responses
 
+class DataCatalogue:
+    def __init__(self, search=None, env='staging', token=None):
+        """gfwDataTable constructs an interface with the GFW Data API for querying."""
+        self.url = 'https://staging-data-api.globalforestwatch.org/dataset/' if env == 'staging' else 'https://data-api.globalforestwatch.org/dataset/'
+        self.env = env
+        self.__token = token
 
+        self.datasets = self.search_datasets(search)
+
+    def search_datasets(self, search):
+        datasets_available = self.get_datasets()
+        if not search:
+            return {i+1: GFWDataset(slug=d['dataset'], env=self.env) for i,d in enumerate(datasets_available)}
+
+        search_terms = [search.lower()] + search.lower().strip().split(' ') if search else ''
+
+        datasets_slugs = []
+        for d in datasets_available:
+            found = False
+            slug = d['dataset']
+            function = d['metadata']['function']
+            if function:
+                _function = function.lower()
+                found = any([s in _function for s in search_terms])
+
+            if slug:
+                _slug = slug.lower()
+                found = any([s in _slug for s in search_terms])
+            
+            if found: datasets_slugs += [slug]
+
+        return {i+1: GFWDataset(slug=s, env=self.env, token=self.__token) for i,s in enumerate(datasets_slugs)}
+
+    def get_datasets(self, verbose=False):
+        env = self.env
+        url = 'https://staging-data-api.globalforestwatch.org/datasets/' if env == 'staging' else 'https://data-api.globalforestwatch.org/datasets/'
+        
+        r = requests.get(url)
+        if verbose: print(r.url)
+
+        ## Check success
+        data = r.json().get('data', None)
+        return data
 
 class GFWDataset:
-    def __init__(self, slug=None, env='staging', attributes={}):
+    def __init__(self, slug=None, env='staging', token=None, attributes={}):
         """gfwDataTable constructs an interface with the GFW Data API for querying."""
         self.url = 'https://staging-data-api.globalforestwatch.org/dataset/' if env == 'staging' else 'https://data-api.globalforestwatch.org/dataset/'
         self.env = env
@@ -196,15 +238,22 @@ class GFWDataset:
         self._version = attributes.get('version', 'latest')
         self._slug = slug
 
-        self.token = attributes.get('token', None)
+        self._token = token
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        name_str = f"'{self.slug}'" or "null"
+        return f"GFW Data API Dataset: {name_str}"
 
     @property
     def token(self):  
-        return self.__token
+        return self._token
 
     @token.setter
     def token(self, value):
-        self.__token = value
+        self._token = value
 
     @token.deleter
     def attr(self):
@@ -228,17 +277,6 @@ class GFWDataset:
     def slug(self, value):
         self._slug = value
     
-    def get_datasets(self, verbose=False):
-        env = self.env
-        url = 'https://staging-data-api.globalforestwatch.org/datasets/' if env == 'staging' else 'https://data-api.globalforestwatch.org/datasets/'
-         
-        r = requests.get(url)
-        if verbose: print(r.url)
-
-        ## Check success
-        data = r.json().get('data', None)
-        return data
-
     def get_fields(self, verbose=False):
         """Get data fields"""
         dataset = self.slug
@@ -305,7 +343,13 @@ class GFWDataset:
             q += f"&geostore_id={geostore_id}&geostore_origin=rw"
 
         url += f'?sql={q}'
-        r = requests.get(url)
+
+        headers = {
+            'x-api-key': self.__token,
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache'}
+
+        r = requests.get(url, headers=headers)
         if verbose: print(r.url)
 
         data = r.json().get('data', None)
