@@ -155,8 +155,7 @@ class GFWAuth:
         Takes a list of data-api keys to bulk delete
         
         Args:
-            env: Environment ('staging', 'production').
-            api_keys: list of data-api keys to delete
+            keys: list of data-api keys to delete
             verbose: if True, prints url
             token: Reseource watch user token
 
@@ -186,7 +185,7 @@ class GFWAuth:
 class DataCatalogue:
     def __init__(self, search=None, server='production', token=None):
         """gfwDataTable constructs an interface with the GFW Data API for querying."""
-        self.url = 'https://staging-data-api.globalforestwatch.org/dataset/' if env == 'staging' else 'https://data-api.globalforestwatch.org/dataset/'
+        self.url = 'https://staging-data-api.globalforestwatch.org/dataset/' if server == 'staging' else 'https://data-api.globalforestwatch.org/dataset/'
         self.server = server
         self.token = token
 
