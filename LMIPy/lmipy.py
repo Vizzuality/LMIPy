@@ -4,7 +4,7 @@ import json
 from .utils import html_box, nested_set
 import getpass
 
-class User:
+class Auth:
     def __init__(self, server='production'):
         self.server =  {
             'production': 'https://api.resourcewatch.org',
@@ -33,24 +33,27 @@ class User:
             self.token = data.get('token', None)
             self.updatedAt = data.get('updatedAt', None)
 
-    def register(self):
+    def register(self, name=None, email=None):
 
         with requests.Session() as s:
             headers = {'Content-Type': 'application/json'}
-            payload = json.dumps({'name':f'{input(f"name: ")}',
-                                'email': f'{getpass.getpass(prompt="email: ")}'})
+            payload = json.dumps({'name': name or f'{input(f"name: ")}',
+                                'email': email or f'{input(f"email: ")}'})
             r = s.post(f'{self.server}/auth/sign-up',  headers=headers,  data=payload)
             r.raise_for_status()
-            if r.status == 200:
-                print("Registration successful! We've sent you an email. Click the link in it to confirm your account.")
+            if r.status_code == 200:
+                print("Registration successful!\nWe've sent you an email. Click the link in it to confirm your account.")
             
             return
 
     def generateToken(self):
-
-        r = requests.get(f"{self.server}/auth/generate-token")
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {self.token}'
+        }
+        r = requests.get(f"{self.server}/auth/generate-token", headers=headers)
         print(r.url)
-        token = r.json().get('data', {}).get('token', None)
+        token = r.json().get('token', None)
         if token: self.token = token
 
         return
@@ -74,26 +77,28 @@ class User:
         if not payload:
             print('Payload required')
             return None
-
-        with requests.Session() as s:
-            headers = {
-                'Content-Type': 'application/json',
-                'Authorization': f'Bearer {token}'
+        if 'apps' in payload.keys():
+            apps = payload['apps']
+            payload['extraUserData'] = {
+                'apps': apps
             }
-            r = s.patch(f'{self.server}/auth/user/{user_id}',  headers=headers, data=json.dumps(payload))
-            print(r.url)
-            r.raise_for_status()
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {token}'
+        }
+        r = requests.patch(f'{self.server}/auth/user/{user_id}',  headers=headers, data=json.dumps(payload))
+        print(r.url)
+        r.raise_for_status()
         return r.json().get('data')
 
     def getUserByEmail(self, user_email, env='production', token=None):
-        with requests.Session() as s:
-            headers = {
-                'Content-Type': 'application/json',
-                'Authorization': f'Bearer {token}'
-            }
-            r = s.get(f'{self.server}/auth/user?app=all&email={user_email}',  headers = headers)
-            print(r.url)
-            r.raise_for_status()
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {token}'
+        }
+        r = requests.get(f'{self.server}/auth/user?app=all&email={user_email}',  headers = headers)
+        print(r.url)
+        r.raise_for_status()
             
         return r.json().get('data')
 

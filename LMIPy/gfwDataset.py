@@ -1,10 +1,9 @@
 import requests
 import json
-import folium
 import pandas as pd
 
 class Creds:
-    def __init__(self, env=None, attributes={}):
+    def __init__(self, server=None, attributes={}):
         
         self.attributes = attributes
         self.alias = attributes.get('alias', None)
@@ -17,7 +16,7 @@ class Creds:
         self.updated_on = attributes.get('updated_on', None)
         self.user_id = attributes.get('user_id', None)
 
-        self.env = env
+        self.server = server
 
     def __repr__(self):
         return self.__str__()
@@ -26,12 +25,12 @@ class Creds:
         expiry_str = f'expires on {self.expires_on[:10]}' if self.expires_on else 'does not expire' 
         return f"GFW Data API Credential: '{self.alias}' ({expiry_str})"
 
-class Auth:
-    def __init__(self, env='production', rw_api_token=None, attributes={}):
-        env_str = 'staging-' if env == 'staging' else ''
+class GFWAuth:
+    def __init__(self, server='production', rw_api_token=None, attributes={}):
+        server_str = 'staging-' if server == 'staging' else ''
         
-        self.env = env
-        self.url = f"https://{env_str}data-api.globalforestwatch.org"   
+        self.server = server
+        self.url = f"https://{server_str}data-api.globalforestwatch.org"   
         self.rw_api_token = rw_api_token
         self.keys = self.getKeys()
 
@@ -46,7 +45,7 @@ class Auth:
 
         r = requests.get(url, headers=headers)
         if r.status_code == 200:
-            return [Creds(env=self.env, attributes=cred) for cred in r.json()['data']]
+            return [Creds(server=self.server, attributes=cred) for cred in r.json()['data']]
 
         else:
             print(r.status_code)
@@ -57,7 +56,7 @@ class Auth:
         Generate a new data-api key.
         
         Args:
-            env: Environment ('staging', 'production').
+            server: Server ('staging', 'production').
             domain_list: List of domains which can be used this API key.
                         There must be at least one domain listed, unless user is an admin.
                         When making request using the API key, make sure you add the correct 
@@ -115,8 +114,7 @@ class Auth:
         Validates a data-api key for a given origin.
         
         Args:
-            env: Environment ('staging', 'production').
-            api_key: data-api key to validate
+            key: data-api key to validate
             origin: Origin of request (checked against 'domains')
             verbose: if True, prints url
             token: Reseource watch user token
@@ -186,18 +184,18 @@ class Auth:
         return responses
 
 class DataCatalogue:
-    def __init__(self, search=None, env='staging', token=None):
+    def __init__(self, search=None, server='production', token=None):
         """gfwDataTable constructs an interface with the GFW Data API for querying."""
         self.url = 'https://staging-data-api.globalforestwatch.org/dataset/' if env == 'staging' else 'https://data-api.globalforestwatch.org/dataset/'
-        self.env = env
-        self.__token = token
+        self.server = server
+        self.token = token
 
         self.datasets = self.search_datasets(search)
 
     def search_datasets(self, search):
         datasets_available = self.get_datasets()
         if not search:
-            return {i+1: GFWDataset(slug=d['dataset'], env=self.env) for i,d in enumerate(datasets_available)}
+            return {i+1: GFWDataset(slug=d['dataset'], server=self.server) for i,d in enumerate(datasets_available)}
 
         search_terms = [search.lower()] + search.lower().strip().split(' ') if search else ''
 
@@ -216,11 +214,11 @@ class DataCatalogue:
             
             if found: datasets_slugs += [slug]
 
-        return {i+1: GFWDataset(slug=s, env=self.env, token=self.__token) for i,s in enumerate(datasets_slugs)}
+        return {i+1: GFWDataset(slug=s, server=self.server, token=self.token) for i,s in enumerate(datasets_slugs)}
 
     def get_datasets(self, verbose=False):
-        env = self.env
-        url = 'https://staging-data-api.globalforestwatch.org/datasets/' if env == 'staging' else 'https://data-api.globalforestwatch.org/datasets/'
+        server = self.server
+        url = 'https://staging-data-api.globalforestwatch.org/datasets/' if server == 'staging' else 'https://data-api.globalforestwatch.org/datasets/'
         
         r = requests.get(url)
         if verbose: print(r.url)
@@ -230,10 +228,10 @@ class DataCatalogue:
         return data
 
 class GFWDataset:
-    def __init__(self, slug=None, env='staging', token=None, attributes={}):
+    def __init__(self, slug=None, server='staging', token=None, attributes={}):
         """gfwDataTable constructs an interface with the GFW Data API for querying."""
-        self.url = 'https://staging-data-api.globalforestwatch.org/dataset/' if env == 'staging' else 'https://data-api.globalforestwatch.org/dataset/'
-        self.env = env
+        self.url = 'https://staging-data-api.globalforestwatch.org/dataset/' if server == 'staging' else 'https://data-api.globalforestwatch.org/dataset/'
+        self.server = server
 
         self._version = attributes.get('version', 'latest')
         self._slug = slug
@@ -345,7 +343,7 @@ class GFWDataset:
         url += f'?sql={q}'
 
         headers = {
-            'x-api-key': self.__token,
+            'x-api-key': self._token,
             'Content-Type': 'application/json',
             'Cache-Control': 'no-cache'}
 
