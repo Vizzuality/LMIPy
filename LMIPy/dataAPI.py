@@ -3,8 +3,16 @@ import json
 import pandas as pd
 
 class Creds:
+    """
+    Defines a GFW Data-API credential object.
+    Args:
+        server: Server ('staging', 'production').
+        attributes: Dictionary of attributes.
+
+    Returns:
+        Creds object.
+    """
     def __init__(self, server=None, attributes={}):
-        
         self.attributes = attributes
         self.alias = attributes.get('alias', None)
         self.api_key = attributes.get('api_key', None)
@@ -25,7 +33,17 @@ class Creds:
         expiry_str = f'expires on {self.expires_on[:10]}' if self.expires_on else 'does not expire' 
         return f"GFW Data API Credential: '{self.alias}' ({expiry_str})"
 
-class GFWAuth:
+class Auth:
+    """
+    Defines a GFW Data-API Authorisation class object.
+    Requires a RW-API key to initialise.
+    Args:
+        server: Server ('staging', 'production').
+        rw_api_token: RW-API token string
+
+    Returns:
+        GFWAuth object.
+    """
     def __init__(self, server='production', rw_api_token=None, attributes={}):
         server_str = 'staging-' if server == 'staging' else ''
         
@@ -35,6 +53,15 @@ class GFWAuth:
         self.keys = self.getKeys()
 
     def getKeys(self):
+        """
+        Gets data-api keys associated with the the users RW-API token.
+        Args:
+            server: Server ('staging', 'production').
+            rw_api_token: RW-API token string
+
+        Returns:
+            List of Data-API Credentials objects.
+        """
         if not self.rw_api_token:
             print("Resource Watch API ('rw_api_token') required!")
             return None
@@ -53,10 +80,9 @@ class GFWAuth:
 
     def generateKey(self, domain_list=[], org='Vizzuality', email='', alias='', never_expires=False, verbose=False):
         """
-        Generate a new data-api key.
+        Generate a new GFW data-api key associated with a list of domains.
         
         Args:
-            server: Server ('staging', 'production').
             domain_list: List of domains which can be used this API key.
                         There must be at least one domain listed, unless user is an admin.
                         When making request using the API key, make sure you add the correct 
@@ -66,7 +92,6 @@ class GFWAuth:
             email: User email adress
             never_expires: if True, key will not expire (admin users only)
             verbose: if True, prints url
-            token: Reseource watch user token
 
         Returns:
             Response json.
@@ -117,7 +142,6 @@ class GFWAuth:
             key: data-api key to validate
             origin: Origin of request (checked against 'domains')
             verbose: if True, prints url
-            token: Reseource watch user token
 
         Returns:
             Response json.
@@ -157,7 +181,6 @@ class GFWAuth:
         Args:
             keys: list of data-api keys to delete
             verbose: if True, prints url
-            token: Reseource watch user token
 
         Returns:
             List of collected response jsons.
@@ -183,8 +206,11 @@ class GFWAuth:
         return responses
 
 class DataCatalogue:
+    """
+    Constructs an interface with the GFW Data API for querying datasets.
+    """
+
     def __init__(self, search=None, server='production', token=None):
-        """gfwDataTable constructs an interface with the GFW Data API for querying."""
         self.url = 'https://staging-data-api.globalforestwatch.org/dataset/' if server == 'staging' else 'https://data-api.globalforestwatch.org/dataset/'
         self.server = server
         self.token = token
@@ -226,7 +252,7 @@ class DataCatalogue:
         data = r.json().get('data', None)
         return data
 
-class GFWDataset:
+class Dataset:
     def __init__(self, slug=None, server='staging', token=None, attributes={}):
         """gfwDataTable constructs an interface with the GFW Data API for querying."""
         self.url = 'https://staging-data-api.globalforestwatch.org/dataset/' if server == 'staging' else 'https://data-api.globalforestwatch.org/dataset/'
