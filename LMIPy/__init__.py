@@ -1,4 +1,4 @@
-from .lmipy import Vocabulary, Metadata, Widget
+from .lmipy import Vocabulary, Metadata, Widget, Auth
 from .layer import Layer
 from .image import Image
 from .imageCollection import ImageCollection
