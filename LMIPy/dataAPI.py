@@ -220,7 +220,7 @@ class DataCatalogue:
     def search_datasets(self, search):
         datasets_available = self.get_datasets()
         if not search:
-            return {i+1: GFWDataset(slug=d['dataset'], server=self.server) for i,d in enumerate(datasets_available)}
+            return {i+1: Dataset(slug=d['dataset'], server=self.server) for i,d in enumerate(datasets_available)}
 
         search_terms = [search.lower()] + search.lower().strip().split(' ') if search else ''
 
@@ -239,7 +239,7 @@ class DataCatalogue:
             
             if found: datasets_slugs += [slug]
 
-        return {i+1: GFWDataset(slug=s, server=self.server, token=self.token) for i,s in enumerate(datasets_slugs)}
+        return {i+1: Dataset(slug=s, server=self.server, token=self.token) for i,s in enumerate(datasets_slugs)}
 
     def get_datasets(self, verbose=False):
         server = self.server

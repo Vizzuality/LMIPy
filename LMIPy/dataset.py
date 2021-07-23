@@ -290,7 +290,7 @@ class Dataset:
             if payload['dataset']['connectorType'] == 'wms' and payload['dataset']['tableName'] == None:
                 del payload['dataset']['tableName']
 
-            url = f"{clone_server}{'/v1' if clone_server == 'https://staging-api.globalforestwatch.org' else ''}/dataset"
+            url = f"{clone_server}/v1/dataset"
             print(f'Creating clone dataset: {url}')
             headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
             r = requests.post(url, data=json.dumps(payload), headers=headers)
@@ -299,6 +299,7 @@ class Dataset:
                 clone_dataset = Dataset(id_hash=clone_dataset_id, server=clone_server)
             else:
                 print(r.status_code)
+                print(r.text)
                 return None
             print(f'{clone_server}/dataset/{clone_dataset_id}')
             if clone_children:
