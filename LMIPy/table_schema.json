@@ -1,0 +1,2003 @@
+{
+    "ANNUAL_ADM1_CHANGE": {
+        "ids": ["ad5544aa-83a1-4761-b00d-2133568a34f0"],
+        "types": {
+            "double": [
+                "umd_tree_cover_loss__ha",
+                "whrc_aboveground_biomass_loss__Mg",
+                "whrc_aboveground_co2_emissions__Mg"
+            ],
+            "integer": [
+                "adm1",
+                "umd_tree_cover_loss__year",
+                "umd_tree_cover_density__threshold",
+                "ifl_intact_forest_landscape__year"
+            ],
+            "keyword": [
+                "iso",
+                "tsc_tree_cover_loss_drivers__type",
+                "esa_land_cover_2015__class",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "gfw_plantation__type",
+                "is__gmw_mangroves_1996",
+                "is__gmw_mangroves_2016",
+                "is__umd_regional_primary_forest_2001",
+                "is__gfw_tiger_landscape",
+                "is__landmark_land_right",
+                "is__gfw_land_right",
+                "is__birdlife_key_biodiversity_area",
+                "is__gfw_mining",
+                "is__peatland",
+                "is__gfw_oil_palm",
+                "is__idn_forest_moratorium",
+                "is__gfw_wood_fiber",
+                "is__gfw_resource_right",
+                "is__gfw_managed_forest",
+                "wdpa_protected_area__iucn_cat"
+            ]
+        }
+    },
+    "ANNUAL_ADM1_SUMMARY": {
+        "ids": ["e7f2855c-5bb0-4244-8fc0-f46a4f874d78"],
+        "types": {
+            "double": [
+                "umd_tree_cover_extent_2000__ha",
+                "umd_tree_cover_extent_2010__ha",
+                "area__ha",
+                "umd_tree_cover_gain_2000-2012__ha",
+                "whrc_aboveground_biomass_stock_2000__Mg",
+                "whrc_aboveground_co2_stock_2000__Mg",
+                "umd_tree_cover_loss_2001-2019__ha",
+                "whrc_aboveground_biomass_loss_2001-2019__Mg",
+                "whrc_aboveground_co2_emissions_2001-2019__Mg"
+            ],
+            "integer": [
+                "adm1",
+                "umd_tree_cover_density__threshold",
+                "ifl_intact_forest_landscape__year"
+            ],
+            "keyword": [
+                "iso",
+                "tsc_tree_cover_loss_drivers__type",
+                "esa_land_cover_2015__class",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "gfw_plantation__type",
+                "is__gmw_mangroves_1996",
+                "is__gmw_mangroves_2016",
+                "is__umd_regional_primary_forest_2001",
+                "is__gfw_tiger_landscape",
+                "is__landmark_land_right",
+                "is__gfw_land_right",
+                "is__birdlife_key_biodiversity_area",
+                "is__gfw_mining",
+                "is__peatland",
+                "is__gfw_oil_palm",
+                "is__idn_forest_moratorium",
+                "is__gfw_wood_fiber",
+                "is__gfw_resource_right",
+                "is__gfw_managed_forest",
+                "wdpa_protected_area__iucn_cat"
+            ]
+        }
+    },
+    "ANNUAL_ADM1_WHITELIST": {
+        "ids": ["fe694ec8-94e0-48fa-a4ec-03acbbe635ef"],
+        "types": {
+            "keyword": [
+                "iso",
+                "tsc_tree_cover_loss_drivers__type",
+                "esa_land_cover_2015__class",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "gfw_plantation__type",
+                "is__gmw_mangroves_1996",
+                "is__gmw_mangroves_2016",
+                "ifl_intact_forest_landscape__year",
+                "is__gfw_tiger_landscape",
+                "is__landmark_land_right",
+                "is__gfw_land_right",
+                "is__birdlife_key_biodiversity_area",
+                "is__gfw_mining",
+                "is__peatland",
+                "is__gfw_oil_palm",
+                "is__idn_forest_moratorium",
+                "is__gfw_wood_fiber",
+                "is__gfw_resource_right",
+                "is__gfw_managed_forest",
+                "wdpa_protected_area__iucn_cat"
+            ],
+            "integer": [
+                "adm1"
+            ]
+        }
+    },
+    "ANNUAL_ADM2_CHANGE": {
+        "ids": ["a3cb04cb-8305-43f6-972f-52f88fc43e77"],
+        "types": {
+            "double": [
+                "umd_tree_cover_loss__ha",
+                "whrc_aboveground_biomass_loss__Mg",
+                "whrc_aboveground_co2_emissions__Mg"
+            ],
+            "integer": [
+                "adm1",
+                "adm2",
+                "umd_tree_cover_loss__year",
+                "umd_tree_cover_density__threshold",
+                "ifl_intact_forest_landscape__year"
+            ],
+            "keyword": [
+                "iso",
+                "tsc_tree_cover_loss_drivers__type",
+                "esa_land_cover_2015__class",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "gfw_plantation__type",
+                "is__gmw_mangroves_1996",
+                "is__gmw_mangroves_2016",
+                "is__umd_regional_primary_forest_2001",
+                "is__gfw_tiger_landscape",
+                "is__landmark_land_right",
+                "is__gfw_land_right",
+                "is__birdlife_key_biodiversity_area",
+                "is__gfw_mining",
+                "is__peatland",
+                "is__gfw_oil_palm",
+                "is__idn_forest_moratorium",
+                "is__gfw_wood_fiber",
+                "is__gfw_resource_right",
+                "is__gfw_managed_forest",
+                "wdpa_protected_area__iucn_cat"
+            ]
+        }
+    },
+    "ANNUAL_ADM2_SUMMARY": {
+        "ids": ["6c7dd09f-8518-424f-9049-99f9f08206a9"],
+        "types": {
+            "double": [
+                "umd_tree_cover_extent_2000__ha",
+                "umd_tree_cover_extent_2010__ha",
+                "area__ha",
+                "umd_tree_cover_gain_2000-2012__ha",
+                "whrc_aboveground_biomass_stock_2000__Mg",
+                "whrc_aboveground_co2_stock_2000__Mg",
+                "umd_tree_cover_loss_2001-2019__ha",
+                "whrc_aboveground_biomass_loss_2001-2019__Mg",
+                "whrc_aboveground_co2_emissions_2001-2019__Mg"
+            ],
+            "integer": [
+                "adm1",
+                "adm2",
+                "umd_tree_cover_density__threshold",
+                "ifl_intact_forest_landscape__year"
+            ],
+            "keyword": [
+                "iso",
+                "tsc_tree_cover_loss_drivers__type",
+                "esa_land_cover_2015__class",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "gfw_plantation__type",
+                "is__gmw_mangroves_1996",
+                "is__gmw_mangroves_2016",
+                "is__umd_regional_primary_forest_2001",
+                "is__gfw_tiger_landscape",
+                "is__landmark_land_right",
+                "is__gfw_land_right",
+                "is__birdlife_key_biodiversity_area",
+                "is__gfw_mining",
+                "is__peatland",
+                "is__gfw_oil_palm",
+                "is__idn_forest_moratorium",
+                "is__gfw_wood_fiber",
+                "is__gfw_resource_right",
+                "is__gfw_managed_forest",
+                "wdpa_protected_area__iucn_cat"
+            ]
+        }
+    },
+    "ANNUAL_ADM2_WHITELIST": {
+        "ids": ["62e3c8ad-7c87-445c-8c20-54956c2f832a"],
+        "types": {
+            "keyword": [
+                "iso",
+                "tsc_tree_cover_loss_drivers__type",
+                "esa_land_cover_2015__class",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "gfw_plantation__type",
+                "is__gmw_mangroves_1996",
+                "is__gmw_mangroves_2016",
+                "ifl_intact_forest_landscape__year",
+                "is__gfw_tiger_landscape",
+                "is__landmark_land_right",
+                "is__gfw_land_right",
+                "is__birdlife_key_biodiversity_area",
+                "is__gfw_mining",
+                "is__peatland",
+                "is__gfw_oil_palm",
+                "is__idn_forest_moratorium",
+                "is__gfw_wood_fiber",
+                "is__gfw_resource_right",
+                "is__gfw_managed_forest",
+                "wdpa_protected_area__iucn_cat"
+            ],
+            "integer": [
+                "adm1",
+                "adm2"
+            ]
+        }
+    },
+    "ANNUAL_GEOSTORE_CHANGE": {
+        "ids": ["eb5d50f5-7219-4638-a72d-802d4b163523"],
+        "types": {
+            "double": [
+                "umd_tree_cover_loss__ha",
+                "whrc_aboveground_biomass_loss__Mg",
+                "whrc_aboveground_co2_emissions__Mg"
+            ],
+            "integer": [
+                "umd_tree_cover_loss__year",
+                "umd_tree_cover_density__threshold",
+                "ifl_intact_forest_landscape__year"
+            ],
+            "keyword": [
+                "geostore__id",
+                "tsc_tree_cover_loss_drivers__type",
+                "esa_land_cover_2015__class",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "gfw_plantation__type",
+                "is__gmw_mangroves_1996",
+                "is__gmw_mangroves_2016",
+                "is__umd_regional_primary_forest_2001",
+                "is__gfw_tiger_landscape",
+                "is__landmark_land_right",
+                "is__gfw_land_right",
+                "is__birdlife_key_biodiversity_area",
+                "is__gfw_mining",
+                "is__peatland",
+                "is__gfw_oil_palm",
+                "is__idn_forest_moratorium",
+                "is__gfw_wood_fiber",
+                "is__gfw_resource_right",
+                "is__gfw_managed_forest",
+                "wdpa_protected_area__iucn_cat"
+            ]
+        }
+    },
+    "ANNUAL_GEOSTORE_SUMMARY": {
+        "ids": ["d0f64f57-a3e2-4362-8dae-ba8f6480bc41"],
+        "types": {
+            "double": [
+                "umd_tree_cover_extent_2000__ha",
+                "umd_tree_cover_extent_2010__ha",
+                "area__ha",
+                "umd_tree_cover_gain_2000-2012__ha",
+                "whrc_aboveground_biomass_stock_2000__Mg",
+                "whrc_aboveground_co2_stock_2000__Mg",
+                "umd_tree_cover_loss_2001-2019__ha",
+                "whrc_aboveground_biomass_loss_2001-2019__Mg",
+                "whrc_aboveground_co2_emissions_2001-2019__Mg"
+            ],
+            "integer": [
+                "umd_tree_cover_density__threshold",
+                "ifl_intact_forest_landscape__year"
+            ],
+            "keyword": [
+                "geostore__id",
+                "tsc_tree_cover_loss_drivers__type",
+                "esa_land_cover_2015__class",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "gfw_plantation__type",
+                "is__gmw_mangroves_1996",
+                "is__gmw_mangroves_2016",
+                "is__umd_regional_primary_forest_2001",
+                "is__gfw_tiger_landscape",
+                "is__landmark_land_right",
+                "is__gfw_land_right",
+                "is__birdlife_key_biodiversity_area",
+                "is__gfw_mining",
+                "is__peatland",
+                "is__gfw_oil_palm",
+                "is__idn_forest_moratorium",
+                "is__gfw_wood_fiber",
+                "is__gfw_resource_right",
+                "is__gfw_managed_forest",
+                "wdpa_protected_area__iucn_cat"
+            ]
+        }
+    },
+    "ANNUAL_GEOSTORE_WHITELIST": {
+        "ids": ["64d80e29-2e7f-4b9c-bef2-dde2241d363e"],
+        "types": {
+            "keyword": [
+                "geostore__id",
+                "tsc_tree_cover_loss_drivers__type",
+                "esa_land_cover_2015__class",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "gfw_plantation__type",
+                "is__gmw_mangroves_1996",
+                "is__gmw_mangroves_2016",
+                "ifl_intact_forest_landscape__year",
+                "is__gfw_tiger_landscape",
+                "is__landmark_land_right",
+                "is__gfw_land_right",
+                "is__birdlife_key_biodiversity_area",
+                "is__gfw_mining",
+                "is__peatland",
+                "is__gfw_oil_palm",
+                "is__idn_forest_moratorium",
+                "is__gfw_wood_fiber",
+                "is__gfw_resource_right",
+                "is__gfw_managed_forest",
+                "wdpa_protected_area__iucn_cat"
+            ]
+        }
+    },
+    "ANNUAL_ISO_CHANGE": {
+        "ids": ["09b30194-20a5-4701-a7fb-932d7672882a"],
+        "types": {
+            "double": [
+                "umd_tree_cover_loss__ha",
+                "whrc_aboveground_biomass_loss__Mg",
+                "whrc_aboveground_co2_emissions__Mg"
+            ],
+            "integer": [
+                "umd_tree_cover_loss__year",
+                "umd_tree_cover_density__threshold",
+                "ifl_intact_forest_landscape__year"
+            ],
+            "keyword": [
+                "iso",
+                "tsc_tree_cover_loss_drivers__type",
+                "esa_land_cover_2015__class",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "gfw_plantation__type",
+                "is__gmw_mangroves_1996",
+                "is__gmw_mangroves_2016",
+                "is__umd_regional_primary_forest_2001",
+                "is__gfw_tiger_landscape",
+                "is__landmark_land_right",
+                "is__gfw_land_right",
+                "is__birdlife_key_biodiversity_area",
+                "is__gfw_mining",
+                "is__peatland",
+                "is__gfw_oil_palm",
+                "is__idn_forest_moratorium",
+                "is__gfw_wood_fiber",
+                "is__gfw_resource_right",
+                "is__gfw_managed_forest",
+                "wdpa_protected_area__iucn_cat"
+            ]
+        }
+    },
+    "ANNUAL_ISO_SUMMARY": {
+        "ids": ["66fa0928-2094-4947-a98e-eb794d1a7fdb"],
+        "types": {
+            "double": [
+                "umd_tree_cover_extent_2000__ha",
+                "umd_tree_cover_extent_2010__ha",
+                "area__ha",
+                "umd_tree_cover_gain_2000-2012__ha",
+                "whrc_aboveground_biomass_stock_2000__Mg",
+                "whrc_aboveground_co2_stock_2000__Mg",
+                "umd_tree_cover_loss_2001-2019__ha",
+                "whrc_aboveground_biomass_loss_2001-2019__Mg",
+                "whrc_aboveground_co2_emissions_2001-2019__Mg"
+            ],
+            "integer": [
+                "umd_tree_cover_density__threshold",
+                "ifl_intact_forest_landscape__year"
+            ],
+            "keyword": [
+                "iso",
+                "tsc_tree_cover_loss_drivers__type",
+                "esa_land_cover_2015__class",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "gfw_plantation__type",
+                "is__gmw_mangroves_1996",
+                "is__gmw_mangroves_2016",
+                "is__umd_regional_primary_forest_2001",
+                "is__gfw_tiger_landscape",
+                "is__landmark_land_right",
+                "is__gfw_land_right",
+                "is__birdlife_key_biodiversity_area",
+                "is__gfw_mining",
+                "is__peatland",
+                "is__gfw_oil_palm",
+                "is__idn_forest_moratorium",
+                "is__gfw_wood_fiber",
+                "is__gfw_resource_right",
+                "is__gfw_managed_forest",
+                "wdpa_protected_area__iucn_cat"
+            ]
+        }
+    },
+    "ANNUAL_ISO_WHITELIST": {
+        "ids": ["b70f9de4-bf31-4b67-b320-c7adfe8be2f7"],
+        "types": {
+            "keyword": [
+                "iso",
+                "tsc_tree_cover_loss_drivers__type",
+                "esa_land_cover_2015__class",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "gfw_plantation__type",
+                "is__gmw_mangroves_1996",
+                "is__gmw_mangroves_2016",
+                "ifl_intact_forest_landscape__year",
+                "is__gfw_tiger_landscape",
+                "is__landmark_land_right",
+                "is__gfw_land_right",
+                "is__birdlife_key_biodiversity_area",
+                "is__gfw_mining",
+                "is__peatland",
+                "is__gfw_oil_palm",
+                "is__idn_forest_moratorium",
+                "is__gfw_wood_fiber",
+                "is__gfw_resource_right",
+                "is__gfw_managed_forest",
+                "wdpa_protected_area__iucn_cat"
+            ]
+        }
+    },
+    "ANNUAL_WDPA_CHANGE": {
+        "ids": ["da47033b-7f55-4a85-bb0f-2fc7ee649ea8"],
+        "types": {
+            "double": [
+                "umd_tree_cover_loss__ha",
+                "whrc_aboveground_biomass_loss__Mg",
+                "whrc_aboveground_co2_emissions__Mg"
+            ],
+            "integer": [
+                "umd_tree_cover_loss__year",
+                "umd_tree_cover_density__threshold",
+                "ifl_intact_forest_landscape__year"
+            ],
+            "keyword": [
+                "wdpa_protected_area__id",
+                "wdpa_protected_area__name",
+                "wdpa_protected_area__iucn_cat",
+                "wdpa_protected_area__iso",
+                "wdpa_protected_area__status",
+                "tsc_tree_cover_loss_drivers__type",
+                "esa_land_cover_2015__class",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "gfw_plantation__type",
+                "is__gmw_mangroves_1996",
+                "is__gmw_mangroves_2016",
+                "is__umd_regional_primary_forest_2001",
+                "is__gfw_tiger_landscape",
+                "is__landmark_land_right",
+                "is__gfw_land_right",
+                "is__birdlife_key_biodiversity_area",
+                "is__gfw_mining",
+                "is__peatland",
+                "is__gfw_oil_palm",
+                "is__idn_forest_moratorium",
+                "is__gfw_wood_fiber",
+                "is__gfw_resource_right",
+                "is__gfw_managed_forest"
+            ]
+        }
+    },
+    "ANNUAL_WDPA_SUMMARY": {
+        "ids": ["03c039e5-ac7d-4908-bd48-5c966d9dbb5e"],
+        "types": {
+            "double": [
+                "umd_tree_cover_extent_2000__ha",
+                "umd_tree_cover_extent_2010__ha",
+                "area__ha",
+                "umd_tree_cover_gain_2000-2012__ha",
+                "whrc_aboveground_biomass_stock_2000__Mg",
+                "whrc_aboveground_co2_stock_2000__Mg",
+                "umd_tree_cover_loss_2001-2019__ha",
+                "whrc_aboveground_biomass_loss_2001-2019__Mg",
+                "whrc_aboveground_co2_emissions_2001-2019__Mg"
+            ],
+            "integer": [
+                "umd_tree_cover_density__threshold",
+                "ifl_intact_forest_landscape__year"
+            ],
+            "keyword": [
+                "wdpa_protected_area__id",
+                "wdpa_protected_area__name",
+                "wdpa_protected_area__iucn_cat",
+                "wdpa_protected_area__iso",
+                "wdpa_protected_area__status",
+                "tsc_tree_cover_loss_drivers__type",
+                "esa_land_cover_2015__class",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "gfw_plantation__type",
+                "is__gmw_mangroves_1996",
+                "is__gmw_mangroves_2016",
+                "is__umd_regional_primary_forest_2001",
+                "is__gfw_tiger_landscape",
+                "is__landmark_land_right",
+                "is__gfw_land_right",
+                "is__birdlife_key_biodiversity_area",
+                "is__gfw_mining",
+                "is__peatland",
+                "is__gfw_oil_palm",
+                "is__idn_forest_moratorium",
+                "is__gfw_wood_fiber",
+                "is__gfw_resource_right",
+                "is__gfw_managed_forest"
+            ]
+        }
+    },
+    "ANNUAL_WDPA_WHITELIST": {
+        "ids": ["b5269e9d-dc6b-4068-a437-7e146f3b91c2"],
+        "types": {
+            "keyword": [
+                "wdpa_protected_area__id",
+                "wdpa_protected_area__name",
+                "wdpa_protected_area__iucn_cat",
+                "wdpa_protected_area__iso",
+                "wdpa_protected_area__status",
+                "tsc_tree_cover_loss_drivers__type",
+                "esa_land_cover_2015__class",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "gfw_plantation__type",
+                "is__gmw_mangroves_1996",
+                "is__gmw_mangroves_2016",
+                "ifl_intact_forest_landscape__year",
+                "is__gfw_tiger_landscape",
+                "is__landmark_land_right",
+                "is__gfw_land_right",
+                "is__birdlife_key_biodiversity_area",
+                "is__gfw_mining",
+                "is__peatland",
+                "is__gfw_oil_palm",
+                "is__idn_forest_moratorium",
+                "is__gfw_wood_fiber",
+                "is__gfw_resource_right",
+                "is__gfw_managed_forest"
+            ]
+        }
+    },
+    "GLAD_ADM1_SUMMARY": {
+        "ids": ["b88c891a-2b6f-4d8e-ad4a-9cf3de555d12"],
+        "types": {
+            "double": [
+                "area__ha"
+            ],
+            "integer": [
+                "adm1"
+            ],
+            "keyword": [
+                "iso",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "GLAD_ADM1_WEEKLY": {
+        "ids": ["5831c6d8-08d1-46c0-bf8f-d0a77c47c379"],
+        "types": {
+            "double": [
+                "alert_area__ha",
+                "whrc_aboveground_co2_emissions__Mg"
+            ],
+            "integer": [
+                "adm1",
+                "alert__year",
+                "alert__week",
+                "alert__count"
+            ],
+            "keyword": [
+                "iso",
+                "is__confirmed_alert",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "GLAD_ADM1_WHITELIST": {
+        "ids": ["4727c66a-19e9-4b5a-bd14-eddd90763fb9"],
+        "types": {
+            "keyword": [
+                "iso",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ],
+            "integer": [
+                "adm1"
+            ]
+        }
+    },
+    "GLAD_ADM2_DAILY": {
+        "ids": ["4b5effbb-d83f-45b9-8bcb-e11cabafc923"],
+        "types": {
+            "double": [
+                "alert_area__ha",
+                "whrc_aboveground_co2_emissions__Mg"
+            ],
+            "integer": [
+                "adm1",
+                "adm2",
+                "alert__count"
+            ],
+            "keyword": [
+                "iso",
+                "alert__date",
+                "is__confirmed_alert",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "GLAD_ADM2_SUMMARY": {
+        "ids": ["c725724d-60ba-437e-a0a3-6a030af47e14"],
+        "types": {
+            "double": [
+                "area__ha"
+            ],
+            "integer": [
+                "adm1",
+                "adm2"
+            ],
+            "keyword": [
+                "iso",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "GLAD_ADM2_WEEKLY": {
+        "ids": ["71bd928c-71c5-4453-a85b-393ef10cfc74"],
+        "types": {
+            "double": [
+                "alert_area__ha",
+                "whrc_aboveground_co2_emissions__Mg"
+            ],
+            "integer": [
+                "adm1",
+                "adm2",
+                "alert__year",
+                "alert__week",
+                "alert__count"
+            ],
+            "keyword": [
+                "iso",
+                "is__confirmed_alert",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "GLAD_ADM2_WHITELIST": {
+        "ids": ["ca75b6d3-ff73-4a9f-921c-35ed9e4c5dc8"],
+        "types": {
+            "keyword": [
+                "iso",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ],
+            "integer": [
+                "adm1",
+                "adm2"
+            ]
+        }
+    },
+    "GLAD_GEOSTORE_DAILY": {
+        "ids": ["f914e18d-732d-4b24-a8f6-68a4a8d1c266"],
+        "types": {
+            "double": [
+                "alert_area__ha",
+                "whrc_aboveground_co2_emissions__Mg"
+            ],
+            "integer": [
+                "alert__count"
+            ],
+            "keyword": [
+                "geostore__id",
+                "alert__date",
+                "is__confirmed_alert",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "GLAD_GEOSTORE_SUMMARY": {
+        "ids": ["7a244c8f-7c98-49d9-990f-3104315a3067"],
+        "types": {
+            "double": [
+                "area__ha"
+            ],
+            "keyword": [
+                "geostore__id",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "GLAD_GEOSTORE_WEEKLY": {
+        "ids": ["189ab09e-50e8-4072-b805-d7bfc9f6f3f9"],
+        "types": {
+            "double": [
+                "alert_area__ha",
+                "whrc_aboveground_co2_emissions__Mg"
+            ],
+            "integer": [
+                "alert__year",
+                "alert__week",
+                "alert__count"
+            ],
+            "keyword": [
+                "geostore__id",
+                "is__confirmed_alert",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "GLAD_GEOSTORE_WHITELIST": {
+        "ids": ["f3ea601e-8aee-4616-a448-3ce43c4c6aa8"],
+        "types": {
+            "keyword": [
+                "geostore__id",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "GLAD_ISO_SUMMARY": {
+        "ids": ["6d94025e-31e6-4c67-abcd-db82aef0260d"],
+        "types": {
+            "double": [
+                "area__ha"
+            ],
+            "keyword": [
+                "iso",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "GLAD_ISO_WEEKLY": {
+        "ids": ["c9339da7-871e-46cc-b94d-9d98275c9c26"],
+        "types": {
+            "double": [
+                "alert_area__ha",
+                "whrc_aboveground_co2_emissions__Mg"
+            ],
+            "integer": [
+                "alert__year",
+                "alert__week",
+                "alert__count"
+            ],
+            "keyword": [
+                "iso",
+                "is__confirmed_alert",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "GLAD_ISO_WHITELIST": {
+        "ids": ["2a2793b9-de77-4fed-b182-8e7f2710bd3a"],
+        "types": {
+            "keyword": [
+                "iso",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "GLAD_WDPA_DAILY": {
+        "ids": ["8df930b8-7215-4d69-922e-78c597c911a0"],
+        "types": {
+            "double": [
+                "alert_area__ha",
+                "whrc_aboveground_co2_emissions__Mg"
+            ],
+            "integer": [
+                "alert__count"
+            ],
+            "keyword": [
+                "wdpa_protected_area__id",
+                "wdpa_protected_area__name",
+                "wdpa_protected_area__iucn_cat",
+                "wdpa_protected_area__iso",
+                "wdpa_protected_area__status",
+                "alert__date",
+                "is__confirmed_alert",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "GLAD_WDPA_SUMMARY": {
+        "ids": ["f99c0bd8-f331-496a-b708-0142067dbd5b"],
+        "types": {
+            "double": [
+                "area__ha"
+            ],
+            "keyword": [
+                "wdpa_protected_area__id",
+                "wdpa_protected_area__name",
+                "wdpa_protected_area__iucn_cat",
+                "wdpa_protected_area__iso",
+                "wdpa_protected_area__status",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "GLAD_WDPA_WEEKLY": {
+        "ids": ["67cead8c-14c0-40bd-b4b7-075869e075df"],
+        "types": {
+            "double": [
+                "alert_area__ha",
+                "whrc_aboveground_co2_emissions__Mg"
+            ],
+            "integer": [
+                "alert__year",
+                "alert__week",
+                "alert__count"
+            ],
+            "keyword": [
+                "wdpa_protected_area__id",
+                "wdpa_protected_area__name",
+                "wdpa_protected_area__iucn_cat",
+                "wdpa_protected_area__iso",
+                "wdpa_protected_area__status",
+                "is__confirmed_alert",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "GLAD_WDPA_WHITELIST": {
+        "ids": ["ab90027a-1a90-4403-b3f9-0ce6e8edd71a"],
+        "types": {
+            "keyword": [
+                "wdpa_protected_area__id",
+                "wdpa_protected_area__name",
+                "wdpa_protected_area__iucn_cat",
+                "wdpa_protected_area__iso",
+                "wdpa_protected_area__status",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "MODIS_ADM1_WEEKLY": {
+        "ids": ["cae03a7a-6a37-47cc-99ca-04c43428986f"],
+        "types": {
+            "integer": [
+                "adm1",
+                "alert__year",
+                "alert__week",
+                "alert__count"
+            ],
+            "keyword": [
+                "iso",
+                "confidence__cat",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "MODIS_ADM1_WHITELIST": {
+        "ids": ["51e5f85c-c7bf-4b52-89de-0ebef43d9917"],
+        "types": {
+            "keyword": [
+                "iso",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ],
+            "integer": [
+                "adm1"
+            ]
+        }
+    },
+    "MODIS_ADM2_DAILY": {
+        "ids": ["ff7671ff-3bbd-4ca8-b136-b164784991e6"],
+        "types": {
+            "integer": [
+                "adm1",
+                "adm2",
+                "alert__count"
+            ],
+            "keyword": [
+                "iso",
+                "alert__date",
+                "confidence__cat",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "MODIS_ADM2_WEEKLY": {
+        "ids": ["83bd3bbc-324e-4c6b-8761-614b1da26308"],
+        "types": {
+            "integer": [
+                "adm1",
+                "adm2",
+                "alert__year",
+                "alert__week",
+                "alert__count"
+            ],
+            "keyword": [
+                "iso",
+                "confidence__cat",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "MODIS_ADM2_WHITELIST": {
+        "ids": ["eec79fd3-1af3-404e-9ffb-b36a83e58cc1"],
+        "types": {
+            "keyword": [
+                "iso",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ],
+            "integer": [
+                "adm1",
+                "adm2"
+            ]
+        }
+    },
+    "MODIS_GEOSTORE_DAILY": {
+        "ids": ["6e811935-6b20-4be1-8b96-f258216a5a8b"],
+        "types": {
+            "integer": [
+                "alert__count"
+            ],
+            "keyword": [
+                "geostore__id",
+                "alert__date",
+                "confidence__cat",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "MODIS_GEOSTORE_WEEKLY": {
+        "ids": ["c25ae976-1433-48e1-9f71-7d248162828e"],
+        "types": {
+            "integer": [
+                "alert__year",
+                "alert__week",
+                "alert__count"
+            ],
+            "keyword": [
+                "geostore__id",
+                "confidence__cat",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "MODIS_GEOSTORE_WHITELIST": {
+        "ids": ["cf00c4da-aac0-4071-bd23-73f647844031"],
+        "types": {
+            "keyword": [
+                "geostore__id",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "MODIS_ISO_WEEKLY": {
+        "ids": ["6cf67766-fea4-4111-b236-9defa916f91e"],
+        "types": {
+            "integer": [
+                "alert__year",
+                "alert__week",
+                "alert__count"
+            ],
+            "keyword": [
+                "iso",
+                "confidence__cat",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "MODIS_ISO_WHITELIST": {
+        "ids": ["bedaeea1-75f0-4d0b-bab3-8062a0bde3d0"],
+        "types": {
+            "keyword": [
+                "iso",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "MODIS_WDPA_DAILY": {
+        "ids": ["32ce0de7-7c5c-4b3c-a60d-ca2b3e4f2822"],
+        "types": {
+            "integer": [
+                "alert__count"
+            ],
+            "keyword": [
+                "wdpa_protected_area__id",
+                "wdpa_protected_area__name",
+                "wdpa_protected_area__iucn_cat",
+                "wdpa_protected_area__iso",
+                "wdpa_protected_area__status",
+                "alert__date",
+                "confidence__cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "MODIS_WDPA_WEEKLY": {
+        "ids": ["a2dcdee5-06d2-4dfd-a811-591966f8639b"],
+        "types": {
+            "integer": [
+                "alert__year",
+                "alert__week",
+                "alert__count"
+            ],
+            "keyword": [
+                "wdpa_protected_area__id",
+                "wdpa_protected_area__name",
+                "wdpa_protected_area__iucn_cat",
+                "wdpa_protected_area__iso",
+                "wdpa_protected_area__status",
+                "confidence__cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "MODIS_WDPA_WHITELIST": {
+        "ids": ["9a4d2708-9d23-488a-892e-ac07021e9744"],
+        "types": {
+            "keyword": [
+                "wdpa_protected_area__id",
+                "wdpa_protected_area__name",
+                "wdpa_protected_area__iucn_cat",
+                "wdpa_protected_area__iso",
+                "wdpa_protected_area__status",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "VIIRS_ADM1_WEEKLY": {
+        "ids": ["54bb00e8-9888-494a-bcd8-9fd3760fe384"],
+        "sql": ["SELECT iso, adm1, alert__year, alert__week, SUM(alert__count) AS alert__count, confidence__cat  FROM data WHERE iso = '<iso>' AND confidence__cat = 'h' AND ( ((alert__year = 2012 AND alert__week > 38) AND (alert__year = 2012 AND alert__week <= 42)) OR  ((alert__year = 2013 AND alert__week > 38) AND (alert__year = 2013 AND alert__week <= 42)) OR  ((alert__year = 2014 AND alert__week > 38) AND (alert__year = 2014 AND alert__week <= 42)) OR  ((alert__year = 2015 AND alert__week > 38) AND (alert__year = 2015 AND alert__week <= 42)) OR  ((alert__year = 2016 AND alert__week > 37) AND (alert__year = 2016 AND alert__week <= 41)) OR  ((alert__year = 2017 AND alert__week > 38) AND (alert__year = 2017 AND alert__week <= 42)) OR  ((alert__year = 2018 AND alert__week > 38) AND (alert__year = 2018 AND alert__week <= 42)) OR  ((alert__year = 2019 AND alert__week > 38) AND (alert__year = 2019 AND alert__week <= 42)) OR  ((alert__year = 2020 AND alert__week > 38) AND (alert__year = 2020 AND alert__week <= 42))) GROUP BY iso, adm1, alert__year, alert__week"],
+        "types": {
+            "integer": [
+                "adm1",
+                "alert__year",
+                "alert__week",
+                "alert__count"
+            ],
+            "keyword": [
+                "iso",
+                "confidence__cat",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "VIIRS_ADM1_WHITELIST": {
+        "ids": ["8d3d971a-53a5-416f-99ca-894b6e7e3fe3"],
+        "types": {
+            "keyword": [
+                "iso",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ],
+            "integer": [
+                "adm1"
+            ]
+        }
+    },
+    "VIIRS_ADM2_DAILY": {
+        "ids": ["1c72bdb6-0f93-4319-bf47-e2f23c5f0e37"],
+        "types": {
+            "integer": [
+                "adm1",
+                "adm2",
+                "alert__count"
+            ],
+            "keyword": [
+                "iso",
+                "alert__date",
+                "confidence__cat",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "VIIRS_ADM2_WEEKLY": {
+        "ids": ["ff88e67c-2a94-438d-bfd0-4f4c04f68860"],
+        "types": {
+            "integer": [
+                "adm1",
+                "adm2",
+                "alert__year",
+                "alert__week",
+                "alert__count"
+            ],
+            "keyword": [
+                "iso",
+                "confidence__cat",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "VIIRS_ADM2_WHITELIST": {
+        "ids": ["b1d92e4d-c941-4696-aa4a-46f80f64cb22"],
+        "types": {
+            "keyword": [
+                "iso",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ],
+            "integer": [
+                "adm1",
+                "adm2"
+            ]
+        }
+    },
+    "VIIRS_GEOSTORE_DAILY": {
+        "ids": ["0ae3e77e-6af8-44cf-a89f-a2dd0c14fa0f"],
+        "types": {
+            "integer": [
+                "alert__count"
+            ],
+            "keyword": [
+                "geostore__id",
+                "alert__date",
+                "confidence__cat",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "VIIRS_GEOSTORE_WEEKLY": {
+        "ids": ["8c701997-d0b1-4365-b8a4-35376c0a486d"],
+        "types": {
+            "integer": [
+                "alert__year",
+                "alert__week",
+                "alert__count"
+            ],
+            "keyword": [
+                "geostore__id",
+                "confidence__cat",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "VIIRS_GEOSTORE_WHITELIST": {
+        "ids": ["254cb7f6-e396-49b7-9966-06ce5d94c00a"],
+        "types": {
+            "keyword": [
+                "geostore__id",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "VIIRS_ISO_WEEKLY": {
+        "ids": ["f97c9ab9-8322-4ee8-a9d9-cb94242811dd"],
+        "types": {
+            "integer": [
+                "alert__year",
+                "alert__week",
+                "alert__count"
+            ],
+            "keyword": [
+                "iso",
+                "confidence__cat",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "VIIRS_ISO_WHITELIST": {
+        "ids": ["c55895ad-36e7-4901-b9a5-3e9b1267d2ba"],
+        "types": {
+            "keyword": [
+                "iso",
+                "wdpa_protected_area__iucn_cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "VIIRS_WDPA_DAILY": {
+        "ids": ["3001b513-52f5-4f58-bc92-e7f725f8aa49"],
+        "types": {
+            "integer": [
+                "alert__count"
+            ],
+            "keyword": [
+                "wdpa_protected_area__id",
+                "wdpa_protected_area__name",
+                "wdpa_protected_area__iucn_cat",
+                "wdpa_protected_area__iso",
+                "wdpa_protected_area__status",
+                "alert__date",
+                "confidence__cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "VIIRS_WDPA_WEEKLY": {
+        "ids": ["cfd2a045-54c6-4713-bf3e-b312bca86b29"],
+        "types": {
+            "integer": [
+                "alert__year",
+                "alert__week",
+                "alert__count"
+            ],
+            "keyword": [
+                "wdpa_protected_area__id",
+                "wdpa_protected_area__name",
+                "wdpa_protected_area__iucn_cat",
+                "wdpa_protected_area__iso",
+                "wdpa_protected_area__status",
+                "confidence__cat",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    },
+    "VIIRS_WDPA_WHITELIST": {
+        "ids": ["7bfa6851-85f7-4f72-9855-8225bd16217f"],
+        "types": {
+            "keyword": [
+                "wdpa_protected_area__id",
+                "wdpa_protected_area__name",
+                "wdpa_protected_area__iucn_cat",
+                "wdpa_protected_area__iso",
+                "wdpa_protected_area__status",
+                "is__umd_regional_primary_forest_2001",
+                "is__birdlife_alliance_for_zero_extinction_site",
+                "is__birdlife_key_biodiversity_area",
+                "is__landmark_land_right",
+                "gfw_plantation__type",
+                "is__gfw_mining",
+                "is__gfw_managed_forest",
+                "rspo_oil_palm__certification_status",
+                "is__gfw_wood_fiber",
+                "is__peatland",
+                "is__idn_forest_moratorium",
+                "is__gfw_oil_palm",
+                "idn_forest_area__type",
+                "per_forest_concession__type",
+                "is__gfw_oil_gas",
+                "is__gmw_mangroves_2016",
+                "is__ifl_intact_forest_landscape_2016",
+                "bra_biome__name"
+            ]
+        }
+    }
+}

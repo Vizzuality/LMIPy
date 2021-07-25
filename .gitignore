@@ -19,3 +19,4 @@ sample.geojson
 .coverage
 keys.json
 coverage.xml
+data/
