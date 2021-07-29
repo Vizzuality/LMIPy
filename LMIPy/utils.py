@@ -1,5 +1,6 @@
 import json
 from shapely.geometry import mapping, shape, box
+import requests
 
 def html_box(item):
     """Returns an HTML block with template strings filled-in based on item attributes."""
@@ -19,21 +20,21 @@ def html_box(item):
     if is_layer:
         kind_of_item = 'Layer'
         if needs_widgets_and_co:
-            url_link = f'{item.server}/v1/layer/{item.id}?includes=vocabulary,metadata'
+            url_link = f'{item.server}/v1/layer/{item.id}?filterIncludesByEnv=true&includes=vocabulary,metadata&env={item.attributes["env"]}'
         else:
-            url_link = f'{item.server}/v1/layer/{item.id}?includes=metadata'
+            url_link = f'{item.server}/v1/layer/{item.id}?filterIncludesByEnv=true&includes=metadata&env={item.attributes["env"]}'
     elif is_dataset:
         kind_of_item = 'Dataset'
         if needs_widgets_and_co:
-            url_link = f'{item.server}/v1/dataset/{item.id}?includes=vocabulary,metadata,layer,widget'
+            url_link = f'{item.server}/v1/dataset/{item.id}?filterIncludesByEnv=true&includes=vocabulary,metadata,layer,widget&env={item.attributes["env"]}'
         else:
-            url_link = f'{item.server}/v1/dataset/{item.id}?includes=metadata,layer'
+            url_link = f'{item.server}/v1/dataset/{item.id}?filterIncludesByEnv=true&includes=metadata,layer&env={item.attributes["env"]}'
     elif is_table:
         kind_of_item = 'Table'
         if needs_widgets_and_co:
-            url_link = f'{item.server}/v1/dataset/{item.id}?includes=vocabulary,metadata,layer,widget'
+            url_link = f'{item.server}/v1/dataset/{item.id}?filterIncludesByEnv=true&includes=vocabulary,metadata,layer,widget'
         else:
-            url_link = f'{item.server}/v1/dataset/{item.id}?includes=metadata,layer'
+            url_link = f'{item.server}/v1/dataset/{item.id}?filterIncludesByEnv=true&includes=metadata,layer'
     elif is_image:
         if item.type in ['Classified Image', 'Composite Image']:
             instrument = item.type
@@ -101,7 +102,8 @@ def html_box(item):
             f"<a href={url_link} target='_blank'>"
             f"<b>{item.attributes.get('name')}</b>"
             "</a>"
-            f"<br> {table_statement} | {kind_of_item} in {', '.join(item_app).upper() if type(item_app) == list else item_app.upper()}."
+            f"<br>{item.attributes.get('env').title()} {kind_of_item} in {', '.join(item_app).upper() if type(item_app) == list else item_app.upper()}."
+            f"<br> {table_statement}"
             f"<br>Last Modified: {item.attributes.get('updatedAt', 'N/A')}"
             f"<br><a href='{item.server}/v1/fields/{item.id}' target='_blank'>Fields</a>"
             f" Connector: {item.attributes.get('provider', 'N/A')}"
@@ -132,25 +134,26 @@ def show(item, i):
     item_id = item['id']
     item = create_class(item)
     attributes = item.attributes
+    env = attributes.get('env')
     uses_widgets = server_uses_widgets(server)
     if is_layer:
         kind_of_item = 'Layer'
         if uses_widgets:
-            url_link = f'{server}/v1/layer/{item_id}?includes=vocabulary,metadata'
+            url_link = f'{server}/v1/layer/{item_id}?filterIncludesByEnv=true&includes=vocabulary,metadata&env={env}'
         else:
-            url_link = f'{server}/v1/layer/{item_id}?includes=metadata'
+            url_link = f'{server}/v1/layer/{item_id}?filterIncludesByEnv=true&includes=metadata&env={env}'
     elif is_dataset:
         kind_of_item = 'Dataset'
         if uses_widgets:
-            url_link = f'{server}/v1/dataset/{item_id}?includes=vocabulary,metadata,layer,widget'
+            url_link = f'{server}/v1/dataset/{item_id}?filterIncludesByEnv=true&includes=vocabulary,metadata,layer,widget&env={env}'
         else:
-            url_link = f'{server}/v1/dataset/{item_id}?includes=metadata,layer'
+            url_link = f'{server}/v1/dataset/{item_id}?filterIncludesByEnv=true&includes=metadata,layer&env={env}'
     elif is_table:
         kind_of_item = 'Table'
         if uses_widgets:
-            url_link = f'{server}/v1/dataset/{item_id}?includes=vocabulary,metadata,layer,widget'
+            url_link = f'{server}/v1/dataset/{item_id}?filterIncludesByEnv=true&includes=vocabulary,metadata,layer,widget'
         else:
-            url_link = f'{server}/v1/dataset/{item_id}?includes=metadata,layer'
+            url_link = f'{server}/v1/dataset/{item_id}?filterIncludesByEnv=true&includes=metadata,layer'
     elif is_widget:
         kind_of_item = 'Table'
         url_link = f'{server}/v1/widget/{item_id}'
@@ -192,7 +195,8 @@ def show(item, i):
             f"<a href={url_link} target='_blank'>"
             f"<b>{attributes.get('name', None)}</b>"
             "</a>"
-            f"<br> {table_statement} | {kind_of_item} in {', '.join(attributes.get('application', '')).upper()}."
+            f"<br>{attributes.get('env').title()} {kind_of_item} in {', '.join(attributes.get('application', '')).upper()}."
+            f"<br> {table_statement}"
             f"<br>Last Modified: {attributes.get('updatedAt', None)}"
             f"<br><a href='{server}/v1/fields/{item_id}' target='_blank'>Fields</a>"
             f" | Connector: {attributes.get('provider', None)}"
@@ -204,7 +208,7 @@ def create_class(item):
     from .dataset import Dataset
     from .table import Table
     from .layer import Layer
-    from .lmipy import Widget
+    from .widget import Widget
     from .image import Image
     if item['type'] == 'Table':
         return Table(id_hash = item.get('id'), server = item.get('server'))
@@ -362,3 +366,30 @@ def create_grid(feature, N=3, as_shp=False):
         feats.append({'type': 'Feature', 'properties': {}, 'geometry': json.dumps(feat)})
 
     return feats
+
+def env_association(server='https://api.resourcewatch.org', app='gfw'):
+    """
+    """
+    url = f'{server}/metadata?type=layer&application={app}'
+
+    r = requests.get(url)
+    print(r.url)
+    metadatas = r.json().get('data', [])
+    links = []
+    if metadatas:
+        for m in metadatas:
+            info = m['attributes']['info']
+            meta_id = m['id']
+            
+            production = info.get('production', {})
+            staging = info.get('staging', {})
+
+            links += [{
+                'metadata_id': meta_id,
+                'production_dataset': production.get('dataset', None),
+                'production_layer': production.get('layer', None),
+                'staging_dataset': staging.get('dataset', None),
+                'staging_layer': staging.get('layer', None)
+            }]
+            
+    return links     

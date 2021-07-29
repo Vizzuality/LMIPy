@@ -6,8 +6,9 @@ import json
 import random
 import re
 from pprint import pprint
-from .utils import html_box, get_geojson_string, nested_set, server_uses_widgets
+from .utils import html_box, get_geojson_string, nested_set, server_uses_widgets, env_association
 
+from .metadata import Metadata
 
 class Layer:
     """
@@ -27,6 +28,7 @@ class Layer:
         self.server = server
         self.mapbox_token = mapbox_token
         self.type = 'Layer'
+        self.metadata = []
         if not attributes and id_hash:
             self.id = id_hash
             self.attributes = self.get_layer()
@@ -37,6 +39,8 @@ class Layer:
         elif attributes:
             self.id = attributes.get('id')
             self.attributes = self.get_layer()
+
+        self.dataset = self.attributes.get('dataset', None)
 
     def __repr__(self):
         return self.__str__()
@@ -440,7 +444,9 @@ class Layer:
         Returns parent datset
         """
         from .dataset import Dataset
-        return Dataset(self.attributes['dataset'], server=self.server)
+        d = Dataset(self.attributes['dataset'], server=self.server)
+        self.dataset = d.id
+        return d
 
     def intersect(self, geometry):
         """
@@ -577,3 +583,99 @@ class Layer:
         else:
             print('Requires y/n input!')
             return False
+
+    def add_metadata(self, meta_params=None, token=None):
+            """
+            Create a new metadata association to the current Layer.
+
+            A single application string and language string ('en' by default) must be specified within the
+            `meta_params` dictionary, as well as an (optional) info dictionary.
+            Info has a free schema.
+
+            A RW-API token is required.
+
+            meta_params must include `info` key
+            """
+            if not token:
+                raise ValueError(f'[token] API token required to create new vocabulary.')
+            info = meta_params.get('info', None)
+            app = meta_params.get('application', None) or meta_params.get('app', None) or self.attributes.get('application', None)
+            ds_id = self.dataset or None
+            l_id = self.id or None
+            if info and app:
+                payload = {
+                    "info": info,
+                    "application": app,
+                    "language": meta_params.get('language', 'en')
+                }
+                try:
+                    url = f'{self.server}/v1/dataset/{ds_id}/layer/{l_id}/metadata'
+                    headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
+                    r = requests.post(url, data=json.dumps(payload), headers=headers)
+
+                    if r.status_code == 200:
+                        print(f'Metadata created.')
+                        return Layer(id_hash=l_id, server=self.server)
+                    else:
+                        print(f'Failed with error code {r.status_code}')
+                        return None
+                except:
+                    raise ValueError(f'Vocabulary creation failed.')
+                
+            else:
+                raise ValueError(f'Metadata creation requires an info object and application string.')
+
+    def get_metadata(self):
+        l_id = self.id or None
+        d_id = self.dataset or None
+
+        if not l_id:
+            raise ValueError(f"No Layer id found, unable to fetch metadata")
+
+        if not d_id:
+            raise ValueError(f"No parent Dataset id found, unable to fetch metadata")
+
+        url = f'https://api.resourcewatch.org/v1/dataset/{d_id}/layer/{l_id}/metadata'
+        headers = {'Content-Type': 'application/json'}
+
+        metas = []
+        try: 
+            r = requests.get(url, headers=headers)
+            if  r.status_code == 200:
+                metas = r.json().get('data', [])
+            else:
+                raise ValueError(f'Dataset with id={self.id} does not exist.')
+        except:
+            raise ValueError(f'Unable to get Metadata for Layer {l_id} from {url}')
+
+        metadata_list = [Metadata(attributes=m, server=self.server) for m in metas]
+        self.metadata = metadata_list
+        return metadata_list
+
+
+    def find_env_link(self, server='https://api.resourcewatch.org', app='gfw'):
+        links = env_association(server=server, app=app)
+        found_link = [link for link in links if self.id in link.values()]
+
+        if found_link and len(found_link):
+            ids = found_link[0]
+
+            production_id = ids.get('production_layer', None)
+            staging_id = ids.get('staging_layer', None)
+            
+            # link is opposite env
+            isLinkedLayerProdEnv = not (production_id == self.id)
+
+            linkId = production_id if isLinkedLayerProdEnv else staging_id
+            linkLayer = Layer(linkId)
+
+            self.linked_layer = {
+                'id': linkId,
+                'env': 'production' if isLinkedLayerProdEnv else 'staging'
+            }
+
+            print(f'Linked {"production" if isLinkedLayerProdEnv else "staging"} {linkLayer}')
+            return linkLayer
+        
+        print('Associated Layers not found!')    
+        return {}

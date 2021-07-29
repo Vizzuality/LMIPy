@@ -1,7 +1,7 @@
 import requests
 import json
 from .image import Image
-from .utils import create_class, show_image_collection, flatten_list
+from .utils import create_class, show_image_collection
 
 class ImageCollection:
     """

@@ -1,11 +1,9 @@
 import requests
 import folium
-import urllib
 import json
 import random
 import geopandas as gpd
 from shapely.geometry import shape
-import shapely.wkt
 import geojson
 from .utils import html_box, get_geojson_string
 import json

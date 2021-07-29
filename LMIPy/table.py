@@ -1,9 +1,7 @@
 import requests
-import random
 import geopandas as gpd
 from shapely.geometry import shape
 from .dataset import Dataset
-from .utils import html_box
 
 class Table(Dataset):
     """

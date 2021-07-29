@@ -161,10 +161,10 @@ class Collection:
         hash = random.getrandbits(16)
         filter_string = parse_filters(self.filters)
         if server_uses_widgets(server=self.server):
-            url = (f'{self.server}/v1/dataset?app={self.app}&env={self.env}&{filter_string}'
+            url = (f'{self.server}/v1/dataset?app={self.app}{"&filterIncludesByEnv=true" if self.env != "production" else ""}&env={self.env}&{filter_string}'
                    f'includes=layer,vocabulary,metadata,widget&page[size]=1000&hash={hash}')
         else:
-            url = (f'{self.server}/v1/dataset?app={self.app}&env={self.env}&{filter_string}'
+            url = (f'{self.server}/v1/dataset?app={self.app}{"&filterIncludesByEnv=true" if self.env != "production" else ""}&env={self.env}&{filter_string}'
                    f'includes=layer,metadata&page[size]=1000&hash={hash}')
         r = requests.get(url)
         response_list = r.json().get('data', None)

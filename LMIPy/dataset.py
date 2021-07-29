@@ -10,7 +10,9 @@ from time import sleep
 from pprint import pprint
 from .layer import Layer
 from .utils import html_box, nested_set, server_uses_widgets
-from .lmipy import Vocabulary, Metadata, Widget
+from .vocabulary import Vocabulary
+from .metadata import Metadata
+from .widget import Widget
 
 
 class Dataset:
@@ -77,12 +79,12 @@ class Dataset:
         try:
             hash = random.getrandbits(16)
             if server_uses_widgets(self.server):
-                url = f'{self.server}/v1/dataset/{self.id}?includes=layer,widget,vocabulary,metadata&hash={hash}'
+                url = f'{self.server}/v1/dataset/{self.id}?includes=layer,widget,vocabulary,metadata&filterIncludesByEnv=true&hash={hash}'
             else:
-                url = f'{self.server}/v1/dataset/{self.id}?includes=layer,metadata&hash={hash}'
+                url = f'{self.server}/v1/dataset/{self.id}?includes=layer,metadata&filterIncludesByEnv=true&hash={hash}'
             r = requests.get(url)
         except:
-            raise ValueError(f'Unable to get Dataset {self.id} from {r.url}')
+            raise ValueError(f'Unable to get Dataset {self.id} from {url}')
         if r.status_code == 200:
             return r.json().get('data').get('attributes')
         else:
@@ -508,7 +510,7 @@ class Dataset:
         if not token:
             raise ValueError(f'[token] API token required to create new vocabulary.')
         info = meta_params.get('info', None)
-        app = meta_params.get('application', None)
+        app = meta_params.get('application', None) or meta_params.get('app', None)
         ds_id = self.id
         if info and app:
             payload = {
