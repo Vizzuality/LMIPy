@@ -392,4 +392,4 @@ def env_association(server='https://api.resourcewatch.org', app='gfw'):
                 'staging_layer': staging.get('layer', None)
             }]
             
-    return links     
+    return links

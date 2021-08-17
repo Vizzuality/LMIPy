@@ -29,6 +29,7 @@ class Layer:
         self.mapbox_token = mapbox_token
         self.type = 'Layer'
         self.metadata = []
+        self.attributes = {}
         if not attributes and id_hash:
             self.id = id_hash
             self.attributes = self.get_layer()
@@ -41,6 +42,7 @@ class Layer:
             self.attributes = self.get_layer()
 
         self.dataset = self.attributes.get('dataset', None)
+        self.linked_layer = None
 
     def __repr__(self):
         return self.__str__()
@@ -312,13 +314,14 @@ class Layer:
             print('Deletion aborted')
         return None
 
-    def clone(self, token=None, env='staging', clone_server=None, layer_params={}, target_dataset_id=None):
+    def clone(self, token=None, env='staging', clone_server=None, layer_params={}, target_dataset_id=None, create_link=False):
         """
         Create a clone of current Layer (and its parent Dataset) as a new staging or prod Layer.
         A set of attributes can be specified for the clone Layer using layer_params.
         Optionally, you can also select a target Dataset to attach your Layer clone to.
 
         The argument `clone_server` specifies the server to clone to. Default server is the layers own server.
+        The argument `create_link` will link the clone layer and the original if they are env='staging' and env='production', respectively.
         """
         from .dataset import Dataset
         if not clone_server: clone_server = self.server
@@ -382,7 +385,13 @@ class Layer:
             print(r.status_code)
             return None
         print(f'{clone_server}/v1/dataset/{target_dataset_id}/layer/{clone_layer_id}')
-        return Layer(id_hash=clone_layer_id, server=clone_server)
+        clone_layer = Layer(id_hash=clone_layer_id, server=clone_server)
+
+        if create_link:
+            print("Linking clone...")
+            _ = self.link_layers(link_layer=clone_layer, token=token)
+                
+        return clone_layer
 
     def parse_query(self, sql):
         """
@@ -537,6 +546,24 @@ class Layer:
             print(f'{server}/v1/layer/{new_layer_id}')
             return Layer(id_hash=new_layer_id, server=server)
 
+    def merge_linked_layer(self, token=None, key_whitelist=['layerConfig','legendConfig','interactionConfig','description','iso','provider']):
+        """
+        Merge current layer's keys into linked layer counterpart.
+        
+        Use 'key_whitelist' to specify keys to merge (default: all keys except 'name' & 'applicationConfig')
+        """
+        
+        self.get_linked_layer()
+        linked_layer_id = self.linked_layer.get('id', None)
+        if not linked_layer_id:
+            raise ValueError(f'No linked Layer found')
+        
+        linked_layer = Layer(id_hash=linked_layer_id, server=self.server)
+
+        print(f'Attempting to merge {self.attributes["env"]} into {linked_layer.attributes["env"]}...\n')
+        key_blacklist = ['applicationConfig', 'name']
+        return self.merge(token=token, target_layer=linked_layer, target_server=self.server, key_whitelist=[k for k in key_whitelist if k not in key_blacklist], force=False)
+
     def merge(self, token=None, target_layer=None, target_layer_id=None, target_server='https://api.resourcewatch.org', key_whitelist=[], force=False):
         """
         'Merge' one Layer entity into another target Layer.
@@ -626,6 +653,9 @@ class Layer:
                 raise ValueError(f'Metadata creation requires an info object and application string.')
 
     def get_metadata(self):
+        """
+        Populates any Metadata objects associated with the layer and sets the Object.metadata attribute
+        """
         l_id = self.id or None
         d_id = self.dataset or None
 
@@ -653,8 +683,14 @@ class Layer:
         return metadata_list
 
 
-    def find_env_link(self, server='https://api.resourcewatch.org', app='gfw'):
-        links = env_association(server=server, app=app)
+    def get_linked_layer(self, app='gfw'):
+        """
+        Searches for corresponding staging/env Layers that have been linked in Layer.metadata
+
+        Populates the linked layer id and env in the Object.linked_layer attribute and returns
+        the linked layer Layer object.
+        """
+        links = env_association(server=self.server, app=app)
         found_link = [link for link in links if self.id in link.values()]
 
         if found_link and len(found_link):
@@ -671,11 +707,67 @@ class Layer:
 
             self.linked_layer = {
                 'id': linkId,
-                'env': 'production' if isLinkedLayerProdEnv else 'staging'
+                'env': linkLayer.attributes['env'],
+                'updatedAt': linkLayer.attributes['updatedAt']
             }
 
-            print(f'Linked {"production" if isLinkedLayerProdEnv else "staging"} {linkLayer}')
+            linkLayer.linked_layer = {
+                'id': self.id,
+                'env': self.attributes['env'],
+                'updatedAt': self.attributes['updatedAt']
+            }
+
+            print(f"Linked {linkLayer.attributes['env']} {linkLayer}")
             return linkLayer
         
         print('Associated Layers not found!')    
-        return {}
+        return None
+
+    def link_layers(self, link_layer=None, link_layer_id=None, app='gfw', token=None):
+        """
+        (GFW Usage) Link a staging and production Layers via Metadata entities
+        """
+
+        left_id = self.id
+        left_env = self.attributes['env']
+        left_dataset_id = self.dataset
+
+        right_id = link_layer.id if link_layer else link_layer_id
+        if not right_id:
+            raise ValueError(f"No Link Layer id found, unable to fetch link")
+
+        linkLayer = Layer(right_id, server=self.server)
+        right_env = linkLayer.attributes['env']
+        right_dataset_id = linkLayer.dataset
+
+        env_whitelist = ['staging', 'production']
+        layer_envs = [left_env, right_env]
+        if left_env == right_env or not all([env in layer_envs for env in env_whitelist]):
+            raise ValueError(f"Only able to link corresponding staging and production Layers.")
+
+        link_info = {
+            'app': app,
+            'info': {
+                f'{left_env}': {
+                    'dataset': left_dataset_id,
+                    'layer': left_id
+                    },
+                f'{right_env}': {
+                    'dataset': right_dataset_id,
+                    'layer': right_id
+                    }
+            }
+        }
+
+        try:
+            _ = self.add_metadata(meta_params={'info': link_info}, token=token)
+            _ = self.get_metadata()
+        except:
+            print(f"Failed to add Metadata to {left_env} Layer: {left_id}")
+        
+        try:
+            _ = linkLayer.add_metadata(meta_params={'info': link_info}, token=token)
+        except:
+            print(f"Failed to add Metadata to {right_env} Layer: {right_id}")
+
+        return self
